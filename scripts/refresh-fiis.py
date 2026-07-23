@@ -22,7 +22,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def download(url: str, target: Path) -> bool:
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
+        request = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; B3ScoreGratuito/1.0)",
+                "Accept": "application/zip,application/octet-stream,*/*",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=30) as response:
             target.write_bytes(response.read())
         if not zipfile.is_zipfile(target):
             target.unlink(missing_ok=True)
