@@ -57,6 +57,8 @@ if len(sessions) < 2:
 
 current_date, current = sessions[0]
 previous = sessions[1][1]
+existing_path = (ROOT / "data/b3-catalog.json") if (ROOT / "data/b3-catalog.json").exists() else (ROOT / "app/data/b3-catalog.json")
+existing = {row["ticker"]: row for row in json.loads(existing_path.read_text(encoding="utf-8"))} if existing_path.exists() else {}
 output = []
 for ticker, quote in sorted(current.items()):
     prior = previous.get(ticker, {}).get("price")
@@ -67,6 +69,13 @@ for ticker, quote in sorted(current.items()):
         "change": change,
         "changepct": change / prior * 100 if change is not None and prior else None,
     })
+
+# Some valid shares do not trade every day. Keep their last official quote
+# instead of making them disappear from the searchable universe.
+for ticker, quote in sorted(existing.items()):
+    if ticker not in current and quote.get("kind") in {"stock", "unit"}:
+        output.append(quote)
+output.sort(key=lambda row: row["ticker"])
 
 paths = [ROOT / "data/b3-catalog.json"] if (ROOT / "data").exists() else [ROOT / "app/data/b3-catalog.json", ROOT / "public/b3-catalog.json"]
 for path in paths:
