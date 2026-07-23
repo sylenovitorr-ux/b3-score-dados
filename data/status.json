@@ -1,10 +1,16 @@
 {
   "ok": true,
-  "updatedAt": "2026-07-23T00:52:42.043372+00:00",
-  "quoteDate": "2026-07-22",
+  "updatedAt": "2026-07-23T01:03:35.363777+00:00",
+  "stockQuoteDate": "2026-07-22",
+  "fiiQuoteDate": "2026-07-22",
+  "stockCount": 312,
+  "stockCvmCount": 287,
   "fiiCount": 287,
   "sources": [
     "B3 COTAHIST",
-    "CVM Dados Abertos"
+    "CVM DFP",
+    "CVM ITR",
+    "CVM FCA",
+    "CVM Informes FII"
   ]
 }
