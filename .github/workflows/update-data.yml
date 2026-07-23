@@ -1,0 +1,42 @@
+name: Atualizar dados oficiais B3 e CVM
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 19:17 em Boa Vista (UTC-4), de segunda a sexta.
+    - cron: "17 23 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-dados-b3
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Atualizar dados
+        run: python scripts/refresh-fiis.py
+
+      - name: Salvar nova versão
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Os dados já estão atualizados."
+            exit 0
+          fi
+          git commit -m "Atualizar dados oficiais B3 e CVM"
+          git push
