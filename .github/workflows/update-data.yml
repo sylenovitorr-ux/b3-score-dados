@@ -2,6 +2,10 @@ name: Atualizar dados oficiais B3 e CVM
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/update-data.yml"
+      - "scripts/**"
   schedule:
     # 19:17 em Boa Vista (UTC-4), de segunda a sexta.
     - cron: "17 23 * * 1-5"
