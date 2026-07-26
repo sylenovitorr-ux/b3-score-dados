@@ -20,7 +20,14 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-from accounting_engine import calculate_ttm, growth_analysis, isolate_quarters, period_days, reconcile_balance
+from accounting_engine import (
+    calculate_ttm,
+    growth_analysis,
+    isolate_quarters,
+    period_days,
+    reconcile_balance,
+    select_statement_scope,
+)
 from dividend_engine import calculate_ticker_dividends
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,7 +65,7 @@ def normalize_label(value):
     return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
 
 
-def store_statement_row(bucket, row, code, value):
+def store_statement_row(bucket, row, code, value, scope="consolidated"):
     bucket[code] = value
     bucket.setdefault("_rows", []).append({
         "code": code,
@@ -73,7 +80,7 @@ def store_statement_row(bucket, row, code, value):
         "endDate": row.get("DT_FIM_EXERC") or row.get("DT_REFER") or None,
         "referenceDate": row.get("DT_REFER") or None,
         "version": int(row.get("VERSAO") or 0),
-        "scope": "consolidated",
+        "scope": scope,
         "order": row.get("ORDEM_EXERC") or None,
     })
 
@@ -88,7 +95,7 @@ def latest_documents(source):
     return latest
 
 
-def statements(zip_name, member, document_keys):
+def statements(zip_name, member, document_keys, scope="consolidated"):
     periods = defaultdict(lambda: {"current": defaultdict(dict), "previous": defaultdict(dict)})
     for row in rows(zip_name, member):
         cnpj = row.get("CNPJ_CIA")
@@ -102,7 +109,7 @@ def statements(zip_name, member, document_keys):
         code = row.get("CD_CONTA")
         value = money_value(row)
         if code and value is not None:
-            store_statement_row(periods[cnpj][bucket][period_key], row, code, value)
+            store_statement_row(periods[cnpj][bucket][period_key], row, code, value, scope)
     data = defaultdict(lambda: {"current": {}, "previous": {}})
     for cnpj, buckets in periods.items():
         for bucket, candidates in buckets.items():
@@ -118,9 +125,9 @@ def statements(zip_name, member, document_keys):
     return data
 
 
-def safe_statements(zip_name, member, document_keys):
+def safe_statements(zip_name, member, document_keys, scope="consolidated"):
     try:
-        return statements(zip_name, member, document_keys)
+        return statements(zip_name, member, document_keys, scope)
     except KeyError:
         return defaultdict(lambda: {"current": {}, "previous": {}})
 
@@ -158,12 +165,13 @@ def document_index(kind):
     return index
 
 
-def annual_history(statement, document_index):
-    """Five latest annual consolidated statements, keyed by CVM account code."""
+def annual_history(statement, document_index, scope="consolidated"):
+    """Latest annual statements for one explicit CVM accounting scope."""
     history = defaultdict(dict)
     for path in sorted(CVM.glob("dfp*.zip")):
         year = path.stem.removeprefix("dfp")
-        member = f"dfp_cia_aberta_{statement}_con_{year}.csv"
+        suffix = "con" if scope == "consolidated" else "ind"
+        member = f"dfp_cia_aberta_{statement}_{suffix}_{year}.csv"
         try:
             source = rows(path.name, member)
             for row in source:
@@ -176,7 +184,7 @@ def annual_history(statement, document_index):
                 code = row.get("CD_CONTA")
                 value = money_value(row)
                 if code and value is not None:
-                    store_statement_row(history[cnpj].setdefault(reference, {}), row, code, value)
+                    store_statement_row(history[cnpj].setdefault(reference, {}), row, code, value, scope)
         except KeyError:
             continue
     return history
@@ -199,12 +207,13 @@ def document_versions(kind):
     return versions
 
 
-def interim_period_history(statement, document_index):
-    """All latest-version consolidated ITR periods, preserving period dates."""
+def interim_period_history(statement, document_index, scope="consolidated"):
+    """All latest-version ITR periods for one explicit accounting scope."""
     history = defaultdict(lambda: defaultdict(list))
     for path in sorted(CVM.glob("itr*.zip")):
         year = path.stem.removeprefix("itr")
-        member = f"itr_cia_aberta_{statement}_con_{year}.csv"
+        suffix = "con" if scope == "consolidated" else "ind"
+        member = f"itr_cia_aberta_{statement}_{suffix}_{year}.csv"
         try:
             grouped = defaultdict(dict)
             for row in rows(path.name, member):
@@ -218,7 +227,7 @@ def interim_period_history(statement, document_index):
                 code = row.get("CD_CONTA")
                 value = money_value(row)
                 if code and value is not None:
-                    store_statement_row(grouped[(cnpj, reference)].setdefault(period_key, {}), row, code, value)
+                    store_statement_row(grouped[(cnpj, reference)].setdefault(period_key, {}), row, code, value, scope)
             for (cnpj, reference), periods in grouped.items():
                 history[cnpj][reference].extend(periods.values())
         except KeyError:
@@ -382,30 +391,49 @@ for row in fca_docs:
 dfp_index = latest_documents(rows(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_{DFP_YEAR}.csv"))
 itr_index = latest_documents(rows(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_{ITR_YEAR}.csv"))
 
-dfp_dre = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DRE_con_{DFP_YEAR}.csv", dfp_index)
-dfp_bpa = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPA_con_{DFP_YEAR}.csv", dfp_index)
-dfp_bpp = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPP_con_{DFP_YEAR}.csv", dfp_index)
-itr_dre = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DRE_con_{ITR_YEAR}.csv", itr_index)
-itr_bpa = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPA_con_{ITR_YEAR}.csv", itr_index)
-itr_bpp = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPP_con_{ITR_YEAR}.csv", itr_index)
-dfp_dfc_mi = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MI_con_{DFP_YEAR}.csv", dfp_index)
-dfp_dfc_md = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MD_con_{DFP_YEAR}.csv", dfp_index)
-itr_dfc_mi = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MI_con_{ITR_YEAR}.csv", itr_index)
-itr_dfc_md = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MD_con_{ITR_YEAR}.csv", itr_index)
-dfp_dfc, dfp_dfc_methods = merge_statement_methods(dfp_dfc_mi, dfp_dfc_md, "indirect", "direct")
-itr_dfc, itr_dfc_methods = merge_statement_methods(itr_dfc_mi, itr_dfc_md, "indirect", "direct")
+def load_scope(scope):
+    suffix = "con" if scope == "consolidated" else "ind"
+    return {
+        "dfp_dre": safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DRE_{suffix}_{DFP_YEAR}.csv", dfp_index, scope),
+        "dfp_bpa": safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPA_{suffix}_{DFP_YEAR}.csv", dfp_index, scope),
+        "dfp_bpp": safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPP_{suffix}_{DFP_YEAR}.csv", dfp_index, scope),
+        "itr_dre": safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DRE_{suffix}_{ITR_YEAR}.csv", itr_index, scope),
+        "itr_bpa": safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPA_{suffix}_{ITR_YEAR}.csv", itr_index, scope),
+        "itr_bpp": safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPP_{suffix}_{ITR_YEAR}.csv", itr_index, scope),
+        "dfp_dfc_mi": safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MI_{suffix}_{DFP_YEAR}.csv", dfp_index, scope),
+        "dfp_dfc_md": safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MD_{suffix}_{DFP_YEAR}.csv", dfp_index, scope),
+        "itr_dfc_mi": safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MI_{suffix}_{ITR_YEAR}.csv", itr_index, scope),
+        "itr_dfc_md": safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MD_{suffix}_{ITR_YEAR}.csv", itr_index, scope),
+    }
+
+
+scope_data = {
+    "consolidated": load_scope("consolidated"),
+    "individual": load_scope("individual"),
+}
+for scoped in scope_data.values():
+    scoped["dfp_dfc"], scoped["dfp_dfc_methods"] = merge_statement_methods(
+        scoped["dfp_dfc_mi"], scoped["dfp_dfc_md"], "indirect", "direct"
+    )
+    scoped["itr_dfc"], scoped["itr_dfc_methods"] = merge_statement_methods(
+        scoped["itr_dfc_mi"], scoped["itr_dfc_md"], "indirect", "direct"
+    )
 
 dfp_cap = capital(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_composicao_capital_{DFP_YEAR}.csv", dfp_index)
 itr_cap = capital(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_composicao_capital_{ITR_YEAR}.csv", itr_index)
 
 annual_index = document_index("dfp")
 interim_index = document_index("itr")
-history_dre = annual_history("DRE", annual_index)
-history_bpa = annual_history("BPA", annual_index)
-history_bpp = annual_history("BPP", annual_index)
-history_dfc_mi = annual_history("DFC_MI", annual_index)
-history_dfc_md = annual_history("DFC_MD", annual_index)
-interim_history_dre = interim_period_history("DRE", interim_index)
+scope_history = {}
+for scope in ("consolidated", "individual"):
+    scope_history[scope] = {
+        "dre": annual_history("DRE", annual_index, scope),
+        "bpa": annual_history("BPA", annual_index, scope),
+        "bpp": annual_history("BPP", annual_index, scope),
+        "dfc_mi": annual_history("DFC_MI", annual_index, scope),
+        "dfc_md": annual_history("DFC_MD", annual_index, scope),
+        "interim_dre": interim_period_history("DRE", interim_index, scope),
+    }
 dfp_versions = document_versions("dfp")
 itr_versions = document_versions("itr")
 
@@ -428,8 +456,10 @@ def trace_account(values, *codes):
     return None
 
 
-def quarterly_rows(cnpj):
+def quarterly_rows(cnpj, scope):
     """Essential DRE accounts as isolated quarters, never mixed across scope."""
+    history_dre = scope_history[scope]["dre"]
+    interim_history_dre = scope_history[scope]["interim_dre"]
     metrics = {
         "revenue": ("3.01",),
         "grossProfit": ("3.03",),
@@ -471,7 +501,7 @@ def quarterly_rows(cnpj):
         if quarter_numbers:
             output.append({
                 "year": year,
-                "scope": "consolidated",
+                "scope": scope,
                 "quarters": [{
                     "quarter": quarter,
                     "income": {
@@ -487,7 +517,12 @@ def quarterly_rows(cnpj):
     return output
 
 
-def history_rows(cnpj, financial):
+def history_rows(cnpj, financial, scope):
+    history_dre = scope_history[scope]["dre"]
+    history_bpa = scope_history[scope]["bpa"]
+    history_bpp = scope_history[scope]["bpp"]
+    history_dfc_mi = scope_history[scope]["dfc_mi"]
+    history_dfc_md = scope_history[scope]["dfc_md"]
     references = sorted(
         set(history_dre.get(cnpj, {})) | set(history_bpa.get(cnpj, {})) | set(history_bpp.get(cnpj, {})),
         reverse=True,
@@ -595,12 +630,22 @@ financial_roots = {"ABCB", "BBAS", "BBDC", "BEES", "BMGB", "BMIN", "BPAC", "BRSR
 
 company_fundamentals = {}
 for cnpj, company_tickers in tickers_by_company.items():
-    annual_dre = dfp_dre.get(cnpj, {"current": {}, "previous": {}})
-    interim_dre = itr_dre.get(cnpj, {"current": {}, "previous": {}})
-    annual_dfc = dfp_dfc.get(cnpj, {"current": {}, "previous": {}})
-    interim_dfc = itr_dfc.get(cnpj, {"current": {}, "previous": {}})
-    latest_bpa = itr_bpa.get(cnpj) or dfp_bpa.get(cnpj) or {"current": {}, "previous": {}}
-    latest_bpp = itr_bpp.get(cnpj) or dfp_bpp.get(cnpj) or {"current": {}, "previous": {}}
+    candidates = {}
+    for candidate_scope, scoped in scope_data.items():
+        candidates[candidate_scope] = {
+            "dre": scoped["dfp_dre"].get(cnpj, {"current": {}, "previous": {}}),
+            "bpa": scoped["itr_bpa"].get(cnpj) or scoped["dfp_bpa"].get(cnpj) or {"current": {}, "previous": {}},
+            "bpp": scoped["itr_bpp"].get(cnpj) or scoped["dfp_bpp"].get(cnpj) or {"current": {}, "previous": {}},
+        }
+    scope_selection = select_statement_scope(candidates["consolidated"], candidates["individual"])
+    accounting_scope = scope_selection["scope"]
+    scoped = scope_data[accounting_scope]
+    annual_dre = scoped["dfp_dre"].get(cnpj, {"current": {}, "previous": {}})
+    interim_dre = scoped["itr_dre"].get(cnpj, {"current": {}, "previous": {}})
+    annual_dfc = scoped["dfp_dfc"].get(cnpj, {"current": {}, "previous": {}})
+    interim_dfc = scoped["itr_dfc"].get(cnpj, {"current": {}, "previous": {}})
+    latest_bpa = scoped["itr_bpa"].get(cnpj) or scoped["dfp_bpa"].get(cnpj) or {"current": {}, "previous": {}}
+    latest_bpp = scoped["itr_bpp"].get(cnpj) or scoped["dfp_bpp"].get(cnpj) or {"current": {}, "previous": {}}
     cap = itr_cap.get(cnpj) or dfp_cap.get(cnpj) or {"ordinary": 0, "preferred": 0, "total": 0}
 
     ttm_results = {
@@ -676,7 +721,8 @@ for cnpj, company_tickers in tickers_by_company.items():
     net_debt_ebit = safe_div(net_debt, ebit)
     net_debt_ebitda = safe_div(net_debt, ebitda)
     current_ratio = safe_div(current_assets, current_liabilities)
-    ev_ebit = safe_div((market_cap + net_debt) if market_cap is not None else None, ebit)
+    enterprise_value = market_cap + net_debt if market_cap is not None and net_debt is not None else None
+    ev_ebit = safe_div(enterprise_value, ebit)
     eps = safe_div(net_income, cap["total"])
     bvps = safe_div(equity, cap["total"])
     prior_revenue = annual_dre["previous"].get("3.01")
@@ -771,7 +817,7 @@ for cnpj, company_tickers in tickers_by_company.items():
     coverage = round(available_count / len(applicable) * 100) if applicable else 0
     freshness = freshness_score(reference_date)
     linkage = 100 if cnpj and cvm_codes.get(cnpj, (None, ""))[1] else 85
-    consolidation = 100
+    consolidation = 100 if accounting_scope == "consolidated" else 90
     estimation = 85 if market_cap_estimated else 100
     confidence = round(coverage * .55 + freshness * .20 + linkage * .10 + consolidation * .10 + estimation * .05)
     metric_states = {
@@ -784,8 +830,8 @@ for cnpj, company_tickers in tickers_by_company.items():
         )
         for name, value in metric_values.items()
     }
-    company_history = history_rows(cnpj, is_financial)
-    company_quarters = quarterly_rows(cnpj)
+    company_history = history_rows(cnpj, is_financial, accounting_scope)
+    company_quarters = quarterly_rows(cnpj, accounting_scope)
     balance_reconciliation = reconcile_balance(assets, current_liabilities, non_current_liabilities, equity_total)
     selected_dfp_reference = dfp_index.get(cnpj, (None, None))[0]
     selected_itr_reference = itr_index.get(cnpj, (None, None))[0]
@@ -803,7 +849,7 @@ for cnpj, company_tickers in tickers_by_company.items():
             "selectedVersion": available_versions[-1] if available_versions else None,
             "supersededVersions": available_versions[:-1],
             "reissued": len(available_versions) > 1,
-            "scope": "consolidated",
+            "scope": accounting_scope,
         })
     account_map = {
         "revenue": {
@@ -842,7 +888,7 @@ for cnpj, company_tickers in tickers_by_company.items():
         "equity": equity, "assets": assets, "currentAssets": current_assets, "currentLiabilities": current_liabilities,
         "nonCurrentLiabilities": non_current_liabilities,
         "grossDebt": gross_debt, "cashAndInvestments": liquidity, "netDebt": net_debt,
-        "enterpriseValue": (market_cap + net_debt) if market_cap is not None else None,
+        "enterpriseValue": enterprise_value,
         "sharesOutstanding": cap["total"] or None, "ordinaryShares": cap["ordinary"] or None, "preferredShares": cap["preferred"] or None,
         "marketCap": market_cap, "pe": pe, "pb": pb, "roe": roe, "roa": roa, "roic": roic,
         "grossMargin": gross_margin, "ebitMargin": ebit_margin, "netMargin": net_margin,
@@ -853,16 +899,17 @@ for cnpj, company_tickers in tickers_by_company.items():
         "audit": {
             "methodVersion": "3.0.0",
             "generatedAt": date.today().isoformat(),
-            "accountingSource": "CVM DFP/ITR consolidados",
+            "accountingSource": f"CVM DFP/ITR {accounting_scope}",
             "priceSource": "B3 COTAHIST",
             "annualYears": sorted({row["year"] for row in company_history}),
             "itrYears": sorted({row["year"] for row in company_quarters}),
-            "scope": "consolidated",
+            "scope": accounting_scope,
+            "scopeReason": scope_selection["reason"],
             "ttm": ttm_results,
             "documents": document_audit,
             "accounts": account_map,
             "balanceReconciliation": balance_reconciliation,
-            "cashFlowMethod": itr_dfc_methods.get(cnpj) or dfp_dfc_methods.get(cnpj),
+            "cashFlowMethod": scoped["itr_dfc_methods"].get(cnpj) or scoped["dfp_dfc_methods"].get(cnpj),
             "growthStates": {
                 "revenue": revenue_growth_analysis["state"],
                 "profit": profit_growth_analysis["state"],
