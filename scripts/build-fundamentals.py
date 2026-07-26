@@ -242,6 +242,13 @@ def average(values):
     return round(sum(valid) / len(valid)) if valid else None
 
 
+def weighted_average(items):
+    """Average available evidence without turning absence into zero."""
+    valid = [(value, weight) for value, weight in items if value is not None and weight > 0]
+    total = sum(weight for _, weight in valid)
+    return round(sum(value * weight for value, weight in valid) / total) if total else None
+
+
 catalog_path = (ROOT / "data/b3-catalog.json") if (ROOT / "data").exists() else (ROOT / "app/data/b3-catalog.json")
 catalog = json.loads(catalog_path.read_text())
 by_ticker = {row["ticker"]: row for row in catalog}
@@ -301,7 +308,7 @@ def history_rows(cnpj, financial):
     references = sorted(
         set(history_dre.get(cnpj, {})) | set(history_bpa.get(cnpj, {})) | set(history_bpp.get(cnpj, {})),
         reverse=True,
-    )[:5]
+    )[:10]
     result = []
     for reference in references:
         dre = history_dre.get(cnpj, {}).get(reference, {})
@@ -492,13 +499,16 @@ for cnpj, company_tickers in tickers_by_company.items():
         score_low(pb if pb and pb > 0 else None, [(1, 92), (2, 76), (3, 62), (5, 42), (10**9, 22)]),
         None if is_financial else score_low(ev_ebit if ev_ebit and ev_ebit > 0 else None, [(6, 92), (10, 78), (15, 60), (25, 40), (10**9, 20)]),
     ])
-    quality_score = average([
-        score_high(roe, [(25, 95), (18, 85), (12, 70), (8, 55), (-10**9, 25)]),
-        score_high(roa, [(12, 92), (8, 80), (5, 65), (2, 50), (-10**9, 25)]),
-        None if is_financial else score_high(net_margin, [(20, 92), (12, 78), (7, 65), (3, 50), (-10**9, 25)]),
+    quality_score = weighted_average([
+        (score_high(roe, [(25, 95), (18, 85), (12, 70), (8, 55), (-10**9, 25)]), 25),
+        (score_high(roa, [(12, 92), (8, 80), (5, 65), (2, 50), (-10**9, 25)]), 15),
+        (None if is_financial else score_high(roic, [(20, 95), (15, 82), (10, 65), (5, 40), (-10**9, 10)]), 20),
+        (None if is_financial else score_high(net_margin, [(20, 92), (12, 78), (7, 65), (3, 50), (-10**9, 25)]), 15),
+        (score_high(revenue_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]), 10),
+        (score_high(profit_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]), 15),
     ])
     debt_score = None if is_financial else average([
-        score_low(net_debt_ebit, [(0, 96), (1, 85), (2, 72), (3, 56), (4, 40), (10**9, 20)]),
+        score_low(net_debt_ebitda if ebitda and ebitda > 0 else None, [(0, 96), (1, 85), (2, 72), (3, 56), (4, 40), (10**9, 20)]),
         score_high(current_ratio, [(1.5, 88), (1, 68), (.7, 48), (-10**9, 25)]),
     ])
     growth_score = average([
@@ -506,8 +516,32 @@ for cnpj, company_tickers in tickers_by_company.items():
         score_high(profit_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]),
     ])
     dividend_score = None  # proventos require a separate event-normalisation pipeline
-    categories = [price_score, quality_score, debt_score, growth_score, dividend_score]
-    overall = average(categories) or 50
+    pillar_weights = {"price": 30 if is_financial else 25, "quality": 50 if is_financial else 35, "debt": 0 if is_financial else 25, "dividends": 20 if is_financial else 15}
+    pillar_values = {"price": price_score, "quality": quality_score, "debt": debt_score, "dividends": dividend_score}
+    overall = weighted_average([(pillar_values[key], pillar_weights[key]) for key in pillar_values])
+    if overall is None:
+        overall = 50  # catalog compatibility; the UI labels quote-only assets separately
+    available_pillar_weight = sum(pillar_weights[key] for key, value in pillar_values.items() if value is not None)
+    score_details = {
+        key: {
+            "weight": pillar_weights[key],
+            "effectiveWeight": round(pillar_weights[key] / available_pillar_weight * 100) if value is not None and available_pillar_weight else 0,
+            "score": value,
+            "inputs": {
+                "price": ["P/L", "P/VP"] + ([] if is_financial else ["EV/EBIT"]),
+                "quality": ["ROE", "ROA", "ROIC", "margens", "crescimento"],
+                "debt": [] if is_financial else ["Dívida líquida/EBITDA", "Liquidez corrente"],
+                "dividends": ["Dividend yield", "Regularidade", "Payout"],
+            }[key],
+            "rationale": {
+                "price": "Preço comparado a lucro, patrimônio e resultado operacional.",
+                "quality": "Rentabilidade, eficiência e evolução dos resultados.",
+                "debt": "Não aplicável a instituições financeiras." if is_financial else "Alavancagem e liquidez de curto prazo.",
+                "dividends": "Aguardando normalização de proventos e eventos societários.",
+            }[key],
+        }
+        for key, value in pillar_values.items()
+    }
 
     issuer = security[company_tickers[0]]
     reference_date = (itr_index.get(cnpj) or dfp_index.get(cnpj) or (None,))[0]
@@ -534,12 +568,13 @@ for cnpj, company_tickers in tickers_by_company.items():
         name: (
             "not_applicable" if name in non_applicable else
             "not_found" if value is None else
-            "estimated" if market_cap_estimated and name in {"pe", "pb", "evEbit", "eps"} else
+            "estimated" if market_cap_estimated and name in {"pe", "pb", "evEbit"} else
             "stale" if freshness < 55 else
             "available"
         )
         for name, value in metric_values.items()
     }
+    company_history = history_rows(cnpj, is_financial)
     company_fundamentals[cnpj] = {
         "cnpj": cnpj,
         "cvmCode": cvm_codes.get(cnpj, (None, ""))[1],
@@ -566,6 +601,15 @@ for cnpj, company_tickers in tickers_by_company.items():
         "netDebtEbit": net_debt_ebit, "netDebtEbitda": net_debt_ebitda, "currentRatio": current_ratio, "evEbit": ev_ebit,
         "eps": eps, "bookValuePerShare": bvps, "revenueGrowth": revenue_growth, "profitGrowth": profit_growth,
         "dividendYield": None,
+        "audit": {
+            "methodVersion": "2.0.0",
+            "generatedAt": date.today().isoformat(),
+            "accountingSource": "CVM DFP/ITR consolidados",
+            "priceSource": "B3 COTAHIST",
+            "annualYears": sorted({row["year"] for row in company_history}),
+            "itrYears": sorted({ITR_YEAR}),
+        },
+        "scoreDetails": score_details,
         "metricStates": metric_states,
         "confidenceDetails": {
             "coverage": coverage,
@@ -576,7 +620,7 @@ for cnpj, company_tickers in tickers_by_company.items():
             "available": available_count,
             "applicable": len(applicable),
         },
-        "history": history_rows(cnpj, is_financial),
+        "history": company_history,
         "scores": {"price": price_score, "quality": quality_score, "debt": debt_score, "growth": growth_score, "dividends": dividend_score, "overall": overall, "confidence": confidence},
     }
 
