@@ -19,7 +19,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-from accounting_engine import calculate_ttm, growth_analysis, isolate_quarters, reconcile_balance
+from accounting_engine import calculate_ttm, growth_analysis, isolate_quarters, period_days, reconcile_balance
 
 ROOT = Path(__file__).resolve().parents[1]
 CVM = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/cvm-data")
@@ -87,16 +87,32 @@ def latest_documents(source):
 
 
 def statements(zip_name, member, document_keys):
-    data = defaultdict(lambda: {"current": {}, "previous": {}})
+    periods = defaultdict(lambda: {"current": defaultdict(dict), "previous": defaultdict(dict)})
     for row in rows(zip_name, member):
         cnpj = row.get("CNPJ_CIA")
         if not cnpj or (row.get("DT_REFER", ""), int(row.get("VERSAO") or 0)) != document_keys.get(cnpj):
             continue
         bucket = "current" if row.get("ORDEM_EXERC") == "ÚLTIMO" else "previous"
+        period_key = (
+            row.get("DT_INI_EXERC") or "",
+            row.get("DT_FIM_EXERC") or row.get("DT_REFER") or "",
+        )
         code = row.get("CD_CONTA")
         value = money_value(row)
         if code and value is not None:
-            store_statement_row(data[cnpj][bucket], row, code, value)
+            store_statement_row(periods[cnpj][bucket][period_key], row, code, value)
+    data = defaultdict(lambda: {"current": {}, "previous": {}})
+    for cnpj, buckets in periods.items():
+        for bucket, candidates in buckets.items():
+            if not candidates:
+                continue
+            data[cnpj][bucket] = max(
+                candidates.values(),
+                key=lambda values: (
+                    period_days(values.get("_meta")) or -1,
+                    values.get("_meta", {}).get("endDate") or "",
+                ),
+            )
     return data
 
 
