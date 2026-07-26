@@ -43,14 +43,18 @@ def newest_bulk(work: Path, kind: str, years: range) -> int:
 
 
 def download_history(work: Path, kind: str, years: range) -> list[int]:
-    """Download every available annual bulk file without failing on future years."""
-    template = "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_{year}.zip"
+    """Download every available DFP/ITR bulk file without failing on future years."""
+    templates = {
+        "dfp": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_{year}.zip",
+        "itr": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/ITR/DADOS/itr_cia_aberta_{year}.zip",
+    }
+    template = templates[kind]
     available = []
     for report_year in years:
         if download(template.format(year=report_year), work / f"{kind}{report_year}.zip"):
             available.append(report_year)
     if not available:
-        raise SystemExit("No CVM DFP history file available")
+        raise SystemExit(f"No CVM {kind.upper()} history file available")
     return available
 
 
@@ -81,9 +85,10 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     if sessions < 2:
         raise SystemExit("Could not obtain two recent B3 trading sessions")
 
-    dfp_years = download_history(work, "dfp", range(year, year - 7, -1))
+    dfp_years = download_history(work, "dfp", range(year, year - 11, -1))
     dfp_year = max(dfp_years)
-    itr_year = newest_bulk(work, "itr", range(year, year - 3, -1))
+    itr_years = download_history(work, "itr", range(year, year - 6, -1))
+    itr_year = max(itr_years)
     fca_year = newest_bulk(work, "fca", range(year, year - 3, -1))
 
     subprocess.run([sys.executable, str(ROOT / "scripts/build-stocks.py"), str(work)], check=True)
@@ -100,6 +105,9 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "stockCount": len(stock_data),
         "stockCvmCount": sum(bool(row.get("fundamentals")) for row in stock_data),
         "fiiCount": len(fii_data),
+        "dfpYears": sorted(dfp_years),
+        "itrYears": sorted(itr_years),
+        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5},
         "sources": ["B3 COTAHIST", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
