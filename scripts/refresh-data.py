@@ -92,6 +92,12 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     fca_year = newest_bulk(work, "fca", range(year, year - 3, -1))
 
     subprocess.run([sys.executable, str(ROOT / "scripts/build-stocks.py"), str(work)], check=True)
+    subprocess.run([
+        sys.executable,
+        str(ROOT / "scripts/fetch-dividends.py"),
+        str(ROOT / "data/b3-catalog.json"),
+        str(work / "b3-dividends.json"),
+    ], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
 
@@ -108,6 +114,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
         "historyPolicy": {"annualYears": 10, "quarterlyYears": 5},
-        "sources": ["B3 COTAHIST", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII"],
+        "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
