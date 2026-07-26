@@ -42,6 +42,18 @@ def newest_bulk(work: Path, kind: str, years: range) -> int:
     raise SystemExit(f"No current CVM {kind.upper()} bulk file available")
 
 
+def download_history(work: Path, kind: str, years: range) -> list[int]:
+    """Download every available annual bulk file without failing on future years."""
+    template = "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_{year}.zip"
+    available = []
+    for report_year in years:
+        if download(template.format(year=report_year), work / f"{kind}{report_year}.zip"):
+            available.append(report_year)
+    if not available:
+        raise SystemExit("No CVM DFP history file available")
+    return available
+
+
 with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     work = Path(folder)
     year = date.today().year
@@ -69,7 +81,8 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     if sessions < 2:
         raise SystemExit("Could not obtain two recent B3 trading sessions")
 
-    dfp_year = newest_bulk(work, "dfp", range(year, year - 3, -1))
+    dfp_years = download_history(work, "dfp", range(year, year - 7, -1))
+    dfp_year = max(dfp_years)
     itr_year = newest_bulk(work, "itr", range(year, year - 3, -1))
     fca_year = newest_bulk(work, "fca", range(year, year - 3, -1))
 
