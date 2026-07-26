@@ -19,6 +19,8 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+from accounting_engine import calculate_ttm, growth_analysis, isolate_quarters, reconcile_balance
+
 ROOT = Path(__file__).resolve().parents[1]
 CVM = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/cvm-data")
 DFP_YEAR = int(sys.argv[2]) if len(sys.argv) > 2 else 2025
@@ -58,8 +60,19 @@ def store_statement_row(bucket, row, code, value):
     bucket[code] = value
     bucket.setdefault("_rows", []).append({
         "code": code,
+        "name": row.get("DS_CONTA") or "",
         "label": normalize_label(row.get("DS_CONTA")),
         "value": value,
+        "startDate": row.get("DT_INI_EXERC") or None,
+        "endDate": row.get("DT_FIM_EXERC") or row.get("DT_REFER") or None,
+    })
+    bucket.setdefault("_meta", {
+        "startDate": row.get("DT_INI_EXERC") or None,
+        "endDate": row.get("DT_FIM_EXERC") or row.get("DT_REFER") or None,
+        "referenceDate": row.get("DT_REFER") or None,
+        "version": int(row.get("VERSAO") or 0),
+        "scope": "consolidated",
+        "order": row.get("ORDEM_EXERC") or None,
     })
 
 
@@ -87,12 +100,33 @@ def statements(zip_name, member, document_keys):
     return data
 
 
-def annual_document_index():
-    """Latest accepted DFP version for each issuer and reference date."""
+def safe_statements(zip_name, member, document_keys):
+    try:
+        return statements(zip_name, member, document_keys)
+    except KeyError:
+        return defaultdict(lambda: {"current": {}, "previous": {}})
+
+
+def merge_statement_methods(primary, secondary, primary_name, secondary_name):
+    """Prefer indirect DFC per issuer, retaining direct DFC when it is the only filing."""
+    merged = defaultdict(lambda: {"current": {}, "previous": {}})
+    methods = {}
+    for cnpj in set(primary) | set(secondary):
+        if primary.get(cnpj, {}).get("current"):
+            merged[cnpj] = primary[cnpj]
+            methods[cnpj] = primary_name
+        else:
+            merged[cnpj] = secondary[cnpj]
+            methods[cnpj] = secondary_name
+    return merged, methods
+
+
+def document_index(kind):
+    """Latest accepted CVM version for each issuer and reference date."""
     index = {}
-    for path in sorted(CVM.glob("dfp*.zip")):
-        year = path.stem.removeprefix("dfp")
-        member = f"dfp_cia_aberta_{year}.csv"
+    for path in sorted(CVM.glob(f"{kind}*.zip")):
+        year = path.stem.removeprefix(kind)
+        member = f"{kind}_cia_aberta_{year}.csv"
         try:
             source = rows(path.name, member)
             for row in source:
@@ -125,6 +159,50 @@ def annual_history(statement, document_index):
                 value = money_value(row)
                 if code and value is not None:
                     store_statement_row(history[cnpj].setdefault(reference, {}), row, code, value)
+        except KeyError:
+            continue
+    return history
+
+
+def document_versions(kind):
+    """Audit trail of accepted and superseded CVM document versions."""
+    versions = defaultdict(lambda: defaultdict(set))
+    for path in sorted(CVM.glob(f"{kind}*.zip")):
+        year = path.stem.removeprefix(kind)
+        member = f"{kind}_cia_aberta_{year}.csv"
+        try:
+            for row in rows(path.name, member):
+                cnpj = row.get("CNPJ_CIA")
+                reference = row.get("DT_REFER")
+                if cnpj and reference:
+                    versions[cnpj][reference].add(int(row.get("VERSAO") or 0))
+        except KeyError:
+            continue
+    return versions
+
+
+def interim_period_history(statement, document_index):
+    """All latest-version consolidated ITR periods, preserving period dates."""
+    history = defaultdict(lambda: defaultdict(list))
+    for path in sorted(CVM.glob("itr*.zip")):
+        year = path.stem.removeprefix("itr")
+        member = f"itr_cia_aberta_{statement}_con_{year}.csv"
+        try:
+            grouped = defaultdict(dict)
+            for row in rows(path.name, member):
+                cnpj = row.get("CNPJ_CIA")
+                reference = row.get("DT_REFER", "")
+                if not cnpj or not reference or row.get("ORDEM_EXERC") != "ÚLTIMO":
+                    continue
+                if int(row.get("VERSAO") or 0) != document_index.get((cnpj, reference)):
+                    continue
+                period_key = (row.get("DT_INI_EXERC") or "", row.get("DT_FIM_EXERC") or reference)
+                code = row.get("CD_CONTA")
+                value = money_value(row)
+                if code and value is not None:
+                    store_statement_row(grouped[(cnpj, reference)].setdefault(period_key, {}), row, code, value)
+            for (cnpj, reference), periods in grouped.items():
+                history[cnpj][reference].extend(periods.values())
         except KeyError:
             continue
     return history
@@ -185,22 +263,32 @@ def sum_known(*values):
     return sum(valid) if valid else None
 
 
-def ttm(code, annual, interim):
+def ttm_result(code, annual, interim):
     fy = annual["current"].get(code)
     ytd = interim["current"].get(code)
     prior_ytd = interim["previous"].get(code)
-    if fy is not None and ytd is not None and prior_ytd is not None:
-        return fy + ytd - prior_ytd
-    return fy
+    return calculate_ttm(
+        fy, ytd, prior_ytd,
+        annual["current"].get("_meta"),
+        interim["current"].get("_meta"),
+        interim["previous"].get("_meta"),
+    )
+
+
+def ttm(code, annual, interim):
+    return ttm_result(code, annual, interim)["value"]
 
 
 def ttm_semantic(codes, phrases, annual, interim, excludes=()):
     fy = account_or_semantic(annual["current"], codes, phrases, excludes)
     ytd = account_or_semantic(interim["current"], codes, phrases, excludes)
     prior_ytd = account_or_semantic(interim["previous"], codes, phrases, excludes)
-    if fy is not None and ytd is not None and prior_ytd is not None:
-        return fy + ytd - prior_ytd
-    return fy
+    return calculate_ttm(
+        fy, ytd, prior_ytd,
+        annual["current"].get("_meta"),
+        interim["current"].get("_meta"),
+        interim["previous"].get("_meta"),
+    )["value"]
 
 
 def freshness_score(reference):
@@ -274,34 +362,109 @@ for row in fca_docs:
 dfp_index = latest_documents(rows(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_{DFP_YEAR}.csv"))
 itr_index = latest_documents(rows(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_{ITR_YEAR}.csv"))
 
-dfp_dre = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DRE_con_{DFP_YEAR}.csv", dfp_index)
-dfp_bpa = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPA_con_{DFP_YEAR}.csv", dfp_index)
-dfp_bpp = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPP_con_{DFP_YEAR}.csv", dfp_index)
-itr_dre = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DRE_con_{ITR_YEAR}.csv", itr_index)
-itr_bpa = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPA_con_{ITR_YEAR}.csv", itr_index)
-itr_bpp = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPP_con_{ITR_YEAR}.csv", itr_index)
-try:
-    dfp_dfc = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MI_con_{DFP_YEAR}.csv", dfp_index)
-except KeyError:
-    dfp_dfc = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MD_con_{DFP_YEAR}.csv", dfp_index)
-try:
-    itr_dfc = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MI_con_{ITR_YEAR}.csv", itr_index)
-except KeyError:
-    itr_dfc = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MD_con_{ITR_YEAR}.csv", itr_index)
+dfp_dre = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DRE_con_{DFP_YEAR}.csv", dfp_index)
+dfp_bpa = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPA_con_{DFP_YEAR}.csv", dfp_index)
+dfp_bpp = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPP_con_{DFP_YEAR}.csv", dfp_index)
+itr_dre = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DRE_con_{ITR_YEAR}.csv", itr_index)
+itr_bpa = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPA_con_{ITR_YEAR}.csv", itr_index)
+itr_bpp = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPP_con_{ITR_YEAR}.csv", itr_index)
+dfp_dfc_mi = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MI_con_{DFP_YEAR}.csv", dfp_index)
+dfp_dfc_md = safe_statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MD_con_{DFP_YEAR}.csv", dfp_index)
+itr_dfc_mi = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MI_con_{ITR_YEAR}.csv", itr_index)
+itr_dfc_md = safe_statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MD_con_{ITR_YEAR}.csv", itr_index)
+dfp_dfc, dfp_dfc_methods = merge_statement_methods(dfp_dfc_mi, dfp_dfc_md, "indirect", "direct")
+itr_dfc, itr_dfc_methods = merge_statement_methods(itr_dfc_mi, itr_dfc_md, "indirect", "direct")
 
 dfp_cap = capital(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_composicao_capital_{DFP_YEAR}.csv", dfp_index)
 itr_cap = capital(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_composicao_capital_{ITR_YEAR}.csv", itr_index)
 
-annual_index = annual_document_index()
+annual_index = document_index("dfp")
+interim_index = document_index("itr")
 history_dre = annual_history("DRE", annual_index)
 history_bpa = annual_history("BPA", annual_index)
 history_bpp = annual_history("BPP", annual_index)
 history_dfc_mi = annual_history("DFC_MI", annual_index)
 history_dfc_md = annual_history("DFC_MD", annual_index)
+interim_history_dre = interim_period_history("DRE", interim_index)
+dfp_versions = document_versions("dfp")
+itr_versions = document_versions("itr")
 
 
 def growth(current, previous):
-    return ((current / previous) - 1) * 100 if current is not None and previous not in (None, 0) else None
+    return growth_analysis(current, previous)["value"]
+
+
+def trace_account(values, *codes):
+    for code in codes:
+        for row in values.get("_rows", []):
+            if row["code"] == code:
+                return {
+                    "code": code,
+                    "name": row.get("name") or row.get("label"),
+                    "value": row["value"],
+                    "startDate": row.get("startDate"),
+                    "endDate": row.get("endDate"),
+                }
+    return None
+
+
+def quarterly_rows(cnpj):
+    """Essential DRE accounts as isolated quarters, never mixed across scope."""
+    metrics = {
+        "revenue": ("3.01",),
+        "grossProfit": ("3.03",),
+        "ebit": ("3.05",),
+        "netIncome": ("3.11.01", "3.11", "3.09"),
+    }
+    years = sorted(
+        {int(reference[:4]) for reference in interim_history_dre.get(cnpj, {})}
+        | {int(reference[:4]) for reference in history_dre.get(cnpj, {})},
+        reverse=True,
+    )[:5]
+    output = []
+    for year in years:
+        cumulative_by_metric = defaultdict(list)
+        for reference, periods in interim_history_dre.get(cnpj, {}).items():
+            if int(reference[:4]) != year:
+                continue
+            for period in periods:
+                meta = period.get("_meta", {})
+                start = meta.get("startDate") or ""
+                end = meta.get("endDate") or reference
+                try:
+                    month = int(end[5:7])
+                except (TypeError, ValueError):
+                    continue
+                if not start.endswith("-01-01") or month not in (3, 6, 9):
+                    continue
+                quarter = month // 3
+                for name, codes in metrics.items():
+                    value = account(period, *codes)
+                    if value is not None:
+                        cumulative_by_metric[name].append({"quarter": quarter, "value": value, "meta": meta})
+        annual = history_dre.get(cnpj, {}).get(f"{year}-12-31", {})
+        isolated = {
+            name: isolate_quarters(items, account(annual, *metrics[name]))
+            for name, items in cumulative_by_metric.items()
+        }
+        quarter_numbers = sorted({row["quarter"] for rows_ in isolated.values() for row in rows_})
+        if quarter_numbers:
+            output.append({
+                "year": year,
+                "scope": "consolidated",
+                "quarters": [{
+                    "quarter": quarter,
+                    "income": {
+                        name: next((row["value"] for row in rows_ if row["quarter"] == quarter), None)
+                        for name, rows_ in isolated.items()
+                    },
+                    "states": {
+                        name: next((row["state"] for row in rows_ if row["quarter"] == quarter), "unavailable")
+                        for name, rows_ in isolated.items()
+                    },
+                } for quarter in quarter_numbers],
+            })
+    return output
 
 
 def history_rows(cnpj, financial):
@@ -390,6 +553,10 @@ def history_rows(cnpj, financial):
             key: growth(value, previous["income"].get(key) if previous else None)
             for key, value in row["income"].items() if key not in {"roe", "grossMargin", "ebitMargin", "netMargin"}
         }
+        row["incomeGrowthStates"] = {
+            key: growth_analysis(value, previous["income"].get(key) if previous else None)["state"]
+            for key, value in row["income"].items() if key not in {"roe", "grossMargin", "ebitMargin", "netMargin"}
+        }
         row["cashFlowGrowth"] = {
             key: growth(value, previous["cashFlow"].get(key) if previous else None)
             for key, value in row["cashFlow"].items()
@@ -416,14 +583,22 @@ for cnpj, company_tickers in tickers_by_company.items():
     latest_bpp = itr_bpp.get(cnpj) or dfp_bpp.get(cnpj) or {"current": {}, "previous": {}}
     cap = itr_cap.get(cnpj) or dfp_cap.get(cnpj) or {"ordinary": 0, "preferred": 0, "total": 0}
 
-    revenue = ttm("3.01", annual_dre, interim_dre)
-    gross_profit = ttm("3.03", annual_dre, interim_dre)
-    ebit = ttm("3.05", annual_dre, interim_dre)
-    net_income = ttm("3.11.01", annual_dre, interim_dre)
+    ttm_results = {
+        "revenue": ttm_result("3.01", annual_dre, interim_dre),
+        "grossProfit": ttm_result("3.03", annual_dre, interim_dre),
+        "ebit": ttm_result("3.05", annual_dre, interim_dre),
+        "netIncome": ttm_result("3.11.01", annual_dre, interim_dre),
+    }
+    revenue = ttm_results["revenue"]["value"]
+    gross_profit = ttm_results["grossProfit"]["value"]
+    ebit = ttm_results["ebit"]["value"]
+    net_income = ttm_results["netIncome"]["value"]
     if net_income is None:
-        net_income = ttm("3.11", annual_dre, interim_dre)
+        ttm_results["netIncome"] = ttm_result("3.11", annual_dre, interim_dre)
+        net_income = ttm_results["netIncome"]["value"]
     if net_income is None:
-        net_income = ttm("3.09", annual_dre, interim_dre)
+        ttm_results["netIncome"] = ttm_result("3.09", annual_dre, interim_dre)
+        net_income = ttm_results["netIncome"]["value"]
     depreciation_amortization = ttm_semantic(
         (),
         ("depreciacao e amortizacao", "depreciacoes e amortizacoes"),
@@ -442,6 +617,7 @@ for cnpj, company_tickers in tickers_by_company.items():
     assets = account(bpa, "1")
     current_assets = account(bpa, "1.01")
     current_liabilities = account(bpp, "2.01")
+    non_current_liabilities = account(bpp, "2.02")
     cash = account_or_semantic(bpa, ("1.01.01",), ("caixa e equivalentes de caixa",))
     investments = account_or_semantic(bpa, ("1.01.02",), ("aplicacoes financeiras",))
     short_debt = account(bpp, "2.01.04")
@@ -485,14 +661,28 @@ for cnpj, company_tickers in tickers_by_company.items():
     bvps = safe_div(equity, cap["total"])
     prior_revenue = annual_dre["previous"].get("3.01")
     prior_profit = annual_dre["previous"].get("3.11.01") or annual_dre["previous"].get("3.11") or annual_dre["previous"].get("3.09")
-    revenue_growth = ((annual_dre["current"].get("3.01") / prior_revenue - 1) * 100) if prior_revenue else None
+    revenue_growth_analysis = growth_analysis(annual_dre["current"].get("3.01"), prior_revenue)
+    revenue_growth = revenue_growth_analysis["value"]
     current_profit = annual_dre["current"].get("3.11.01") or annual_dre["current"].get("3.11") or annual_dre["current"].get("3.09")
-    profit_growth = ((current_profit / prior_profit - 1) * 100) if current_profit is not None and prior_profit and prior_profit > 0 else None
+    profit_growth_analysis = growth_analysis(current_profit, prior_profit)
+    profit_growth = profit_growth_analysis["value"]
     pretax_income = ttm("3.07", annual_dre, interim_dre)
     income_taxes = ttm("3.08", annual_dre, interim_dre)
     effective_tax = safe_div(abs(income_taxes), abs(pretax_income)) if pretax_income and pretax_income > 0 and income_taxes is not None and income_taxes < 0 else None
     invested_capital = sum_known(equity, net_debt)
     roic = safe_div(ebit * (1 - effective_tax), invested_capital, 100) if ebit is not None and effective_tax is not None else None
+
+    def score_growth(result):
+        if result["state"] == "turnaround":
+            return 82
+        if result["state"] in {"profit_to_loss", "new_loss", "loss_increased"}:
+            return 12
+        if result["state"] == "loss_reduced":
+            return 48
+        return score_high(result["value"], [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)])
+
+    revenue_growth_score = score_growth(revenue_growth_analysis)
+    profit_growth_score = score_growth(profit_growth_analysis)
 
     price_score = average([
         score_low(pe if pe and pe > 0 else None, [(6, 95), (10, 85), (15, 70), (22, 55), (35, 35), (10**9, 20)]),
@@ -504,16 +694,16 @@ for cnpj, company_tickers in tickers_by_company.items():
         (score_high(roa, [(12, 92), (8, 80), (5, 65), (2, 50), (-10**9, 25)]), 15),
         (None if is_financial else score_high(roic, [(20, 95), (15, 82), (10, 65), (5, 40), (-10**9, 10)]), 20),
         (None if is_financial else score_high(net_margin, [(20, 92), (12, 78), (7, 65), (3, 50), (-10**9, 25)]), 15),
-        (score_high(revenue_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]), 10),
-        (score_high(profit_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]), 15),
+        (revenue_growth_score, 10),
+        (profit_growth_score, 15),
     ])
     debt_score = None if is_financial else average([
         score_low(net_debt_ebitda if ebitda and ebitda > 0 else None, [(0, 96), (1, 85), (2, 72), (3, 56), (4, 40), (10**9, 20)]),
         score_high(current_ratio, [(1.5, 88), (1, 68), (.7, 48), (-10**9, 25)]),
     ])
     growth_score = average([
-        score_high(revenue_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]),
-        score_high(profit_growth, [(20, 92), (10, 78), (3, 64), (0, 52), (-10, 35), (-10**9, 18)]),
+        revenue_growth_score,
+        profit_growth_score,
     ])
     dividend_score = None  # proventos require a separate event-normalisation pipeline
     pillar_weights = {"price": 30 if is_financial else 25, "quality": 50 if is_financial else 35, "debt": 0 if is_financial else 25, "dividends": 20 if is_financial else 15}
@@ -575,6 +765,43 @@ for cnpj, company_tickers in tickers_by_company.items():
         for name, value in metric_values.items()
     }
     company_history = history_rows(cnpj, is_financial)
+    company_quarters = quarterly_rows(cnpj)
+    balance_reconciliation = reconcile_balance(assets, current_liabilities, non_current_liabilities, equity_total)
+    selected_dfp_reference = dfp_index.get(cnpj, (None, None))[0]
+    selected_itr_reference = itr_index.get(cnpj, (None, None))[0]
+    document_audit = []
+    for document_type, selected_reference, version_map in (
+        ("DFP", selected_dfp_reference, dfp_versions),
+        ("ITR", selected_itr_reference, itr_versions),
+    ):
+        if not selected_reference:
+            continue
+        available_versions = sorted(version_map.get(cnpj, {}).get(selected_reference, set()))
+        document_audit.append({
+            "documentType": document_type,
+            "referenceDate": selected_reference,
+            "selectedVersion": available_versions[-1] if available_versions else None,
+            "supersededVersions": available_versions[:-1],
+            "reissued": len(available_versions) > 1,
+            "scope": "consolidated",
+        })
+    account_map = {
+        "revenue": {
+            "annual": trace_account(annual_dre["current"], "3.01"),
+            "currentYtd": trace_account(interim_dre["current"], "3.01"),
+            "priorYtd": trace_account(interim_dre["previous"], "3.01"),
+        },
+        "netIncome": {
+            "annual": trace_account(annual_dre["current"], "3.11.01", "3.11", "3.09"),
+            "currentYtd": trace_account(interim_dre["current"], "3.11.01", "3.11", "3.09"),
+            "priorYtd": trace_account(interim_dre["previous"], "3.11.01", "3.11", "3.09"),
+        },
+        "assets": trace_account(bpa, "1"),
+        "currentLiabilities": trace_account(bpp, "2.01"),
+        "nonCurrentLiabilities": trace_account(bpp, "2.02"),
+        "equity": trace_account(bpp, "2.08", "2.07", "2.03") if is_financial else trace_account(bpp, "2.03"),
+    }
+    validated_ttm = any(result["state"] == "validated_ttm" for result in ttm_results.values())
     company_fundamentals[cnpj] = {
         "cnpj": cnpj,
         "cvmCode": cvm_codes.get(cnpj, (None, ""))[1],
@@ -586,13 +813,14 @@ for cnpj, company_tickers in tickers_by_company.items():
         "industrySegment": None,
         "freeFloat": None,
         "referenceDate": reference_date,
-        "filingType": "ITR + DFP (12 meses)" if cnpj in itr_dre else "DFP anual",
-        "periodLabel": "12 meses até a última ITR" if cnpj in itr_dre else f"exercício de {DFP_YEAR}",
+        "filingType": "ITR + DFP (TTM validado)" if validated_ttm else "DFP anual",
+        "periodLabel": "12 meses validados até a última ITR" if validated_ttm else f"exercício de {DFP_YEAR}",
         "marketCapEstimated": market_cap_estimated,
         "financialCompany": is_financial,
         "revenueTTM": revenue, "grossProfitTTM": gross_profit, "ebitTTM": ebit,
         "depreciationAmortizationTTM": depreciation_amortization, "ebitdaTTM": ebitda, "netIncomeTTM": net_income,
         "equity": equity, "assets": assets, "currentAssets": current_assets, "currentLiabilities": current_liabilities,
+        "nonCurrentLiabilities": non_current_liabilities,
         "grossDebt": gross_debt, "cashAndInvestments": liquidity, "netDebt": net_debt,
         "enterpriseValue": (market_cap + net_debt) if market_cap is not None else None,
         "sharesOutstanding": cap["total"] or None, "ordinaryShares": cap["ordinary"] or None, "preferredShares": cap["preferred"] or None,
@@ -602,12 +830,22 @@ for cnpj, company_tickers in tickers_by_company.items():
         "eps": eps, "bookValuePerShare": bvps, "revenueGrowth": revenue_growth, "profitGrowth": profit_growth,
         "dividendYield": None,
         "audit": {
-            "methodVersion": "2.0.0",
+            "methodVersion": "3.0.0",
             "generatedAt": date.today().isoformat(),
             "accountingSource": "CVM DFP/ITR consolidados",
             "priceSource": "B3 COTAHIST",
             "annualYears": sorted({row["year"] for row in company_history}),
-            "itrYears": sorted({ITR_YEAR}),
+            "itrYears": sorted({row["year"] for row in company_quarters}),
+            "scope": "consolidated",
+            "ttm": ttm_results,
+            "documents": document_audit,
+            "accounts": account_map,
+            "balanceReconciliation": balance_reconciliation,
+            "cashFlowMethod": itr_dfc_methods.get(cnpj) or dfp_dfc_methods.get(cnpj),
+            "growthStates": {
+                "revenue": revenue_growth_analysis["state"],
+                "profit": profit_growth_analysis["state"],
+            },
         },
         "scoreDetails": score_details,
         "metricStates": metric_states,
@@ -621,6 +859,7 @@ for cnpj, company_tickers in tickers_by_company.items():
             "applicable": len(applicable),
         },
         "history": company_history,
+        "quarters": company_quarters,
         "scores": {"price": price_score, "quality": quality_score, "debt": debt_score, "growth": growth_score, "dividends": dividend_score, "overall": overall, "confidence": confidence},
     }
 
