@@ -11,9 +11,12 @@ import csv
 import io
 import json
 import math
+import re
 import sys
+import unicodedata
 import zipfile
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +49,20 @@ def money_value(row):
     return value * (1000 if row.get("ESCALA_MOEDA") == "MIL" else 1)
 
 
+def normalize_label(value):
+    text = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode("ascii").lower()
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+
+
+def store_statement_row(bucket, row, code, value):
+    bucket[code] = value
+    bucket.setdefault("_rows", []).append({
+        "code": code,
+        "label": normalize_label(row.get("DS_CONTA")),
+        "value": value,
+    })
+
+
 def latest_documents(source):
     latest = {}
     for row in source:
@@ -66,7 +83,7 @@ def statements(zip_name, member, document_keys):
         code = row.get("CD_CONTA")
         value = money_value(row)
         if code and value is not None:
-            data[cnpj][bucket][code] = value
+            store_statement_row(data[cnpj][bucket], row, code, value)
     return data
 
 
@@ -107,7 +124,7 @@ def annual_history(statement, document_index):
                 code = row.get("CD_CONTA")
                 value = money_value(row)
                 if code and value is not None:
-                    history[cnpj].setdefault(reference, {})[code] = value
+                    store_statement_row(history[cnpj].setdefault(reference, {}), row, code, value)
         except KeyError:
             continue
     return history
@@ -132,10 +149,40 @@ def account(values, *codes):
     return None
 
 
+def semantic_account(values, phrases, excludes=()):
+    """Find custom issuer accounts by description, preferring aggregate rows."""
+    matches = []
+    excluded = tuple(normalize_label(term) for term in excludes)
+    phrase_tokens = [
+        [term for term in normalize_label(phrase).split() if term not in {"a", "as", "e", "de", "da", "das", "do", "dos"}]
+        for phrase in phrases
+    ]
+    for row in values.get("_rows", []):
+        label = row["label"]
+        if any(term in label for term in excluded):
+            continue
+        label_tokens = set(label.split())
+        if any(tokens and all(term in label_tokens for term in tokens) for tokens in phrase_tokens):
+            matches.append(row)
+    if not matches:
+        return None
+    matches.sort(key=lambda row: (row["code"].count("."), len(row["label"])))
+    return matches[0]["value"]
+
+
+def account_or_semantic(values, codes, phrases=(), excludes=()):
+    return account(values, *codes) if account(values, *codes) is not None else semantic_account(values, phrases, excludes)
+
+
 def safe_div(a, b, multiplier=1):
     if a is None or b in (None, 0):
         return None
     return a / b * multiplier
+
+
+def sum_known(*values):
+    valid = [value for value in values if value is not None]
+    return sum(valid) if valid else None
 
 
 def ttm(code, annual, interim):
@@ -145,6 +192,31 @@ def ttm(code, annual, interim):
     if fy is not None and ytd is not None and prior_ytd is not None:
         return fy + ytd - prior_ytd
     return fy
+
+
+def ttm_semantic(codes, phrases, annual, interim, excludes=()):
+    fy = account_or_semantic(annual["current"], codes, phrases, excludes)
+    ytd = account_or_semantic(interim["current"], codes, phrases, excludes)
+    prior_ytd = account_or_semantic(interim["previous"], codes, phrases, excludes)
+    if fy is not None and ytd is not None and prior_ytd is not None:
+        return fy + ytd - prior_ytd
+    return fy
+
+
+def freshness_score(reference):
+    try:
+        age = (date.today() - date.fromisoformat(reference)).days
+    except (TypeError, ValueError):
+        return 0
+    if age <= 150:
+        return 100
+    if age <= 210:
+        return 90
+    if age <= 300:
+        return 75
+    if age <= 450:
+        return 55
+    return 25
 
 
 def score_low(value, bands):
@@ -201,6 +273,14 @@ dfp_bpp = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_BPP_con_{DFP_YEAR}.c
 itr_dre = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DRE_con_{ITR_YEAR}.csv", itr_index)
 itr_bpa = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPA_con_{ITR_YEAR}.csv", itr_index)
 itr_bpp = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPP_con_{ITR_YEAR}.csv", itr_index)
+try:
+    dfp_dfc = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MI_con_{DFP_YEAR}.csv", dfp_index)
+except KeyError:
+    dfp_dfc = statements(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_DFC_MD_con_{DFP_YEAR}.csv", dfp_index)
+try:
+    itr_dfc = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MI_con_{ITR_YEAR}.csv", itr_index)
+except KeyError:
+    itr_dfc = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_DFC_MD_con_{ITR_YEAR}.csv", itr_index)
 
 dfp_cap = capital(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_composicao_capital_{DFP_YEAR}.csv", dfp_index)
 itr_cap = capital(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_composicao_capital_{ITR_YEAR}.csv", itr_index)
@@ -236,8 +316,10 @@ def history_rows(cnpj, financial):
         gross_profit_value = account(dre, "3.03")
         ebit_value = account(dre, "3.05")
         net_income_value = account(dre, "3.11.01", "3.11", "3.09")
-        cash_value = (account(bpa, "1.01.01") or 0) + (account(bpa, "1.01.02") or 0)
-        debt_value = (account(bpp, "2.01.04") or 0) + (account(bpp, "2.02.01") or 0)
+        depreciation = semantic_account(dfc, ("depreciacao e amortizacao", "depreciacoes e amortizacoes"))
+        ebitda_value = ebit_value + abs(depreciation) if ebit_value is not None and depreciation is not None else None
+        cash_value = sum_known(account(bpa, "1.01.01"), account(bpa, "1.01.02"))
+        debt_value = sum_known(account(bpp, "2.01.04"), account(bpp, "2.02.01"))
         cfo = account(dfc, "6.01")
         cfi = account(dfc, "6.02")
         result.append({
@@ -249,6 +331,8 @@ def history_rows(cnpj, financial):
                 "grossProfit": gross_profit_value,
                 "operatingExpenses": account(dre, "3.04"),
                 "ebit": ebit_value,
+                "depreciationAmortization": depreciation,
+                "ebitda": ebitda_value,
                 "financialResult": account(dre, "3.06"),
                 "taxes": account(dre, "3.08"),
                 "netIncome": net_income_value,
@@ -290,7 +374,7 @@ def history_rows(cnpj, financial):
                 "profitReserves": account(bpp, "2.03.04"),
                 "nonControllingInterest": account(bpp, "2.03.09"),
                 "grossDebt": debt_value,
-                "netDebt": debt_value - cash_value,
+                "netDebt": debt_value - cash_value if debt_value is not None and cash_value is not None else None,
             },
         })
     for index, row in enumerate(result):
@@ -319,6 +403,8 @@ company_fundamentals = {}
 for cnpj, company_tickers in tickers_by_company.items():
     annual_dre = dfp_dre.get(cnpj, {"current": {}, "previous": {}})
     interim_dre = itr_dre.get(cnpj, {"current": {}, "previous": {}})
+    annual_dfc = dfp_dfc.get(cnpj, {"current": {}, "previous": {}})
+    interim_dfc = itr_dfc.get(cnpj, {"current": {}, "previous": {}})
     latest_bpa = itr_bpa.get(cnpj) or dfp_bpa.get(cnpj) or {"current": {}, "previous": {}}
     latest_bpp = itr_bpp.get(cnpj) or dfp_bpp.get(cnpj) or {"current": {}, "previous": {}}
     cap = itr_cap.get(cnpj) or dfp_cap.get(cnpj) or {"ordinary": 0, "preferred": 0, "total": 0}
@@ -331,6 +417,13 @@ for cnpj, company_tickers in tickers_by_company.items():
         net_income = ttm("3.11", annual_dre, interim_dre)
     if net_income is None:
         net_income = ttm("3.09", annual_dre, interim_dre)
+    depreciation_amortization = ttm_semantic(
+        (),
+        ("depreciacao e amortizacao", "depreciacoes e amortizacoes"),
+        annual_dfc,
+        interim_dfc,
+    )
+    ebitda = ebit + abs(depreciation_amortization) if ebit is not None and depreciation_amortization is not None else None
 
     bpa = latest_bpa["current"]
     bpp = latest_bpp["current"]
@@ -342,12 +435,15 @@ for cnpj, company_tickers in tickers_by_company.items():
     assets = account(bpa, "1")
     current_assets = account(bpa, "1.01")
     current_liabilities = account(bpp, "2.01")
-    cash = account(bpa, "1.01.01") or 0
-    investments = account(bpa, "1.01.02") or 0
-    short_debt = account(bpp, "2.01.04") or 0
-    long_debt = account(bpp, "2.02.01") or 0
-    gross_debt = short_debt + long_debt
-    net_debt = gross_debt - cash - investments
+    cash = account_or_semantic(bpa, ("1.01.01",), ("caixa e equivalentes de caixa",))
+    investments = account_or_semantic(bpa, ("1.01.02",), ("aplicacoes financeiras",))
+    short_debt = account(bpp, "2.01.04")
+    long_debt = account(bpp, "2.02.01")
+    gross_debt = sum_known(short_debt, long_debt)
+    if gross_debt is None:
+        gross_debt = semantic_account(bpp, ("emprestimos e financiamentos", "divida bruta"))
+    liquidity = sum_known(cash, investments)
+    net_debt = gross_debt - liquidity if gross_debt is not None and liquidity is not None else None
 
     # Value the legal issuer by share class. If only one class trades, use its
     # quote as a transparent proxy for the unquoted class.
@@ -375,6 +471,7 @@ for cnpj, company_tickers in tickers_by_company.items():
     ebit_margin = safe_div(ebit, revenue, 100)
     net_margin = safe_div(net_income, revenue, 100)
     net_debt_ebit = safe_div(net_debt, ebit)
+    net_debt_ebitda = safe_div(net_debt, ebitda)
     current_ratio = safe_div(current_assets, current_liabilities)
     ev_ebit = safe_div((market_cap + net_debt) if market_cap is not None else None, ebit)
     eps = safe_div(net_income, cap["total"])
@@ -384,6 +481,11 @@ for cnpj, company_tickers in tickers_by_company.items():
     revenue_growth = ((annual_dre["current"].get("3.01") / prior_revenue - 1) * 100) if prior_revenue else None
     current_profit = annual_dre["current"].get("3.11.01") or annual_dre["current"].get("3.11") or annual_dre["current"].get("3.09")
     profit_growth = ((current_profit / prior_profit - 1) * 100) if current_profit is not None and prior_profit and prior_profit > 0 else None
+    pretax_income = ttm("3.07", annual_dre, interim_dre)
+    income_taxes = ttm("3.08", annual_dre, interim_dre)
+    effective_tax = safe_div(abs(income_taxes), abs(pretax_income)) if pretax_income and pretax_income > 0 and income_taxes is not None and income_taxes < 0 else None
+    invested_capital = sum_known(equity, net_debt)
+    roic = safe_div(ebit * (1 - effective_tax), invested_capital, 100) if ebit is not None and effective_tax is not None else None
 
     price_score = average([
         score_low(pe if pe and pe > 0 else None, [(6, 95), (10, 85), (15, 70), (22, 55), (35, 35), (10**9, 20)]),
@@ -406,10 +508,38 @@ for cnpj, company_tickers in tickers_by_company.items():
     dividend_score = None  # proventos require a separate event-normalisation pipeline
     categories = [price_score, quality_score, debt_score, growth_score, dividend_score]
     overall = average(categories) or 50
-    expected = 9 if is_financial else 11
-    available_count = sum(value is not None for value in [pe, pb, None if is_financial else ev_ebit, roe, roa, None if is_financial else net_margin, None if is_financial else net_debt_ebit, None if is_financial else current_ratio, revenue_growth, profit_growth, None])
 
     issuer = security[company_tickers[0]]
+    reference_date = (itr_index.get(cnpj) or dfp_index.get(cnpj) or (None,))[0]
+    metric_values = {
+        "pe": pe, "pb": pb, "evEbit": ev_ebit, "roe": roe, "roa": roa,
+        "grossMargin": gross_margin, "ebitMargin": ebit_margin, "netMargin": net_margin,
+        "netDebtEbit": net_debt_ebit, "netDebtEbitda": net_debt_ebitda, "currentRatio": current_ratio,
+        "revenueGrowth": revenue_growth, "profitGrowth": profit_growth, "eps": eps,
+        "bookValuePerShare": bvps, "ebitda": ebitda, "roic": roic,
+    }
+    non_applicable = {"evEbit", "grossMargin", "ebitMargin", "netMargin", "netDebtEbit", "netDebtEbitda", "currentRatio", "ebitda", "roic"} if is_financial else set()
+    score_metric_names = ["pe", "pb", "roe", "roa", "revenueGrowth", "profitGrowth"]
+    if not is_financial:
+        score_metric_names += ["evEbit", "netMargin", "netDebtEbit", "currentRatio"]
+    applicable = [name for name in score_metric_names if name not in non_applicable]
+    available_count = sum(metric_values[name] is not None for name in applicable)
+    coverage = round(available_count / len(applicable) * 100) if applicable else 0
+    freshness = freshness_score(reference_date)
+    linkage = 100 if cnpj and cvm_codes.get(cnpj, (None, ""))[1] else 85
+    consolidation = 100
+    estimation = 85 if market_cap_estimated else 100
+    confidence = round(coverage * .55 + freshness * .20 + linkage * .10 + consolidation * .10 + estimation * .05)
+    metric_states = {
+        name: (
+            "not_applicable" if name in non_applicable else
+            "not_found" if value is None else
+            "estimated" if market_cap_estimated and name in {"pe", "pb", "evEbit", "eps"} else
+            "stale" if freshness < 55 else
+            "available"
+        )
+        for name, value in metric_values.items()
+    }
     company_fundamentals[cnpj] = {
         "cnpj": cnpj,
         "cvmCode": cvm_codes.get(cnpj, (None, ""))[1],
@@ -420,23 +550,34 @@ for cnpj, company_tickers in tickers_by_company.items():
         "subsector": None,
         "industrySegment": None,
         "freeFloat": None,
-        "referenceDate": (itr_index.get(cnpj) or dfp_index.get(cnpj) or (None,))[0],
+        "referenceDate": reference_date,
         "filingType": "ITR + DFP (12 meses)" if cnpj in itr_dre else "DFP anual",
         "periodLabel": "12 meses até a última ITR" if cnpj in itr_dre else f"exercício de {DFP_YEAR}",
         "marketCapEstimated": market_cap_estimated,
         "financialCompany": is_financial,
-        "revenueTTM": revenue, "grossProfitTTM": gross_profit, "ebitTTM": ebit, "netIncomeTTM": net_income,
+        "revenueTTM": revenue, "grossProfitTTM": gross_profit, "ebitTTM": ebit,
+        "depreciationAmortizationTTM": depreciation_amortization, "ebitdaTTM": ebitda, "netIncomeTTM": net_income,
         "equity": equity, "assets": assets, "currentAssets": current_assets, "currentLiabilities": current_liabilities,
-        "grossDebt": gross_debt, "cashAndInvestments": cash + investments, "netDebt": net_debt,
+        "grossDebt": gross_debt, "cashAndInvestments": liquidity, "netDebt": net_debt,
         "enterpriseValue": (market_cap + net_debt) if market_cap is not None else None,
         "sharesOutstanding": cap["total"] or None, "ordinaryShares": cap["ordinary"] or None, "preferredShares": cap["preferred"] or None,
-        "marketCap": market_cap, "pe": pe, "pb": pb, "roe": roe, "roa": roa,
+        "marketCap": market_cap, "pe": pe, "pb": pb, "roe": roe, "roa": roa, "roic": roic,
         "grossMargin": gross_margin, "ebitMargin": ebit_margin, "netMargin": net_margin,
-        "netDebtEbit": net_debt_ebit, "currentRatio": current_ratio, "evEbit": ev_ebit,
+        "netDebtEbit": net_debt_ebit, "netDebtEbitda": net_debt_ebitda, "currentRatio": current_ratio, "evEbit": ev_ebit,
         "eps": eps, "bookValuePerShare": bvps, "revenueGrowth": revenue_growth, "profitGrowth": profit_growth,
         "dividendYield": None,
+        "metricStates": metric_states,
+        "confidenceDetails": {
+            "coverage": coverage,
+            "freshness": freshness,
+            "linkage": linkage,
+            "consolidation": consolidation,
+            "estimation": estimation,
+            "available": available_count,
+            "applicable": len(applicable),
+        },
         "history": history_rows(cnpj, is_financial),
-        "scores": {"price": price_score, "quality": quality_score, "debt": debt_score, "growth": growth_score, "dividends": dividend_score, "overall": overall, "confidence": round(available_count / expected * 100)},
+        "scores": {"price": price_score, "quality": quality_score, "debt": debt_score, "growth": growth_score, "dividends": dividend_score, "overall": overall, "confidence": confidence},
     }
 
 result = []
