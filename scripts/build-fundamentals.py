@@ -8,6 +8,7 @@ DFP/current ITR/FCA bulk files published by CVM. Missing facts stay null.
 from __future__ import annotations
 
 import csv
+import copy
 import io
 import json
 import math
@@ -20,6 +21,7 @@ from datetime import date
 from pathlib import Path
 
 from accounting_engine import calculate_ttm, growth_analysis, isolate_quarters, period_days, reconcile_balance
+from dividend_engine import calculate_ticker_dividends
 
 ROOT = Path(__file__).resolve().parents[1]
 CVM = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/cvm-data")
@@ -356,6 +358,8 @@ def weighted_average(items):
 catalog_path = (ROOT / "data/b3-catalog.json") if (ROOT / "data").exists() else (ROOT / "app/data/b3-catalog.json")
 catalog = json.loads(catalog_path.read_text())
 by_ticker = {row["ticker"]: row for row in catalog}
+dividend_path = CVM / "b3-dividends.json"
+dividend_events_by_name = json.loads(dividend_path.read_text(encoding="utf-8")) if dividend_path.exists() else {}
 
 # Latest FCA security row maps every ticker to its legal issuer.
 security = {}
@@ -721,7 +725,7 @@ for cnpj, company_tickers in tickers_by_company.items():
         revenue_growth_score,
         profit_growth_score,
     ])
-    dividend_score = None  # proventos require a separate event-normalisation pipeline
+    dividend_score = None  # calculated per ticker/share class after issuer fundamentals
     pillar_weights = {"price": 30 if is_financial else 25, "quality": 50 if is_financial else 35, "debt": 0 if is_financial else 25, "dividends": 20 if is_financial else 15}
     pillar_values = {"price": price_score, "quality": quality_score, "debt": debt_score, "dividends": dividend_score}
     overall = weighted_average([(pillar_values[key], pillar_weights[key]) for key in pillar_values])
@@ -743,7 +747,7 @@ for cnpj, company_tickers in tickers_by_company.items():
                 "price": "Preço comparado a lucro, patrimônio e resultado operacional.",
                 "quality": "Rentabilidade, eficiência e evolução dos resultados.",
                 "debt": "Não aplicável a instituições financeiras." if is_financial else "Alavancagem e liquidez de curto prazo.",
-                "dividends": "Aguardando normalização de proventos e eventos societários.",
+                "dividends": "Yield, frequência e payout calculados por classe com eventos oficiais da B3.",
             }[key],
         }
         for key, value in pillar_values.items()
@@ -844,7 +848,8 @@ for cnpj, company_tickers in tickers_by_company.items():
         "grossMargin": gross_margin, "ebitMargin": ebit_margin, "netMargin": net_margin,
         "netDebtEbit": net_debt_ebit, "netDebtEbitda": net_debt_ebitda, "currentRatio": current_ratio, "evEbit": ev_ebit,
         "eps": eps, "bookValuePerShare": bvps, "revenueGrowth": revenue_growth, "profitGrowth": profit_growth,
-        "dividendYield": None,
+        "dividendYield": None, "dividendsPerShare12m": None, "dividendRegularity": None,
+        "dividendMonths24m": 0, "payout": None, "dividendEvents": [], "dividendSourceDate": None,
         "audit": {
             "methodVersion": "3.0.0",
             "generatedAt": date.today().isoformat(),
@@ -888,6 +893,56 @@ for asset in catalog:
     if sec:
         enriched.update({"securityType": sec.get("Valor_Mobiliario"), "unitComposition": sec.get("Composicao_BDR_Unit") or None})
     if fundamental:
+        fundamental = copy.deepcopy(fundamental)
+        events = dividend_events_by_name.get(str(asset.get("name") or "").strip().upper(), [])
+        dividend_metrics = calculate_ticker_dividends(
+            events,
+            ticker,
+            asset.get("price"),
+            fundamental.get("netIncomeTTM"),
+            fundamental.get("sharesOutstanding"),
+            date.fromisoformat(asset["date"]) if asset.get("date") else date.today(),
+        )
+        fundamental.update(dividend_metrics)
+        dividend_score = dividend_metrics["dividendScore"]
+        fundamental["scores"]["dividends"] = dividend_score
+        if dividend_score is not None:
+            weights = {
+                "price": 30 if fundamental["financialCompany"] else 25,
+                "quality": 50 if fundamental["financialCompany"] else 35,
+                "debt": 0 if fundamental["financialCompany"] else 25,
+                "dividends": 20 if fundamental["financialCompany"] else 15,
+            }
+            fundamental["scores"]["overall"] = weighted_average([
+                (fundamental["scores"].get(key), weight) for key, weight in weights.items()
+            ])
+            dividend_detail = fundamental.get("scoreDetails", {}).get("dividends")
+            if dividend_detail:
+                dividend_detail["score"] = dividend_score
+                dividend_detail["rationale"] = "Proventos oficiais da B3: yield de 12 meses, meses com pagamento e payout estimado."
+                available_weight = sum(
+                    weights[key] for key in weights if fundamental["scores"].get(key) is not None
+                )
+                for key, detail in fundamental.get("scoreDetails", {}).items():
+                    detail["effectiveWeight"] = (
+                        round(weights[key] / available_weight * 100)
+                        if detail.get("score") is not None and available_weight else 0
+                    )
+            details = fundamental.get("confidenceDetails")
+            if details:
+                details["applicable"] += 1
+                details["available"] += 1
+                details["coverage"] = round(details["available"] / details["applicable"] * 100)
+                fundamental["scores"]["confidence"] = round(
+                    details["coverage"] * .55 + details["freshness"] * .20 +
+                    details["linkage"] * .10 + details["consolidation"] * .10 +
+                    details["estimation"] * .05
+                )
+            fundamental.setdefault("metricStates", {}).update({
+                "dividendYield": "available",
+                "dividendRegularity": "available",
+                "payout": "available" if dividend_metrics["payout"] is not None else "not_found",
+            })
         enriched["fundamentals"] = fundamental
         enriched["marketcap"] = fundamental["marketCap"]
         enriched["pe"] = fundamental["pe"]
