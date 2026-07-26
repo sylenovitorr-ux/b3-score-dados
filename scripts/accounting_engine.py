@@ -39,6 +39,42 @@ def select_latest_versions(records):
     return latest
 
 
+def select_statement_scope(consolidated, individual):
+    """Choose one complete accounting scope for the whole issuer.
+
+    Consolidated statements are preferred.  When the issuer does not publish a
+    usable consolidated DRE/balance set, use the individual set consistently
+    instead of mixing scopes or leaving every income metric unavailable.
+    """
+    required = {
+        "dre": ("3.01",),
+        "bpa": ("1",),
+        "bpp": ("2.03", "2.07", "2.08"),
+    }
+
+    def complete(dataset):
+        for statement, codes in required.items():
+            values = (dataset.get(statement) or {}).get("current") or {}
+            if not any(code in values for code in codes):
+                return False
+        return True
+
+    if complete(consolidated):
+        return {
+            "scope": "consolidated",
+            "reason": "demonstracoes_consolidadas_completas",
+        }
+    if complete(individual):
+        return {
+            "scope": "individual",
+            "reason": "consolidado_incompleto_fallback_individual",
+        }
+    return {
+        "scope": "consolidated",
+        "reason": "nenhum_escopo_completo_preferencia_consolidado",
+    }
+
+
 def validate_ttm_periods(annual_meta, current_meta, prior_meta):
     """Validate FY + current YTD - comparable prior YTD.
 
