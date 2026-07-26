@@ -67,7 +67,7 @@ def normalize_event(raw, trading_name):
         "valuePerShare": per_share,
         "approvedAt": approval.isoformat() if approval else None,
         "lastDateWith": ex_prior.isoformat(),
-        "exDate": (ex_prior + timedelta(days=1)).isoformat(),
+        "exDate": None,
         "paymentDate": None,
         "source": "B3",
     }
