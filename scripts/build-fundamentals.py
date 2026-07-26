@@ -70,6 +70,49 @@ def statements(zip_name, member, document_keys):
     return data
 
 
+def annual_document_index():
+    """Latest accepted DFP version for each issuer and reference date."""
+    index = {}
+    for path in sorted(CVM.glob("dfp*.zip")):
+        year = path.stem.removeprefix("dfp")
+        member = f"dfp_cia_aberta_{year}.csv"
+        try:
+            source = rows(path.name, member)
+            for row in source:
+                cnpj = row.get("CNPJ_CIA")
+                reference = row.get("DT_REFER", "")
+                version = int(row.get("VERSAO") or 0)
+                if cnpj and reference and version > index.get((cnpj, reference), -1):
+                    index[(cnpj, reference)] = version
+        except KeyError:
+            continue
+    return index
+
+
+def annual_history(statement, document_index):
+    """Five latest annual consolidated statements, keyed by CVM account code."""
+    history = defaultdict(dict)
+    for path in sorted(CVM.glob("dfp*.zip")):
+        year = path.stem.removeprefix("dfp")
+        member = f"dfp_cia_aberta_{statement}_con_{year}.csv"
+        try:
+            source = rows(path.name, member)
+            for row in source:
+                cnpj = row.get("CNPJ_CIA")
+                reference = row.get("DT_REFER", "")
+                if not cnpj or not reference or row.get("ORDEM_EXERC") != "ÚLTIMO":
+                    continue
+                if int(row.get("VERSAO") or 0) != document_index.get((cnpj, reference)):
+                    continue
+                code = row.get("CD_CONTA")
+                value = money_value(row)
+                if code and value is not None:
+                    history[cnpj].setdefault(reference, {})[code] = value
+        except KeyError:
+            continue
+    return history
+
+
 def capital(zip_name, member, document_keys):
     data = {}
     for row in rows(zip_name, member):
@@ -161,6 +204,110 @@ itr_bpp = statements(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_BPP_con_{ITR_YEAR}.c
 
 dfp_cap = capital(f"dfp{DFP_YEAR}.zip", f"dfp_cia_aberta_composicao_capital_{DFP_YEAR}.csv", dfp_index)
 itr_cap = capital(f"itr{ITR_YEAR}.zip", f"itr_cia_aberta_composicao_capital_{ITR_YEAR}.csv", itr_index)
+
+annual_index = annual_document_index()
+history_dre = annual_history("DRE", annual_index)
+history_bpa = annual_history("BPA", annual_index)
+history_bpp = annual_history("BPP", annual_index)
+history_dfc_mi = annual_history("DFC_MI", annual_index)
+history_dfc_md = annual_history("DFC_MD", annual_index)
+
+
+def growth(current, previous):
+    return ((current / previous) - 1) * 100 if current is not None and previous not in (None, 0) else None
+
+
+def history_rows(cnpj, financial):
+    references = sorted(
+        set(history_dre.get(cnpj, {})) | set(history_bpa.get(cnpj, {})) | set(history_bpp.get(cnpj, {})),
+        reverse=True,
+    )[:5]
+    result = []
+    for reference in references:
+        dre = history_dre.get(cnpj, {}).get(reference, {})
+        bpa = history_bpa.get(cnpj, {}).get(reference, {})
+        bpp = history_bpp.get(cnpj, {}).get(reference, {})
+        dfc = history_dfc_mi.get(cnpj, {}).get(reference) or history_dfc_md.get(cnpj, {}).get(reference, {})
+        equity_total = account(bpp, "2.08", "2.07", "2.03") if financial else account(bpp, "2.03")
+        minority = account(bpp, "2.03.09") or 0
+        equity_value = equity_total - minority if equity_total is not None else None
+        assets_value = account(bpa, "1")
+        revenue_value = account(dre, "3.01")
+        gross_profit_value = account(dre, "3.03")
+        ebit_value = account(dre, "3.05")
+        net_income_value = account(dre, "3.11.01", "3.11", "3.09")
+        cash_value = (account(bpa, "1.01.01") or 0) + (account(bpa, "1.01.02") or 0)
+        debt_value = (account(bpp, "2.01.04") or 0) + (account(bpp, "2.02.01") or 0)
+        cfo = account(dfc, "6.01")
+        cfi = account(dfc, "6.02")
+        result.append({
+            "year": int(reference[:4]),
+            "referenceDate": reference,
+            "income": {
+                "revenue": revenue_value,
+                "costs": account(dre, "3.02"),
+                "grossProfit": gross_profit_value,
+                "operatingExpenses": account(dre, "3.04"),
+                "ebit": ebit_value,
+                "financialResult": account(dre, "3.06"),
+                "taxes": account(dre, "3.08"),
+                "netIncome": net_income_value,
+                "controllerIncome": account(dre, "3.11.01"),
+                "nonControllerIncome": account(dre, "3.11.02"),
+                "roe": safe_div(net_income_value, equity_value, 100),
+                "grossMargin": safe_div(gross_profit_value, revenue_value, 100),
+                "ebitMargin": safe_div(ebit_value, revenue_value, 100),
+                "netMargin": safe_div(net_income_value, revenue_value, 100),
+            },
+            "cashFlow": {
+                "operating": cfo,
+                "investing": cfi,
+                "freeCashFlow": cfo + cfi if cfo is not None and cfi is not None else None,
+                "financing": account(dfc, "6.03"),
+                "currencyEffect": account(dfc, "6.04"),
+                "cashChange": account(dfc, "6.05"),
+                "openingCash": account(dfc, "6.05.01"),
+                "closingCash": account(dfc, "6.05.02"),
+            },
+            "balance": {
+                "assets": assets_value,
+                "currentAssets": account(bpa, "1.01"),
+                "financialInvestments": account(bpa, "1.01.02"),
+                "cash": account(bpa, "1.01.01"),
+                "receivables": account(bpa, "1.01.03"),
+                "inventory": account(bpa, "1.01.04"),
+                "nonCurrentAssets": account(bpa, "1.02"),
+                "longTermAssets": account(bpa, "1.02.01"),
+                "investments": account(bpa, "1.02.02"),
+                "propertyPlantEquipment": account(bpa, "1.02.03"),
+                "intangibles": account(bpa, "1.02.04"),
+                "liabilities": account(bpp, "2"),
+                "currentLiabilities": account(bpp, "2.01"),
+                "nonCurrentLiabilities": account(bpp, "2.02"),
+                "equity": equity_value,
+                "shareCapital": account(bpp, "2.03.01"),
+                "capitalReserves": account(bpp, "2.03.02"),
+                "profitReserves": account(bpp, "2.03.04"),
+                "nonControllingInterest": account(bpp, "2.03.09"),
+                "grossDebt": debt_value,
+                "netDebt": debt_value - cash_value,
+            },
+        })
+    for index, row in enumerate(result):
+        previous = result[index + 1] if index + 1 < len(result) else None
+        row["incomeGrowth"] = {
+            key: growth(value, previous["income"].get(key) if previous else None)
+            for key, value in row["income"].items() if key not in {"roe", "grossMargin", "ebitMargin", "netMargin"}
+        }
+        row["cashFlowGrowth"] = {
+            key: growth(value, previous["cashFlow"].get(key) if previous else None)
+            for key, value in row["cashFlow"].items()
+        }
+        row["balanceGrowth"] = {
+            key: growth(value, previous["balance"].get(key) if previous else None)
+            for key, value in row["balance"].items()
+        }
+    return result
 
 tickers_by_company = defaultdict(list)
 for ticker, row in security.items():
@@ -268,18 +415,27 @@ for cnpj, company_tickers in tickers_by_company.items():
         "cvmCode": cvm_codes.get(cnpj, (None, ""))[1],
         "companyName": issuer.get("Nome_Empresarial"),
         "segment": issuer.get("Segmento") or None,
+        "listingSegment": issuer.get("Segmento") or None,
+        "sector": None,
+        "subsector": None,
+        "industrySegment": None,
+        "freeFloat": None,
         "referenceDate": (itr_index.get(cnpj) or dfp_index.get(cnpj) or (None,))[0],
         "filingType": "ITR + DFP (12 meses)" if cnpj in itr_dre else "DFP anual",
         "periodLabel": "12 meses até a última ITR" if cnpj in itr_dre else f"exercício de {DFP_YEAR}",
         "marketCapEstimated": market_cap_estimated,
         "financialCompany": is_financial,
         "revenueTTM": revenue, "grossProfitTTM": gross_profit, "ebitTTM": ebit, "netIncomeTTM": net_income,
-        "equity": equity, "assets": assets, "grossDebt": gross_debt, "cashAndInvestments": cash + investments, "netDebt": net_debt,
+        "equity": equity, "assets": assets, "currentAssets": current_assets, "currentLiabilities": current_liabilities,
+        "grossDebt": gross_debt, "cashAndInvestments": cash + investments, "netDebt": net_debt,
+        "enterpriseValue": (market_cap + net_debt) if market_cap is not None else None,
+        "sharesOutstanding": cap["total"] or None, "ordinaryShares": cap["ordinary"] or None, "preferredShares": cap["preferred"] or None,
         "marketCap": market_cap, "pe": pe, "pb": pb, "roe": roe, "roa": roa,
         "grossMargin": gross_margin, "ebitMargin": ebit_margin, "netMargin": net_margin,
         "netDebtEbit": net_debt_ebit, "currentRatio": current_ratio, "evEbit": ev_ebit,
         "eps": eps, "bookValuePerShare": bvps, "revenueGrowth": revenue_growth, "profitGrowth": profit_growth,
         "dividendYield": None,
+        "history": history_rows(cnpj, is_financial),
         "scores": {"price": price_score, "quality": quality_score, "debt": debt_score, "growth": growth_score, "dividends": dividend_score, "overall": overall, "confidence": round(available_count / expected * 100)},
     }
 
