@@ -5,6 +5,7 @@ const FILTERS = [
   { id: "stocks", label: "A\xE7\xF5es" },
   { id: "fiis", label: "FIIs" },
   { id: "fundamentals", label: "Com dados oficiais" },
+  { id: "candidates", label: "Radar: candidatas" },
   { id: "favorites", label: "\u2605 Favoritos" },
   { id: "gainers", label: "Em alta" },
   { id: "losers", label: "Em baixa" },
@@ -120,7 +121,7 @@ function fallbackScore(asset) {
   return { price: Math.round((momentum + liquidity) / 2), quality: null, debt: null, growth: null, dividends: null, overall: Math.round((momentum + liquidity) / 2), confidence: Math.round(available / 11 * 100) };
 }
 const scoreLabel = (score) => score >= 80 ? "Muito forte" : score >= 65 ? "Favor\xE1vel" : score >= 50 ? "Misto" : score >= 35 ? "Aten\xE7\xE3o" : "Fr\xE1gil";
-const scoreTone = (score) => score === null ? "na" : score >= 80 ? "excellent" : score >= 65 ? "good" : score >= 50 ? "mid" : score >= 35 ? "warn" : "bad";
+const scoreTone = (score) => score === null || score === void 0 ? "na" : score >= 80 ? "excellent" : score >= 65 ? "good" : score >= 50 ? "mid" : score >= 35 ? "warn" : "bad";
 const confidenceTone = (value) => value >= 80 ? "high" : value >= 60 ? "medium" : "low";
 const assetScore = (asset) => (asset.fund?.scores ?? asset.fundamentals?.scores ?? fallbackScore(asset)).overall;
 const healthySnapshot = (data) => data.length >= 600 && data.filter((asset) => asset.fundamentals).length >= 250 && data.filter((asset) => asset.fund).length >= 200;
@@ -132,6 +133,201 @@ const SCORE_LEGEND = [
   { range: "0\u201334", label: "Fraca", tone: "bad" },
   { range: "N/D", label: "Dados insuficientes", tone: "na" }
 ];
+const DEFAULT_INVESTOR_PROFILE = {
+  objective: "balanced",
+  horizon: "long",
+  risk: "moderate",
+  maxAsset: 10,
+  maxSector: 25
+};
+const PROFILE_OPTIONS = {
+  objective: {
+    balanced: "Equilibrado",
+    dividends: "Dividendos",
+    growth: "Crescimento",
+    value: "Valor"
+  },
+  horizon: {
+    medium: "3 a 5 anos",
+    long: "Mais de 5 anos"
+  },
+  risk: {
+    conservative: "Conservador",
+    moderate: "Moderado",
+    bold: "Arrojado"
+  }
+};
+const DECISION_META = {
+  candidate: { label: "Candidata", tone: "excellent", icon: "✓" },
+  watch: { label: "Observar", tone: "good", icon: "◉" },
+  attention: { label: "Atenção", tone: "warn", icon: "!" },
+  avoid: { label: "Evitar", tone: "bad", icon: "×" },
+  unavailable: { label: "Não avaliável", tone: "na", icon: "?" }
+};
+const median = (values) => {
+  const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+  if (!sorted.length) return null;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+};
+const bounded = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
+function peerComparison(asset, assets) {
+  if (!assets?.length) return null;
+  const isFii = asset.kind === "fii";
+  const group = isFii ? asset.fund?.segment : asset.fundamentals?.sector;
+  if (!group) return null;
+  const peers = assets.filter((item) => item.ticker !== asset.ticker && (isFii ? item.kind === "fii" && item.fund?.segment === group : item.kind !== "fii" && item.fundamentals?.sector === group));
+  if (peers.length < 2) return null;
+  if (isFii) {
+    return {
+      group,
+      count: peers.length + 1,
+      rows: [
+        { label: "P/VP", asset: asset.fund?.pb, peer: median(peers.map((item) => item.fund?.pb)), format: number },
+        { label: "DY 12m", asset: asset.fund?.dy12, peer: median(peers.map((item) => item.fund?.dy12)), format: (value) => percent(value, false) },
+        { label: "Vacância", asset: asset.fund?.vacancy, peer: median(peers.map((item) => item.fund?.vacancy)), format: (value) => percent(value, false) }
+      ].filter((row) => row.asset !== null && row.asset !== void 0 && row.peer !== null)
+    };
+  }
+  return {
+    group,
+    count: peers.length + 1,
+    rows: [
+      { label: "P/L", asset: asset.fundamentals?.pe, peer: median(peers.map((item) => item.fundamentals?.pe).filter((value) => value > 0)), format: number },
+      { label: "P/VP", asset: asset.fundamentals?.pb, peer: median(peers.map((item) => item.fundamentals?.pb).filter((value) => value > 0)), format: number },
+      { label: "ROE", asset: asset.fundamentals?.roe, peer: median(peers.map((item) => item.fundamentals?.roe)), format: (value) => percent(value, false) }
+    ].filter((row) => row.asset !== null && row.asset !== void 0 && row.peer !== null)
+  };
+}
+function fairValueRange(asset) {
+  if (asset.kind === "fii" && asset.fund) {
+    const f = asset.fund;
+    if (!(f.navPerShare > 0)) return null;
+    const quality = (f.scores.quality ?? 50) / 100;
+    const safety = (f.scores.risk ?? 50) / 100;
+    const targetPb = bounded(0.78 + quality * 0.16 + safety * 0.14, 0.72, 1.08);
+    const base = f.navPerShare * targetPb;
+    return {
+      low: base * 0.88,
+      base,
+      high: base * 1.12,
+      method: `VP/cota × P/VP-alvo ${number(targetPb)} ajustado por qualidade e risco`
+    };
+  }
+  const f = asset.fundamentals;
+  if (!f) return null;
+  const anchors = [];
+  if (f.eps > 0) {
+    const fairPe = bounded(8 + Math.max(0, f.roe ?? 0) * 0.35 + Math.max(-5, Math.min(15, f.revenueGrowth ?? 0)) * 0.15, 7, 18);
+    anchors.push({ value: f.eps * fairPe, label: `LPA × P/L-alvo ${number(fairPe, 1)}` });
+  }
+  if (f.bookValuePerShare > 0) {
+    const fairPb = bounded(0.65 + Math.max(0, f.roe ?? 0) / 20, 0.65, 2);
+    anchors.push({ value: f.bookValuePerShare * fairPb, label: `VPA × P/VP-alvo ${number(fairPb, 1)}` });
+  }
+  const valid = anchors.filter((anchor) => Number.isFinite(anchor.value) && anchor.value > 0);
+  if (!valid.length) return null;
+  const base = valid.reduce((sum, anchor) => sum + anchor.value, 0) / valid.length;
+  return {
+    low: base * 0.82,
+    base,
+    high: base * 1.18,
+    method: valid.map((anchor) => anchor.label).join(" + ")
+  };
+}
+function decisionPillars(asset) {
+  if (asset.kind === "fii" && asset.fund) {
+    const scores = asset.fund.scores;
+    return [
+      { key: "quality", label: "Qualidade", value: scores.quality },
+      { key: "price", label: "Preço", value: scores.price },
+      { key: "safety", label: "Segurança", value: scores.risk },
+      { key: "income", label: "Renda", value: scores.income },
+      { key: "liquidity", label: "Liquidez", value: scores.liquidity }
+    ];
+  }
+  const scores = asset.fundamentals?.scores;
+  if (!scores) return [];
+  return [
+    { key: "quality", label: "Qualidade", value: scores.quality },
+    { key: "price", label: "Preço", value: scores.price },
+    { key: "safety", label: "Segurança", value: scores.debt },
+    { key: "growth", label: "Crescimento", value: scores.growth },
+    { key: "income", label: "Proventos", value: scores.dividends }
+  ];
+}
+function buildDecision(asset, profile = DEFAULT_INVESTOR_PROFILE, assets = []) {
+  const isFii = asset.kind === "fii";
+  const data = isFii ? asset.fund : asset.fundamentals;
+  const scores = data?.scores;
+  const confidence = scores?.confidence ?? 0;
+  const pillars = decisionPillars(asset);
+  const available = pillars.filter((pillar) => pillar.value !== null && pillar.value !== void 0);
+  const weightsByGoal = {
+    balanced: { quality: 25, price: 20, safety: 25, growth: 15, income: 15, liquidity: 15 },
+    dividends: { quality: 25, price: 15, safety: 20, growth: 5, income: 30, liquidity: 10 },
+    growth: { quality: 30, price: 15, safety: 20, growth: 30, income: 5, liquidity: 10 },
+    value: { quality: 25, price: 35, safety: 20, growth: 15, income: 5, liquidity: 10 }
+  };
+  const weights = weightsByGoal[profile.objective] ?? weightsByGoal.balanced;
+  const totalWeight = available.reduce((sum, pillar) => sum + (weights[pillar.key] ?? 10), 0);
+  let fitScore = totalWeight ? Math.round(available.reduce((sum, pillar) => sum + pillar.value * (weights[pillar.key] ?? 10), 0) / totalWeight) : 0;
+  const strengths = [];
+  const risks = [];
+  const blockers = [];
+  for (const pillar of available) {
+    if (pillar.value >= 70) strengths.push(`${pillar.label} ${pillar.value}/100`);
+    if (pillar.value < 40) risks.push(`${pillar.label} ${pillar.value}/100`);
+  }
+  if (!data || confidence < 50 || available.length < 3) blockers.push("dados insuficientes para uma decisão responsável");
+  if (isFii && data) {
+    if (data.netAssets !== null && data.netAssets <= 0) blockers.push("patrimônio líquido não positivo");
+    if (data.leverage !== null && data.leverage > 60) blockers.push(`passivos elevados: ${percent(data.leverage, false)} do PL`);
+    if (data.vacancy !== null && data.vacancy > 35) risks.push(`vacância de ${percent(data.vacancy, false)}`);
+    if (data.dy12 !== null && data.dy12 > 18) risks.push(`DY muito alto: ${percent(data.dy12, false)}`);
+  } else if (data) {
+    if (data.equity !== null && data.equity <= 0) blockers.push("patrimônio líquido não positivo");
+    if (data.netIncomeTTM !== null && data.netIncomeTTM <= 0) risks.push("prejuízo nos últimos 12 meses");
+    if (!data.financialCompany && data.netDebtEbitda !== null && data.netDebtEbitda > 5) blockers.push(`dívida líquida/EBITDA de ${number(data.netDebtEbitda)}`);
+    if (data.roe !== null && data.roe < 3) risks.push(`ROE baixo: ${percent(data.roe, false)}`);
+    if (data.netMargin !== null && data.netMargin < 1) risks.push(`margem líquida estreita: ${percent(data.netMargin, false)}`);
+  }
+  if (profile.risk === "conservative") {
+    const safety = available.find((pillar) => pillar.key === "safety")?.value;
+    if (safety !== void 0 && safety !== null && safety < 60) fitScore -= 10;
+    if ((asset.volume ?? 0) < 1e5) fitScore -= 8;
+  } else if (profile.risk === "bold") {
+    fitScore += 3;
+  }
+  fitScore = bounded(fitScore);
+  const fair = fairValueRange(asset);
+  const margin = fair?.base && asset.price ? (fair.base / asset.price - 1) * 100 : null;
+  if (margin !== null && margin >= 15) strengths.push(`margem de segurança estimada de ${percent(margin, false)}`);
+  if (margin !== null && margin < -10) risks.push(`preço ${percent(Math.abs(margin), false)} acima do valor-base estimado`);
+  let status = "watch";
+  if (blockers.length && (confidence < 50 || !data || available.length < 3)) status = "unavailable";
+  else if (blockers.length || fitScore < 38) status = "avoid";
+  else if (fitScore < 55 || confidence < 60 || risks.length >= 3) status = "attention";
+  else if (fitScore >= 70 && confidence >= 65 && margin !== null && margin >= 10 && !risks.some((risk) => risk.includes("prejuízo"))) status = "candidate";
+  const peer = peerComparison(asset, assets);
+  const monitor = isFii ? ["recorrência dos rendimentos", "vacância, inadimplência e passivos", "próximo informe mensal/trimestral"] : ["próximo resultado trimestral", "evolução das margens e do lucro", "dívida e geração de caixa"];
+  const invalidators = isFii ? ["queda recorrente dos rendimentos", "alta relevante de vacância ou inadimplência", "aumento de passivos sem melhora da renda"] : ["dois resultados seguidos com piora operacional", "dívida superar a capacidade de geração de caixa", "lucro ou margem deteriorarem sem sinal de recuperação"];
+  return {
+    status,
+    meta: DECISION_META[status],
+    fitScore,
+    confidence,
+    pillars,
+    strengths: strengths.slice(0, 4),
+    risks: risks.slice(0, 5),
+    blockers,
+    fair,
+    margin,
+    peer,
+    monitor,
+    invalidators
+  };
+}
 function ScoreRing({ value, size = "normal" }) {
   return <div className={`score-ring ${size} ${scoreTone(value)}`} style={{ "--score": `${value * 3.6}deg` }} role="img" aria-label={`Nota ${value} de 100: ${scoreLabel(value)}`} title={`Nota ${value}/100 \u2014 ${scoreLabel(value)}`}><strong>{value}</strong>{size === "normal" && <span>/100</span>}</div>;
 }
@@ -290,8 +486,40 @@ function AnalysisGuide() {
     <div className="guide-check"><b>Antes de decidir</b><span>Confira a data, a confiança e a fonte dos dados. Compare empresas com empresas e FIIs com FIIs. Nota alta não é recomendação de compra.</span></div>
   </section>;
 }
-function AssetCard({ asset, favorite, onFavorite, onOpen }) {
+function InvestorProfile({ profile, onChange }) {
+  const update = (key, value) => onChange({ ...profile, [key]: value });
+  return <section className="investor-profile" id="perfil-investidor">
+    <div className="profile-heading"><div><span className="eyebrow">SEU RADAR</span><h2>Defina como você investe</h2><p>O perfil muda os pesos da análise, mas nunca apaga riscos nem transforma a nota em recomendação.</p></div><span className="profile-saved">✓ salvo neste aparelho</span></div>
+    <div className="profile-controls">
+      <label><span>Objetivo</span><select value={profile.objective} onChange={(event) => update("objective", event.target.value)}>{Object.entries(PROFILE_OPTIONS.objective).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label><span>Prazo</span><select value={profile.horizon} onChange={(event) => update("horizon", event.target.value)}>{Object.entries(PROFILE_OPTIONS.horizon).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label><span>Tolerância ao risco</span><select value={profile.risk} onChange={(event) => update("risk", event.target.value)}>{Object.entries(PROFILE_OPTIONS.risk).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label><span>Máximo por ativo</span><div className="profile-number"><input type="number" min="1" max="50" value={profile.maxAsset} onChange={(event) => update("maxAsset", bounded(Number(event.target.value), 1, 50))} /><b>%</b></div></label>
+      <label><span>Máximo por setor</span><div className="profile-number"><input type="number" min="5" max="100" value={profile.maxSector} onChange={(event) => update("maxSector", bounded(Number(event.target.value), 5, 100))} /><b>%</b></div></label>
+    </div>
+    <div className="profile-reading"><b>Como o Radar vai ler</b><span>{profile.objective === "dividends" ? "Dará mais peso à renda sustentável, sem ignorar qualidade e segurança." : profile.objective === "growth" ? "Dará mais peso à qualidade e ao crescimento de receita e lucro." : profile.objective === "value" ? "Dará mais peso ao preço e à margem de segurança, exigindo confirmação dos fundamentos." : "Equilibrará qualidade, preço, segurança, crescimento e renda."}</span></div>
+    <p className="profile-method-note">Perfil simplificado para fins educacionais; não substitui o suitability de uma instituição autorizada. <a href="https://www.gov.br/cvm/pt-br/assuntos/noticias/2025/cvm-publica-estudo-sobre-o-processo-de-analise-do-perfil-do-investidor-suitability-e-a-eficacia-da-resolucao-cvm-30" target="_blank" rel="noreferrer">Entenda a adequação ao perfil na CVM ↗</a></p>
+  </section>;
+}
+function DecisionRadar({ asset, profile, assets }) {
+  const decision = buildDecision(asset, profile, assets);
+  return <section className={`decision-radar ${decision.meta.tone}`} id="decisao-ativo">
+    <div className="decision-head"><div><span className="eyebrow">RADAR DE DECISÃO • LEITURA EDUCACIONAL</span><h3>{decision.meta.icon} {decision.meta.label}</h3><p>Compatibilidade com seu perfil: <b>{decision.fitScore}/100</b> • confiança dos dados: <b>{decision.confidence}%</b></p></div><div className="decision-price"><span>Cotação analisada</span><strong>{money(asset.price)}</strong>{decision.margin !== null && <small className={decision.margin >= 0 ? "up" : "down"}>{decision.margin >= 0 ? "+" : ""}{number(decision.margin)}% até o valor-base</small>}</div></div>
+    <div className="decision-pillar-grid">{decision.pillars.map((pillar) => <article className={scoreTone(pillar.value)} key={pillar.key}><span>{pillar.label}</span><strong>{pillar.value ?? "N/D"}</strong><i><em style={{ width: `${pillar.value ?? 0}%` }} /></i></article>)}</div>
+    {decision.fair ? <div className="fair-value"><div><span>Faixa conservadora</span><b>{money(decision.fair.low)}</b></div><div className="base"><span>Valor-base estimado</span><b>{money(decision.fair.base)}</b></div><div><span>Faixa otimista</span><b>{money(decision.fair.high)}</b></div><p><b>Método simplificado:</b> {decision.fair.method}. É uma faixa educacional baseada nos dados disponíveis, não um preço-alvo profissional.</p></div> : <div className="decision-missing">Não foi possível estimar uma faixa de valor com os dados atuais.</div>}
+    <div className="decision-thesis">
+      <article className="positive"><b>Por que pode interessar</b>{decision.strengths.length ? decision.strengths.map((item) => <span key={item}>✓ {item}</span>) : <span>Nenhuma força relevante confirmada.</span>}</article>
+      <article className="negative"><b>Riscos e contrapontos</b>{[...decision.blockers, ...decision.risks].length ? [...decision.blockers, ...decision.risks].map((item) => <span key={item}>! {item}</span>) : <span>Nenhum alerta forte nos dados disponíveis.</span>}</article>
+      <article><b>O que acompanhar</b>{decision.monitor.map((item) => <span key={item}>→ {item}</span>)}</article>
+      <article><b>O que invalidaria a tese</b>{decision.invalidators.map((item) => <span key={item}>× {item}</span>)}</article>
+    </div>
+    {decision.peer && decision.peer.rows.length > 0 && <div className="peer-comparison"><div><b>Comparação com pares</b><span>{decision.peer.group} • {decision.peer.count} ativos com dados comparáveis</span></div><div className="peer-table"><span>Indicador</span><span>{asset.ticker}</span><span>Mediana do grupo</span>{decision.peer.rows.map((row) => <><b key={`${row.label}-label`}>{row.label}</b><strong key={`${row.label}-asset`}>{row.format(row.asset)}</strong><em key={`${row.label}-peer`}>{row.format(row.peer)}</em></>)}</div></div>}
+    <div className="decision-fit"><b>Encaixe na carteira</b><span>Limites definidos: até {profile.maxAsset}% por ativo e {profile.maxSector}% por setor. O app ainda não conhece suas posições reais; confirme a concentração no simulador antes de comprar.</span></div>
+  </section>;
+}
+function AssetCard({ asset, favorite, onFavorite, onOpen, profile }) {
   const scores = asset.fund?.scores ?? asset.fundamentals?.scores ?? fallbackScore(asset);
+  const decision = buildDecision(asset, profile);
   const direction = (asset.changepct ?? 0) > 0 ? "up" : (asset.changepct ?? 0) < 0 ? "down" : "flat";
   const preview = asset.kind === "fii" ? [{ label: "P/VP", value: asset.fund?.pb, text: number(asset.fund?.pb ?? null, 2) }, { label: "DY 12m", value: asset.fund?.dy12, text: percent(asset.fund?.dy12 ?? null, false) }, { label: "Liquidez", value: asset.volume, text: compactMoney(asset.volume) }] : [{ label: "P/L", value: asset.fundamentals?.pe, text: number(asset.fundamentals?.pe ?? null, 1) }, { label: "P/VP", value: asset.fundamentals?.pb, text: number(asset.fundamentals?.pb ?? null, 1) }, { label: "ROE", value: asset.fundamentals?.roe, text: percent(asset.fundamentals?.roe ?? null, false) }];
   const visiblePreview = preview.filter((item) => item.value !== null && item.value !== void 0);
@@ -301,6 +529,7 @@ function AssetCard({ asset, favorite, onFavorite, onOpen }) {
     onFavorite();
   }} aria-label="Alternar favorito">★</button></div>
     <div className="card-body"><div><strong className="asset-price">{money(asset.price)}</strong><span className={`change ${direction}`}>{direction === "up" ? "\u2197" : direction === "down" ? "\u2198" : "\u2192"} {percent(asset.changepct)}</span></div><ScoreRing value={scores.overall} size="small" /></div>
+    <div className="card-decision-row"><span className={`decision-chip ${decision.meta.tone}`}>{decision.meta.label}</span><small>perfil {decision.fitScore}/100</small></div>
     <div className="card-meta">{visiblePreview.length ? visiblePreview.map((item) => <span key={item.label}>{item.label} <b>{item.text}</b></span>) : <span><b>Preço e liquidez disponíveis</b></span>}</div>
     <div className="open-hint"><span>{asset.fund ? `FII \u2022 CVM ${shortDate(asset.fund.referenceDate ?? void 0)}` : asset.fundamentals ? `CVM \u2022 ${shortDate(asset.fundamentals.referenceDate)}` : "Sem v\xEDnculo oficial"}</span><b>Ver análise →</b></div>
   </article>;
@@ -701,7 +930,7 @@ function ConfidenceBreakdown({ fundamentals: f }) {
   }, {});
   return <section className="confidence-breakdown"><div className="section-heading"><h3>Como a confiança foi calculada</h3><span>qualidade e completude</span></div><p className="section-intro">A confiança não prevê valorização. Ela mede cobertura, atualização, vínculo correto e uso de aproximações.</p><div className="confidence-grid">{rows.map(([label, value, note]) => <article key={label}><div><span>{label}</span><b className={confidenceTone(value)}>{value}%</b></div><i><em style={{ width: `${value}%` }} /></i><small>{note}</small></article>)}</div><div className="data-state-legend"><span className="available">✓ {stateCounts.available ?? 0} disponíveis</span><span className="estimated">≈ {stateCounts.estimated ?? 0} estimados</span><span className="stale">◷ {stateCounts.stale ?? 0} antigos</span><span className="not-applicable">— {stateCounts.not_applicable ?? 0} não aplicáveis</span><span className="not-found">? {stateCounts.not_found ?? 0} não encontrados</span></div></section>;
 }
-function FiiDetail({ asset, favorite, onFavorite, onClose }) {
+function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets }) {
   const f = asset.fund;
   const metrics = [
     { label: "P/VP", value: number(f.pb), formula: "Cota\xE7\xE3o \xF7 valor patrimonial por cota", source: `CVM ${shortDate(f.referenceDate ?? void 0)} + B3 ${shortDate(asset.date)}` },
@@ -727,6 +956,7 @@ function FiiDetail({ asset, favorite, onFavorite, onClose }) {
     const value = f.scores[category.key];
     return <article className={scoreTone(value)} key={category.key}><span>{category.label}</span><strong>{value}</strong><small>{category.description}</small></article>;
   })}</div><ScoreWhy scores={f.scores} categories={fiiCategoryMeta} />
+	    <DecisionRadar asset={asset} profile={profile} assets={assets} />
 	    <MarketOverview asset={asset} />
 	    <MetricExplorer metrics={metrics} kind="fii" context={f} />
 	    <section className="statement-strip">{[{ label: "Segmento", value: f.segment }, { label: "Gest\xE3o", value: f.managementType }, { label: "Administrador", value: f.administrator }, { label: "P\xFAblico-alvo", value: f.targetAudience }].filter((item) => item.value).map((item) => <div key={item.label}><span>{item.label}</span><b>{item.value}</b></div>)}</section>
@@ -735,8 +965,8 @@ function FiiDetail({ asset, favorite, onFavorite, onClose }) {
     <div className="honest-note"><b>Leitura importante</b><p>DY passado não garante rendimentos futuros. Quando um informe não permite calcular um indicador com segurança, esse cartão é ocultado e a confiança da nota diminui.</p></div>
   </section></div>;
 }
-function Detail({ asset, favorite, onFavorite, onClose }) {
-  if (asset.kind === "fii" && asset.fund) return <FiiDetail asset={asset} favorite={favorite} onFavorite={onFavorite} onClose={onClose} />;
+function Detail({ asset, favorite, onFavorite, onClose, profile, assets }) {
+  if (asset.kind === "fii" && asset.fund) return <FiiDetail asset={asset} favorite={favorite} onFavorite={onFavorite} onClose={onClose} profile={profile} assets={assets} />;
   const f = asset.fundamentals;
   const scores = f?.scores ?? fallbackScore(asset);
   const metricState = (key) => {
@@ -785,7 +1015,7 @@ function Detail({ asset, favorite, onFavorite, onClose }) {
 	      <div className="detail-title"><div><span className="asset-kind">{f?.companyName || asset.name || "ATIVO B3"}</span><h2>{asset.ticker}</h2>{f && <small>{f.cnpj} • CVM {f.cvmCode || "\u2014"}</small>}</div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
 	      <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
 	      <div className="score-hero"><ScoreRing value={scores.overall} /><div><span className="eyebrow">SCORE FUNDAMENTALISTA</span><h3>{scoreLabel(scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(scores.confidence)}`}>{scores.confidence}%</b>. A tela exibe somente valores calculados e verificáveis.</p></div></div>
-	      {f ? <StockScorePillars fundamentals={f} /> : <div className="honest-note"><b>Score provisório de mercado</b><p>Sem demonstrativos vinculados, esta leitura usa somente preço e liquidez e não é um score fundamentalista.</p></div>}<ScoreWhy scores={scores} categories={categoryMeta} details={f?.scoreDetails} />{f && <ConfidenceBreakdown fundamentals={f} />}
+	      {f ? <StockScorePillars fundamentals={f} /> : <div className="honest-note"><b>Score provisório de mercado</b><p>Sem demonstrativos vinculados, esta leitura usa somente preço e liquidez e não é um score fundamentalista.</p></div>}<ScoreWhy scores={scores} categories={categoryMeta} details={f?.scoreDetails} />{f && <DecisionRadar asset={asset} profile={profile} assets={assets} />}{f && <ConfidenceBreakdown fundamentals={f} />}
 	      <MarketOverview asset={asset} marketCap={f?.marketCap} />
 	      {f ? <><MetricExplorer metrics={metrics} kind="stock" context={f} />
 	      <CompanyAndStatements fundamentals={f} />
@@ -811,6 +1041,8 @@ function Home() {
   const [showPlatformChooser, setShowPlatformChooser] = useState(false);
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const [standalone, setStandalone] = useState(false);
+  const [investorProfile, setInvestorProfile] = useState(DEFAULT_INVESTOR_PROFILE);
+  const [profileReady, setProfileReady] = useState(false);
   const load = useCallback(async (force = false) => {
     setLoading(true);
     localStorage.removeItem("b3-score-cache-v6");
@@ -878,12 +1110,20 @@ function Home() {
   }, []);
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("b3-score-favorites-v2") ?? "[]");
+    let savedProfile = DEFAULT_INVESTOR_PROFILE;
+    try {
+      savedProfile = { ...DEFAULT_INVESTOR_PROFILE, ...JSON.parse(localStorage.getItem("b3-score-investor-profile-v1") ?? "{}") };
+    } catch {
+      localStorage.removeItem("b3-score-investor-profile-v1");
+    }
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || Boolean(navigator.standalone);
     const platformChoice = localStorage.getItem("b3-score-platform-v1");
     const frame = requestAnimationFrame(() => {
       setStandalone(isStandalone);
       if (!isStandalone && !platformChoice) setShowPlatformChooser(true);
       setFavorites(new Set(saved));
+      setInvestorProfile(savedProfile);
+      setProfileReady(true);
       void load();
     });
     if ("serviceWorker" in navigator) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => void 0);
@@ -901,6 +1141,9 @@ function Home() {
       window.removeEventListener("beforeinstallprompt", capture);
     };
   }, [load]);
+  useEffect(() => {
+    if (profileReady) localStorage.setItem("b3-score-investor-profile-v1", JSON.stringify(investorProfile));
+  }, [investorProfile, profileReady]);
   useEffect(() => {
     document.body.classList.toggle("modal-open", Boolean(selected));
     const closeOnEscape = (event) => event.key === "Escape" && setSelected(null);
@@ -922,13 +1165,14 @@ function Home() {
     let result = assets.filter((a) => a.ticker.includes(term) || a.name?.toUpperCase().includes(term) || a.fundamentals?.companyName.toUpperCase().includes(term) || a.fund?.name.toUpperCase().includes(term));
     if (filter === "favorites") result = result.filter((a) => favorites.has(a.ticker));
     if (filter === "fundamentals") result = result.filter((a) => a.fundamentals || a.fund?.cnpj);
+    if (filter === "candidates") result = result.filter((a) => buildDecision(a, investorProfile).status === "candidate");
     if (filter === "stocks") result = result.filter((a) => a.kind === "stock" || a.kind === "unit");
     if (filter === "fiis") result = result.filter((a) => a.kind === "fii");
     if (filter === "gainers") result = result.filter((a) => (a.changepct ?? 0) > 0);
     if (filter === "losers") result = result.filter((a) => (a.changepct ?? 0) < 0);
     if (filter === "units") result = result.filter((a) => a.kind === "unit");
-    return [...result].sort((a, b) => sort === "ticker" ? a.ticker.localeCompare(b.ticker) : sort === "change" ? filter === "losers" ? (a.changepct ?? Infinity) - (b.changepct ?? Infinity) : (b.changepct ?? -Infinity) - (a.changepct ?? -Infinity) : sort === "volume" ? (b.volume ?? -Infinity) - (a.volume ?? -Infinity) : assetScore(b) - assetScore(a));
-  }, [assets, query, filter, favorites, sort]);
+    return [...result].sort((a, b) => sort === "ticker" ? a.ticker.localeCompare(b.ticker) : sort === "change" ? filter === "losers" ? (a.changepct ?? Infinity) - (b.changepct ?? Infinity) : (b.changepct ?? -Infinity) - (a.changepct ?? -Infinity) : sort === "volume" ? (b.volume ?? -Infinity) - (a.volume ?? -Infinity) : sort === "decision" ? buildDecision(b, investorProfile).fitScore - buildDecision(a, investorProfile).fitScore : assetScore(b) - assetScore(a));
+  }, [assets, query, filter, favorites, sort, investorProfile]);
   const market = useMemo(() => ({ up: assets.filter((a) => (a.changepct ?? 0) > 0).length, down: assets.filter((a) => (a.changepct ?? 0) < 0).length, stocks: assets.filter((a) => a.kind !== "fii").length, fiis: assets.filter((a) => a.kind === "fii").length, covered: assets.filter((a) => a.fundamentals || a.fund?.cnpj).length }), [assets]);
   const dataCoverage = useMemo(() => {
     const stocks = assets.filter((asset) => asset.kind !== "fii");
@@ -975,6 +1219,7 @@ function Home() {
   }}>↓ <span>Instalar app</span></button><button className={`refresh-btn ${loading ? "loading" : ""}`} disabled={loading} aria-label={loading ? "Atualizando dados" : "Atualizar dados"} title={loading ? "Atualizando dados" : "Atualizar dados"} onClick={() => load(true)}>↻</button></div></div></header>
     <div className="page" id="top"><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
       <section className="trust-row"><article><b>B3 D-1</b><span>último fechamento oficial disponível</span></article><article><b>CVM</b><span>DFP/ITR e informes de FIIs</span></article><article><b>0 invenção</b><span>só aparece valor calculável</span></article><article><b>Score correto</b><span>empresas e FIIs usam critérios diferentes</span></article></section>
+      <InvestorProfile profile={investorProfile} onChange={setInvestorProfile} />
       <AnalysisGuide />
       <PortfolioSimulator assets={assets} asOf={asOf} />
       <section className="explorer"><div className="search-row"><label className="search-box"><span>⌕</span><input value={query} aria-label="Pesquisar ativo" onChange={(e) => {
@@ -988,9 +1233,9 @@ function Home() {
       <div className="list-heading"><div><span className="eyebrow">RADAR B3</span><h2>{filter === "favorites" ? "Seus favoritos" : filter === "fundamentals" ? "Ativos com dados oficiais" : filter === "fiis" ? "Fundos imobili\xE1rios" : filter === "stocks" ? "A\xE7\xF5es e units" : "Ativos para explorar"}</h2></div><div className="list-tools"><span>{filtered.length} resultados{updatedAt ? ` \u2022 consulta ${updatedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : ""}</span><label>Ordenar por <select value={sort} onChange={(event) => {
     setSort(event.target.value);
     setVisible(24);
-  }}><option value="score">Maior nota</option><option value="ticker">Código A–Z</option><option value="change">Maior alta</option><option value="volume">Maior liquidez</option></select></label></div></div>
+  }}><option value="decision">Melhor encaixe no perfil</option><option value="score">Maior nota</option><option value="ticker">Código A–Z</option><option value="change">Maior alta</option><option value="volume">Maior liquidez</option></select></label></div></div>
       <section className="score-legend" aria-label="Legenda das notas"><div className="legend-title"><span className="eyebrow">COMO LER A NOTA</span><p>A cor resume a faixa do score. Toque no ativo para ver o motivo da nota.</p></div><div className="legend-items">{SCORE_LEGEND.map((item) => <div className={`legend-item ${item.tone}`} key={item.range}><i /><span><b>{item.range}</b>{item.label}</span></div>)}</div><p className="confidence-legend"><b>Confiança dos dados:</b> <span className="high">alta</span> <span className="medium">média</span> <span className="low">baixa</span></p></section>
-      {loading && !assets.length ? <div className="skeleton-grid">{Array.from({ length: 8 }).map((_, i) => <div className="skeleton" key={i} />)}</div> : filtered.length ? <><div className="asset-grid">{filtered.slice(0, visible).map((asset) => <AssetCard key={asset.ticker} asset={asset} favorite={favorites.has(asset.ticker)} onFavorite={() => toggleFavorite(asset.ticker)} onOpen={() => setSelected(asset)} />)}</div>{visible < filtered.length && <button className="load-more" onClick={() => setVisible((v) => v + 24)}>Mostrar mais ↓</button>}</> : <div className="empty-state"><div>⌕</div><h3>Nenhum ativo encontrado</h3><p>Tente outro código ou filtro.</p></div>}
+      {loading && !assets.length ? <div className="skeleton-grid">{Array.from({ length: 8 }).map((_, i) => <div className="skeleton" key={i} />)}</div> : filtered.length ? <><div className="asset-grid">{filtered.slice(0, visible).map((asset) => <AssetCard key={asset.ticker} asset={asset} favorite={favorites.has(asset.ticker)} onFavorite={() => toggleFavorite(asset.ticker)} onOpen={() => setSelected(asset)} profile={investorProfile} />)}</div>{visible < filtered.length && <button className="load-more" onClick={() => setVisible((v) => v + 24)}>Mostrar mais ↓</button>}</> : <div className="empty-state"><div>⌕</div><h3>Nenhum ativo encontrado</h3><p>Tente outro código ou filtro.</p></div>}
       <section className="nd-section"><div className="nd-heading"><div><span className="eyebrow">COBERTURA DOS DADOS</span><h2>Indicadores completos, sem cartões vazios.</h2></div><p>O aplicativo mostra somente valores que consegue calcular e verificar. Uma lacuna reduz a confiança da análise, mas nunca vira zero nem número estimado.</p></div><div className="coverage-grid"><article><strong>{dataCoverage.linked}/{dataCoverage.total}</strong><span>ações/units com vínculo contábil seguro</span></article><article><strong>{dataCoverage.pe}</strong><span>com P/L calculável</span></article><article><strong>{dataCoverage.pb}</strong><span>com P/VP calculável</span></article><article><strong>{dataCoverage.roe}</strong><span>com ROE calculável</span></article><article className="coverage-alert"><strong>{dataCoverage.dividends}</strong><span>com dividend yield normalizado</span></article></div><div className="nd-explanation"><article><b>1. Indicadores disponíveis</b><p>P/L, P/VP, ROE, margens, crescimento e endividamento aparecem quando as contas necessárias estão vinculadas ao balanço oficial.</p></article><article><b>2. Regras por setor</b><p>Indicadores industriais de dívida são ocultados em bancos, onde não são diretamente comparáveis.</p></article><article><b>3. Proventos oficiais</b><p>Dividend yield, regularidade e payout entram quando a B3 identifica o evento e a classe correta da ação. Datas ausentes continuam N/D.</p></article><article className="nd-impact"><b>Como isso afeta a nota?</b><p>A nota usa apenas os blocos válidos e informa a cobertura pela confiança. Portanto, 80/100 com confiança de 40% é menos completo que 80/100 com confiança de 90%.</p><code>score = soma dos blocos válidos ÷ quantidade de blocos válidos</code></article></div></section>
       <section className="how-section"><div><span className="eyebrow">MÉTODO AUDITÁVEL</span><h2>Duas réguas.<br />Nenhum atalho.</h2><p>Empresas são avaliadas por preço, qualidade, dívida e dividendos. FIIs usam P/VP, renda, imóveis, risco e liquidez. O total considera somente os blocos disponíveis.</p></div><div className="how-grid">{[["01", "Empresas", "CVM + B3: valuation, rentabilidade, d\xEDvida e proventos"], ["02", "Fundos imobili\xE1rios", "Informes: P/VP, DY, patrim\xF4nio, passivos e vac\xE2ncia"], ["03", "Pre\xE7o oficial", "Fechamento B3 com a data real do preg\xE3o"], ["04", "Sem preenchimento", "Campo sem base segura \xE9 ocultado e sai da m\xE9dia"]].map(([id, title, text]) => <article key={id}><span>{id}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
       <section className="install-section" id="install-guide"><div className="phone-icon">↓</div><div><span className="eyebrow">WEB OU ANDROID</span><h2>Escolha como usar</h2><p>Continue na versão Web ou instale o PWA no Android. As duas versões compartilham os mesmos recursos e dados.</p></div><button onClick={() => {
@@ -998,7 +1243,7 @@ function Home() {
     setShowPlatformChooser(true);
   }}>Escolher versão</button></section>
       <footer><div className="brand"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></div><p>Ações: fechamento B3 de {shortDate(asOf.stockPriceAsOf ?? void 0)}. FIIs: fechamento B3 de {shortDate(asOf.fiiPriceAsOf ?? void 0)}. Informes CVM: referência mais recente em {shortDate(asOf.cvmFilesAsOf ?? void 0)}. “Consultar” busca novamente e mantém o último snapshot válido se uma fonte estiver indisponível.</p><p className="disclaimer">Ferramenta educacional. Não constitui análise profissional, oferta ou recomendação de compra ou venda.</p></footer>
-    </div>{selected && <Detail asset={selected} favorite={favorites.has(selected.ticker)} onFavorite={() => toggleFavorite(selected.ticker)} onClose={() => setSelected(null)} />}</main>;
+    </div>{selected && <Detail asset={selected} favorite={favorites.has(selected.ticker)} onFavorite={() => toggleFavorite(selected.ticker)} onClose={() => setSelected(null)} profile={investorProfile} assets={assets} />}</main>;
 }
 export {
   Home as default
