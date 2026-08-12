@@ -19,18 +19,31 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def download(url: str, target: Path) -> bool:
-    for attempt in range(3):
+    for attempt in range(6):
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; B3ScoreGratuito/1.0)", "Accept": "application/zip,application/octet-stream,*/*"})
+            offset = target.stat().st_size if target.exists() else 0
+            headers = {"User-Agent": "Mozilla/5.0 (compatible; B3ScoreGratuito/1.0)", "Accept": "application/zip,application/octet-stream,*/*"}
+            if offset:
+                headers["Range"] = f"bytes={offset}-"
+            request = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(request, timeout=90) as response:
-                target.write_bytes(response.read())
+                resume = offset > 0 and getattr(response, "status", 200) == 206
+                with target.open("ab" if resume else "wb") as output:
+                    while chunk := response.read(1024 * 1024):
+                        output.write(chunk)
             if zipfile.is_zipfile(target):
                 return True
             target.unlink(missing_ok=True)
+        except urllib.error.HTTPError as error:
+            if 400 <= error.code < 500 and error.code != 429:
+                target.unlink(missing_ok=True)
+                return False
         except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException):
-            target.unlink(missing_ok=True)
-        if attempt < 2:
-            time.sleep(2 ** attempt)
+            # Preserve the partial file. The next request resumes with Range.
+            pass
+        if attempt < 5:
+            time.sleep(min(8, 2 ** attempt))
+    target.unlink(missing_ok=True)
     return False
 
 
