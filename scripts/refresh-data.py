@@ -85,6 +85,10 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     if sessions < 2:
         raise SystemExit("Could not obtain two recent B3 trading sessions")
 
+    annual_name = f"COTAHIST_A{year}.ZIP"
+    if not download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{annual_name}", work / annual_name):
+        print("Current-year B3 history unavailable; radar will use the latest session only.")
+
     dfp_years = download_history(work, "dfp", range(year, year - 11, -1))
     dfp_year = max(dfp_years)
     itr_years = download_history(work, "itr", range(year, year - 6, -1))
@@ -100,6 +104,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     ], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
+    subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
 
     stock_data = json.loads((ROOT / "data/b3-fundamentals.json").read_text(encoding="utf-8"))
     fii_data = json.loads((ROOT / "data/fii-catalog.json").read_text(encoding="utf-8"))

@@ -7,8 +7,9 @@ on:
       - ".github/workflows/update-data.yml"
       - "scripts/**"
   schedule:
-    # 19:17 em Boa Vista (UTC-4), de segunda a sexta.
-    - cron: "17 23 * * 1-5"
+    # 19:17 em Boa Vista (UTC-4), todos os dias; no fim de semana o
+    # fechamento permanece no último pregão, mas as notícias são renovadas.
+    - cron: "17 23 * * *"
 
 permissions:
   contents: write

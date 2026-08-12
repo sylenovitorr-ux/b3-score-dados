@@ -14,6 +14,7 @@ const FILTERS = [
 const CACHE_KEY = "b3-score-cache-v11";
 const REMOTE_STOCK_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/b3-fundamentals.json";
 const REMOTE_FII_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/fii-catalog.json";
+const REMOTE_RADAR_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/daily-radar.json";
 const n = (value) => {
   const parsed = Number(value);
   return value === null || value === void 0 || value === "" || !Number.isFinite(parsed) ? null : parsed;
@@ -1025,6 +1026,42 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets }) {
     </section>
   </div>;
 }
+function RankingChart({ rows, title, direction }) {
+  return <article className="radar-chart"><div className="radar-chart-head"><div><span className="eyebrow">GRÁFICO 0–100</span><h3>{title}</h3></div><small>mesma escala para todos</small></div><div className="rank-chart" role="img" aria-label={title}>
+    {rows.map((row, index) => <div className="rank-chart-row" key={row.ticker}><b>{index + 1}</b><span>{row.ticker}</span><i><em className={direction} style={{ width: `${row.score}%` }} /></i><strong>{row.score}</strong></div>)}
+  </div></article>;
+}
+function PotentialChart({ rows }) {
+  const ordered = [...rows].sort((a, b) => b.potentialPct - a.potentialPct);
+  const bound = Math.max(10, ...ordered.map((row) => Math.abs(row.potentialPct)));
+  return <article className="radar-chart potential-chart"><div className="radar-chart-head"><div><span className="eyebrow">GRÁFICO DE DISTÂNCIA</span><h3>Preço atual até o alvo matemático</h3></div><small>variação percentual, limitada pelo modelo</small></div><div className="potential-axis"><span>queda</span><i /><span>alta</span></div><div className="potential-rows">
+    {ordered.map((row) => <div className="potential-row" key={row.ticker}><b>{row.ticker}</b><div><i className={row.potentialPct >= 0 ? "positive" : "negative"} style={row.potentialPct >= 0 ? { left: "50%", width: `${Math.abs(row.potentialPct) / bound * 50}%` } : { right: "50%", width: `${Math.abs(row.potentialPct) / bound * 50}%` }} /></div><strong>{percent(row.potentialPct)}</strong></div>)}
+  </div></article>;
+}
+function RadarCard({ row, direction, onOpen }) {
+  const strength = direction === "strength";
+  return <article className={`daily-radar-card ${direction}`}><div className="daily-card-head"><div><span className="asset-kind">{strength ? "SINAL DE FORÇA" : "SINAL DE PRESSÃO"}</span><h3>{row.ticker}</h3><small>{row.name}</small></div><div className="daily-score"><b>{row.score}</b><span>/100</span></div></div>
+    <div className="mini-score-chart" aria-label={`Composição do score de ${row.ticker}`}><span style={{ width: `${row.fundamentalScore}%` }}>F</span><span style={{ width: `${row.technicalScore}%` }}>T</span><span style={{ width: `${row.newsScore}%` }}>N</span></div>
+    <div className="daily-score-labels"><span>Fund. <b>{row.fundamentalScore}</b></span><span>Técnico <b>{row.technicalScore}</b></span><span>Notícias <b>{row.newsScore}</b></span></div>
+    <dl className="daily-levels"><div><dt>Preço atual</dt><dd>{money(row.price)}</dd></div><div><dt>{strength ? "Faixa de entrada" : "Zona de reavaliação"}</dt><dd>{money(row.entryLow)} – {money(row.entryHigh)}</dd></div><div><dt>{strength ? "Alvo-base" : "Alvo de pressão"}</dt><dd>{money(row.target)} <small>{percent(row.potentialPct)}</small></dd></div><div><dt>Saída defensiva</dt><dd>{money(row.defensiveExit)}</dd></div></dl>
+    <div className="daily-evidence"><span>{row.return20 === null ? "histórico curto" : `20 pregões ${percent(row.return20)}`}</span><span>{row.newsCoverage} notícias</span><span>confiança {row.confidence}%</span></div>
+    {row.headlines?.length > 0 && <details className="daily-news"><summary>Notícias usadas no cálculo</summary>{row.headlines.map((item) => <a href={item.url} target="_blank" rel="noreferrer" key={item.url}>{item.title}</a>)}</details>}
+    <button className="daily-open" onClick={() => onOpen(row.ticker)}>Abrir indicadores completos →</button>
+  </article>;
+}
+function DailyRadarPage({ radar, onBack, onOpen }) {
+  if (!radar) return <div className="daily-radar-page"><button className="back-btn" onClick={onBack}>← Visão geral</button><div className="radar-loading">Carregando o Radar diário…</div></div>;
+  const all = [...radar.strength, ...radar.pressure];
+  return <div className="daily-radar-page"><div className="daily-radar-top"><button className="back-btn" onClick={onBack}>← Visão geral</button><span>Atualizado {new Date(radar.generatedAt).toLocaleString("pt-BR")}</span></div>
+    <section className="daily-radar-hero"><div><span className="eyebrow">RADAR DIÁRIO B3</span><h1>Força e pressão.<br /><em>Somente dados e matemática.</em></h1><p>O sistema examina {radar.universe} ações líquidas, combina fundamentos, tendência de preço, notícias e confiança dos dados, e mostra os 10 maiores sinais em cada direção.</p></div><div className="radar-drawing" aria-hidden="true"><svg viewBox="0 0 240 170"><path d="M25 142H218M43 128l35-34 30 18 42-58 47 20"/><circle cx="43" cy="128" r="7"/><circle cx="78" cy="94" r="7"/><circle cx="108" cy="112" r="7"/><circle cx="150" cy="54" r="7"/><circle cx="197" cy="74" r="7"/></svg></div></section>
+    <section className="model-strip"><div><b>42%</b><span>fundamentos</span></div><div><b>32%</b><span>técnico</span></div><div><b>14%</b><span>notícias</span></div><div><b>7%</b><span>liquidez</span></div><div><b>5%</b><span>confiança</span></div></section>
+    <section className="radar-charts-grid"><RankingChart rows={radar.strength} title="10 maiores sinais de força" direction="strength" /><RankingChart rows={radar.pressure} title="10 maiores sinais de pressão" direction="pressure" /></section>
+    <PotentialChart rows={all} />
+    <section className="daily-list-section"><div className="daily-list-title"><span className="eyebrow">LEITURA POSITIVA</span><h2>10 sinais de força</h2><p>Ordenados pelo score combinado. A faixa de entrada e o alvo são zonas matemáticas, não ordens.</p></div><div className="daily-card-grid">{radar.strength.map((row) => <RadarCard key={row.ticker} row={row} direction="strength" onOpen={onOpen} />)}</div></section>
+    <section className="daily-list-section pressure-section"><div className="daily-list-title"><span className="eyebrow">LEITURA DE RISCO</span><h2>10 sinais de pressão</h2><p>Indicam deterioração relativa no modelo. A zona inferior serve para reavaliação; não é sugestão de venda a descoberto.</p></div><div className="daily-card-grid">{radar.pressure.map((row) => <RadarCard key={row.ticker} row={row} direction="pressure" onOpen={onOpen} />)}</div></section>
+    <section className="radar-method"><h2>Como interpretar</h2><p>{radar.methodology} Os cenários são limitados a +40% e −35% por rodada para impedir que um indicador extremo domine a tela. Fontes: {radar.sources.join(", ")}.</p><strong>Ferramenta educacional. Não constitui recomendação, oferta ou garantia de resultado.</strong></section>
+  </div>;
+}
 function Home() {
   const [assets, setAssets] = useState([]);
   const [query, setQuery] = useState("");
@@ -1043,6 +1080,8 @@ function Home() {
   const [standalone, setStandalone] = useState(false);
   const [investorProfile, setInvestorProfile] = useState(DEFAULT_INVESTOR_PROFILE);
   const [profileReady, setProfileReady] = useState(false);
+  const [radar, setRadar] = useState(null);
+  const [page, setPage] = useState(() => window.location.hash === "#radar-diario" ? "radar" : "home");
   const load = useCallback(async (force = false) => {
     setLoading(true);
     localStorage.removeItem("b3-score-cache-v6");
@@ -1068,13 +1107,15 @@ function Home() {
       }
     }
     try {
-      const [stockResponse, fiiResponse] = await Promise.all([
+      const [stockResponse, fiiResponse, radarResponse] = await Promise.all([
         fetch(REMOTE_STOCK_URL, { cache: "no-store" }),
-        fetch(REMOTE_FII_URL, { cache: "no-store" })
+        fetch(REMOTE_FII_URL, { cache: "no-store" }),
+        fetch(REMOTE_RADAR_URL, { cache: "no-store" }).catch(() => null)
       ]);
       if (!stockResponse.ok || !fiiResponse.ok) throw new Error();
       const stockRaw = await stockResponse.json();
       const fiiRaw = await fiiResponse.json();
+      if (radarResponse?.ok) setRadar(await radarResponse.json());
       const cleaned = [...stockRaw, ...fiiRaw].map(normalize).filter((a) => a.ticker && a.price && a.price > 0);
       if (!healthySnapshot(cleaned)) throw new Error();
       const latest = (rows) => rows.map((row) => row.date ?? "").filter(Boolean).sort().at(-1) ?? null;
@@ -1142,6 +1183,11 @@ function Home() {
     };
   }, [load]);
   useEffect(() => {
+    const syncPage = () => setPage(window.location.hash === "#radar-diario" ? "radar" : "home");
+    window.addEventListener("hashchange", syncPage);
+    return () => window.removeEventListener("hashchange", syncPage);
+  }, []);
+  useEffect(() => {
     if (profileReady) localStorage.setItem("b3-score-investor-profile-v1", JSON.stringify(investorProfile));
   }, [investorProfile, profileReady]);
   useEffect(() => {
@@ -1198,6 +1244,15 @@ function Home() {
     }
     setShowAndroidGuide(true);
   };
+  const openPage = (next) => {
+    window.location.hash = next === "radar" ? "radar-diario" : "top";
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const openRadarAsset = (ticker) => {
+    const asset = assets.find((item) => item.ticker === ticker);
+    if (asset) setSelected(asset);
+  };
   return <main><div className="ambient one" /><div className="ambient two" />
     {showPlatformChooser && <div className="platform-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && chooseWeb()}><section className="platform-chooser" role="dialog" aria-modal="true" aria-labelledby="platform-title">
       <button className="platform-close" aria-label="Fechar escolha de versão" onClick={chooseWeb}>×</button>
@@ -1213,11 +1268,14 @@ function Home() {
     <header className="site-header"><div className="header-inner"><a className="brand" href="#top"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></a><div className="header-actions"><button className="platform-btn" onClick={() => {
     setShowAndroidGuide(false);
     setShowPlatformChooser(true);
-  }}>▣ <span>Web / Android</span></button><button className="portfolio-nav" onClick={() => document.getElementById("carteira")?.scrollIntoView({ behavior: "smooth" })}>▦ <span>Carteira</span></button><button className="install-btn" onClick={() => {
+  }}>▣ <span>Web / Android</span></button><button className={`radar-nav ${page === "radar" ? "active" : ""}`} onClick={() => openPage("radar")}>⌁ <span>Radar diário</span></button><button className="portfolio-nav" onClick={() => {
+    if (page === "radar") openPage("home");
+    window.setTimeout(() => document.getElementById("carteira")?.scrollIntoView({ behavior: "smooth" }), 40);
+  }}>▦ <span>Carteira</span></button><button className="install-btn" onClick={() => {
     setShowAndroidGuide(true);
     setShowPlatformChooser(true);
   }}>↓ <span>Instalar app</span></button><button className={`refresh-btn ${loading ? "loading" : ""}`} disabled={loading} aria-label={loading ? "Atualizando dados" : "Atualizar dados"} title={loading ? "Atualizando dados" : "Atualizar dados"} onClick={() => load(true)}>↻</button></div></div></header>
-    <div className="page" id="top"><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
+    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p><button className="hero-radar-button" onClick={() => openPage("radar")}>Abrir Radar diário →</button></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
       <section className="trust-row"><article><b>B3 D-1</b><span>último fechamento oficial disponível</span></article><article><b>CVM</b><span>DFP/ITR e informes de FIIs</span></article><article><b>0 invenção</b><span>só aparece valor calculável</span></article><article><b>Score correto</b><span>empresas e FIIs usam critérios diferentes</span></article></section>
       <InvestorProfile profile={investorProfile} onChange={setInvestorProfile} />
       <AnalysisGuide />
@@ -1242,7 +1300,7 @@ function Home() {
     setShowAndroidGuide(false);
     setShowPlatformChooser(true);
   }}>Escolher versão</button></section>
-      <footer><div className="brand"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></div><p>Ações: fechamento B3 de {shortDate(asOf.stockPriceAsOf ?? void 0)}. FIIs: fechamento B3 de {shortDate(asOf.fiiPriceAsOf ?? void 0)}. Informes CVM: referência mais recente em {shortDate(asOf.cvmFilesAsOf ?? void 0)}. “Consultar” busca novamente e mantém o último snapshot válido se uma fonte estiver indisponível.</p><p className="disclaimer">Ferramenta educacional. Não constitui análise profissional, oferta ou recomendação de compra ou venda.</p></footer>
+      <footer><div className="brand"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></div><p>Ações: fechamento B3 de {shortDate(asOf.stockPriceAsOf ?? void 0)}. FIIs: fechamento B3 de {shortDate(asOf.fiiPriceAsOf ?? void 0)}. Informes CVM: referência mais recente em {shortDate(asOf.cvmFilesAsOf ?? void 0)}. “Consultar” busca novamente e mantém o último snapshot válido se uma fonte estiver indisponível.</p><p className="disclaimer">Ferramenta educacional. Não constitui análise profissional, oferta ou recomendação de compra ou venda.</p></footer></>}
     </div>{selected && <Detail asset={selected} favorite={favorites.has(selected.ticker)} onFavorite={() => toggleFavorite(selected.ticker)} onClose={() => setSelected(null)} profile={investorProfile} assets={assets} />}</main>;
 }
 export {
