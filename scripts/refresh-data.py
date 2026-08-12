@@ -79,10 +79,15 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     work = Path(folder)
     year = date.today().year
 
+    monthly_years = []
     for report_year in (year - 1, year):
         name = f"inf_mensal_fii_{report_year}.zip"
-        if not download(f"https://dados.cvm.gov.br/dados/FII/DOC/INF_MENSAL/DADOS/{name}", work / name):
-            raise SystemExit(f"CVM monthly FII file unavailable: {report_year}")
+        if download(f"https://dados.cvm.gov.br/dados/FII/DOC/INF_MENSAL/DADOS/{name}", work / name):
+            monthly_years.append(report_year)
+        else:
+            print(f"CVM monthly FII file unavailable: {report_year}; continuing with available years.")
+    if not monthly_years:
+        raise SystemExit("No CVM monthly FII file available")
     quarterly_ok = False
     for report_year in (year - 1, year):
         name = f"inf_trimestral_fii_{report_year}.zip"
