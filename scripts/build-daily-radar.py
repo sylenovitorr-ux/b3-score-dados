@@ -15,6 +15,7 @@ import statistics
 import sys
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
@@ -105,6 +106,26 @@ def headline_score(title: str) -> int:
     return round(clamp(50 + balance * 12))
 
 
+def fetch_google_news(query: str) -> dict:
+    params = urllib.parse.urlencode({"q": query, "hl": "pt-BR", "gl": "BR", "ceid": "BR:pt-419"})
+    url = f"https://news.google.com/rss/search?{params}"
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; B3ScoreRadar/1.0)"})
+        with urllib.request.urlopen(request, timeout=10) as response:
+            root = ET.fromstring(response.read())
+        items = []
+        for item in root.findall("./channel/item")[:12]:
+            title = (item.findtext("title") or "").strip()
+            link = (item.findtext("link") or "").strip()
+            source = item.find("source")
+            if title and link:
+                items.append({"title": title[:180], "url": link, "domain": source.text if source is not None else "Google Notícias", "seenDate": item.findtext("pubDate")})
+        score = round(statistics.fmean(headline_score(row["title"]) for row in items)) if items else 50
+        return {"score": score, "coverage": len(items), "headlines": items[:3]}
+    except Exception:
+        return {"score": 50, "coverage": 0, "headlines": []}
+
+
 def fetch_news(asset: dict, query_override: str | None = None) -> dict:
     if os.environ.get("RADAR_SKIP_NEWS") == "1":
         return {"score": 50, "coverage": 0, "headlines": []}
@@ -119,9 +140,10 @@ def fetch_news(asset: dict, query_override: str | None = None) -> dict:
         items = [{"title": row.get("title", "")[:180], "url": row.get("url", ""), "domain": row.get("domain", ""), "seenDate": row.get("seendate")}
                  for row in articles if row.get("title") and row.get("url")]
         score = round(statistics.fmean(headline_score(row["title"]) for row in items)) if items else 50
-        return {"score": score, "coverage": len(items), "headlines": items[:3]}
+        result = {"score": score, "coverage": len(items), "headlines": items[:3]}
+        return result if result["coverage"] else fetch_google_news(query)
     except Exception:
-        return {"score": 50, "coverage": 0, "headlines": []}
+        return fetch_google_news(query)
 
 
 def base_row(asset: dict, history: dict[str, list[dict]]) -> dict:
@@ -196,7 +218,7 @@ def build() -> dict:
         "modelVersion": "1.0.0", "universe": len(eligible),
         "weights": {"fundamentals": 42, "technical": 32, "news": 14, "liquidity": 7, "dataConfidence": 5},
         "methodology": "Ranking determinístico; score não é probabilidade. Notícia ausente recebe 50/100 neutro. Alvos extremos são suavizados matematicamente.",
-        "sources": ["B3 COTAHIST", "CVM DFP/ITR/FCA", "GDELT DOC 2.0"], "strength": strength, "pressure": pressure,
+        "sources": ["B3 COTAHIST", "CVM DFP/ITR/FCA", "GDELT DOC 2.0", "Google Notícias RSS (fallback)"], "strength": strength, "pressure": pressure,
     }
 
 
