@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import http.client
 import subprocess
 import sys
 import tempfile
@@ -26,7 +27,7 @@ def download(url: str, target: Path) -> bool:
             if zipfile.is_zipfile(target):
                 return True
             target.unlink(missing_ok=True)
-        except (urllib.error.URLError, TimeoutError, OSError):
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException):
             target.unlink(missing_ok=True)
         if attempt < 2:
             time.sleep(2 ** attempt)
