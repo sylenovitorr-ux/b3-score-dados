@@ -7,6 +7,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 import zipfile
@@ -17,17 +18,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def download(url: str, target: Path) -> bool:
-    try:
-        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; B3ScoreGratuito/1.0)", "Accept": "application/zip,application/octet-stream,*/*"})
-        with urllib.request.urlopen(request, timeout=60) as response:
-            target.write_bytes(response.read())
-        if not zipfile.is_zipfile(target):
+    for attempt in range(3):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; B3ScoreGratuito/1.0)", "Accept": "application/zip,application/octet-stream,*/*"})
+            with urllib.request.urlopen(request, timeout=90) as response:
+                target.write_bytes(response.read())
+            if zipfile.is_zipfile(target):
+                return True
             target.unlink(missing_ok=True)
-            return False
-        return True
-    except (urllib.error.URLError, TimeoutError):
-        target.unlink(missing_ok=True)
-        return False
+        except (urllib.error.URLError, TimeoutError, OSError):
+            target.unlink(missing_ok=True)
+        if attempt < 2:
+            time.sleep(2 ** attempt)
+    return False
 
 
 def newest_bulk(work: Path, kind: str, years: range) -> int:
