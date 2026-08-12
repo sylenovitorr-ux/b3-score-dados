@@ -329,6 +329,85 @@ function buildDecision(asset, profile = DEFAULT_INVESTOR_PROFILE, assets = []) {
     invalidators
   };
 }
+function averageAvailable(parts) {
+  const valid = parts.filter((part) => part.value !== null && part.value !== void 0 && Number.isFinite(part.value));
+  const weight = valid.reduce((sum, part) => sum + part.weight, 0);
+  return { score: weight ? Math.round(valid.reduce((sum, part) => sum + part.value * part.weight, 0) / weight) : null, coverage: Math.round(weight) };
+}
+function cashFlowScore(f) {
+  const rows = (f.history ?? []).slice(0, 5).map((row) => row.cashFlow?.freeCashFlow).filter((value) => Number.isFinite(value));
+  if (!rows.length) return null;
+  const positive = rows.filter((value) => value > 0).length / rows.length * 100;
+  const recentBonus = rows[0] > 0 ? 10 : -10;
+  return Math.round(bounded(positive + recentBonus));
+}
+function profitabilityScore(f) {
+  const parts = [];
+  if (Number.isFinite(f.roe)) parts.push(bounded(35 + f.roe * 2));
+  if (Number.isFinite(f.roic) && !f.financialCompany) parts.push(bounded(35 + f.roic * 2.2));
+  if (Number.isFinite(f.netMargin)) parts.push(bounded(40 + f.netMargin * 1.7));
+  if (Number.isFinite(f.scores?.quality)) parts.push(f.scores.quality);
+  return parts.length ? Math.round(parts.reduce((sum, value) => sum + value, 0) / parts.length) : null;
+}
+function fundamentalQuality(f) {
+  const result = averageAvailable([
+    { value: profitabilityScore(f), weight: 30 },
+    { value: f.scores?.debt ?? (f.financialCompany ? f.scores?.quality : null), weight: 25 },
+    { value: cashFlowScore(f), weight: 20 },
+    { value: f.scores?.growth, weight: 15 },
+    { value: f.scores?.dividends, weight: 10 }
+  ]);
+  return { ...result, profitability: profitabilityScore(f), health: f.scores?.debt ?? (f.financialCompany ? f.scores?.quality : null), cashFlow: cashFlowScore(f), growth: f.scores?.growth ?? null };
+}
+function evEbitdaValue(f) {
+  return f.enterpriseValue > 0 && f.ebitdaTTM > 0 ? f.enterpriseValue / f.ebitdaTTM : null;
+}
+function relativeValuation(asset, assets) {
+  const f = asset.fundamentals;
+  const sector = f?.sector || f?.segment || null;
+  let peers = assets.filter((row) => row.ticker !== asset.ticker && row.fundamentals && (row.fundamentals.sector || row.fundamentals.segment) === sector);
+  if (peers.length < 5) peers = assets.filter((row) => row.ticker !== asset.ticker && row.fundamentals);
+  const metrics = [{ value: f?.pe, get: (row) => row.fundamentals?.pe }, { value: f?.pb, get: (row) => row.fundamentals?.pb }, { value: evEbitdaValue(f), get: (row) => evEbitdaValue(row.fundamentals) }];
+  const scores = metrics.flatMap((metric) => {
+    if (!(metric.value > 0)) return [];
+    const values = peers.map(metric.get).filter((value) => value > 0).sort((a, b) => a - b);
+    if (values.length < 5) return [];
+    const cheaper = values.filter((value) => value >= metric.value).length / values.length * 100;
+    return [cheaper];
+  });
+  return scores.length ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length) : null;
+}
+function opportunitySignal(score, penalties) {
+  if (penalties.some((item) => item.severe)) return { label: "Desfavorável", tone: "bad" };
+  if (score >= 80) return { label: "Favorável", tone: "excellent" };
+  if (score >= 70) return { label: "Favorável com ressalvas", tone: "good" };
+  if (score >= 50) return { label: "Neutro", tone: "mid" };
+  if (score >= 30) return { label: "Cautela", tone: "warn" };
+  return { label: "Desfavorável", tone: "bad" };
+}
+function buildOpportunity(asset, assets) {
+  const f = asset.fundamentals;
+  if (!f) return null;
+  const fundamental = fundamentalQuality(f);
+  const fair = fairValueRange(asset);
+  const potential = fair?.base && asset.price ? (fair.base / asset.price - 1) * 100 : null;
+  const discountScore = potential === null ? null : Math.round(bounded(50 + potential * 1.2));
+  const valuation = relativeValuation(asset, assets);
+  const confidence = f.scores?.confidence ?? 0;
+  const calculation = averageAvailable([{ value: fundamental.score, weight: 45 }, { value: discountScore, weight: 25 }, { value: valuation, weight: 20 }, { value: confidence, weight: 10 }]);
+  const history = (f.history ?? []).slice(0, 3);
+  const losses = history.filter((row) => Number.isFinite(row.income?.netIncome) && row.income.netIncome <= 0).length;
+  const negativeCash = history.filter((row) => Number.isFinite(row.cashFlow?.freeCashFlow) && row.cashFlow.freeCashFlow <= 0).length;
+  const penalties = [];
+  if (f.equity !== null && f.equity <= 0) penalties.push({ label: "patrimônio líquido não positivo", points: 20, severe: true });
+  if (losses >= 2) penalties.push({ label: "prejuízo recorrente", points: 15, severe: true });
+  if (negativeCash >= 2) penalties.push({ label: "fluxo de caixa livre negativo recorrente", points: 12, severe: false });
+  if (!f.financialCompany && f.netDebtEbitda > 5) penalties.push({ label: "dívida líquida/EBITDA acima de 5", points: 10, severe: false });
+  let score = Math.round(bounded((calculation.score ?? 0) - penalties.reduce((sum, item) => sum + item.points, 0)));
+  if (confidence < 50) score = Math.min(score, 59);
+  const signal = opportunitySignal(score, penalties);
+  return { score, signal, fundamental, fair, potential, discountScore, valuation, confidence, coverage: calculation.coverage, penalties, evEbitda: evEbitdaValue(f) };
+}
 function ScoreRing({ value, size = "normal" }) {
   return <div className={`score-ring ${size} ${scoreTone(value)}`} style={{ "--score": `${value * 3.6}deg` }} role="img" aria-label={`Nota ${value} de 100: ${scoreLabel(value)}`} title={`Nota ${value}/100 \u2014 ${scoreLabel(value)}`}><strong>{value}</strong>{size === "normal" && <span>/100</span>}</div>;
 }
@@ -1026,6 +1105,22 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets }) {
     </section>
   </div>;
 }
+function OpportunityPage({ assets, onBack, onOpen }) {
+  const [mode, setMode] = useState("undervalued");
+  const [query, setQuery] = useState("");
+  const [minimum, setMinimum] = useState(0);
+  const [health, setHealth] = useState("all");
+  const [sort, setSort] = useState("opportunity");
+  const rows = useMemo(() => assets.map((asset) => ({ asset, analysis: buildOpportunity(asset, assets) })).filter((row) => row.analysis && row.analysis.fair).filter((row) => mode === "undervalued" ? row.analysis.potential >= 0 : row.analysis.potential < 0).filter((row) => row.asset.ticker.includes(query.trim().toUpperCase()) || row.asset.name?.toUpperCase().includes(query.trim().toUpperCase())).filter((row) => row.analysis.score >= minimum).filter((row) => health === "all" || (health === "strong" ? row.analysis.fundamental.health >= 70 : health === "medium" ? row.analysis.fundamental.health >= 45 && row.analysis.fundamental.health < 70 : row.analysis.fundamental.health < 45)).sort((a, b) => sort === "potential" ? b.analysis.potential - a.analysis.potential : sort === "fair" ? b.analysis.fair.base - a.analysis.fair.base : sort === "pe" ? (a.asset.fundamentals.pe ?? Infinity) - (b.asset.fundamentals.pe ?? Infinity) : sort === "evEbitda" ? (a.analysis.evEbitda ?? Infinity) - (b.analysis.evEbitda ?? Infinity) : b.analysis.score - a.analysis.score), [assets, mode, query, minimum, health, sort]);
+  return <div className="opportunity-page"><div className="daily-radar-top"><button className="back-btn" onClick={onBack}>← Visão geral</button><span>Dados B3 + demonstrações CVM</span></div>
+    <section className="opportunity-hero"><div><span className="eyebrow">VALUATION INTEGRADO AOS SCORES</span><h1>Ações mais<br /><em>baratas e caras.</em></h1><p>O ranking separa qualidade empresarial de preço. Uma empresa barata só recebe nota alta quando os fundamentos, o fluxo de caixa e a confiança dos dados sustentam a oportunidade.</p></div><div className="opportunity-formula"><span>SCORE DE OPORTUNIDADE</span><div><b>45%</b> fundamentos</div><div><b>25%</b> desconto</div><div><b>20%</b> valuation relativo</div><div><b>10%</b> confiança</div><small>penalidades por prejuízo, patrimônio negativo, caixa ruim e dívida elevada</small></div></section>
+    <section className="valuation-controls"><div className="valuation-tabs"><button className={mode === "undervalued" ? "active" : ""} onClick={() => setMode("undervalued")}>Mais subvalorizadas</button><button className={mode === "overvalued" ? "active" : ""} onClick={() => setMode("overvalued")}>Mais sobrevalorizadas</button></div><div className="valuation-filters"><label>Pesquisar<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="PETR4" /></label><label>Score mínimo<select value={minimum} onChange={(event) => setMinimum(Number(event.target.value))}><option value="0">Todos</option><option value="50">50+</option><option value="60">60+</option><option value="70">70+</option><option value="80">80+</option></select></label><label>Saúde financeira<select value={health} onChange={(event) => setHealth(event.target.value)}><option value="all">Todas</option><option value="strong">Forte</option><option value="medium">Intermediária</option><option value="weak">Fraca</option></select></label><label>Ordenar<select value={sort} onChange={(event) => setSort(event.target.value)}><option value="opportunity">Score de oportunidade</option><option value="potential">Potencial</option><option value="fair">Preço justo</option><option value="pe">Menor P/L</option><option value="evEbitda">Menor EV/EBITDA</option></select></label></div></section>
+    <div className="valuation-summary"><b>{rows.length}</b><span>ações encontradas</span><p>O sinal é gerado pelo modelo auditável do app; não é recomendação pessoal nem garantia.</p></div>
+    <section className="valuation-table" aria-label="Ranking de valuation"><div className="valuation-table-head"><span>Ação</span><span>Preço / justo</span><span>Potencial</span><span>Fundamental</span><span>Oportunidade</span><span>Saúde / caixa</span><span>P/L</span><span>EV/EBITDA</span><span>Sinal do sistema</span></div>{rows.slice(0, 100).map(({ asset, analysis }) => <button className="valuation-row" key={asset.ticker} onClick={() => onOpen(asset.ticker)}><span className="valuation-company"><b>{asset.ticker}</b><small>{asset.name}</small></span><span data-label="Preço / justo"><b>{money(asset.price)}</b><small>{money(analysis.fair.base)}</small></span><span data-label="Potencial" className={analysis.potential >= 0 ? "positive" : "negative"}><b>{percent(analysis.potential)}</b><small>{analysis.fair.method}</small></span><span data-label="Score fundamental"><b>{analysis.fundamental.score ?? "N/D"}</b><small>cobertura {analysis.fundamental.coverage}%</small></span><span data-label="Score oportunidade"><b className="opportunity-number">{analysis.score}</b><small>cobertura {analysis.coverage}%</small></span><span data-label="Saúde / caixa"><b>{analysis.fundamental.health ?? "N/D"} / {analysis.fundamental.cashFlow ?? "N/D"}</b><small>crescimento {analysis.fundamental.growth ?? "N/D"}</small></span><span data-label="P/L"><b>{number(asset.fundamentals.pe)}</b></span><span data-label="EV/EBITDA"><b>{number(analysis.evEbitda)}</b></span><span data-label="Sinal"><i className={`system-signal ${analysis.signal.tone}`}>{analysis.signal.label}</i>{analysis.penalties.length > 0 && <small>{analysis.penalties.map((item) => `−${item.points} ${item.label}`).join(" • ")}</small>}</span></button>)}</section>
+    {!rows.length && <div className="empty-state"><h3>Nenhuma ação encontrada</h3><p>Reduza os filtros para ampliar a lista.</p></div>}
+    <section className="radar-method"><h2>Leitura correta</h2><p><b>Score Fundamental</b> ignora o preço e mede lucratividade, saúde, caixa, crescimento e dividendos. <b>Score de Oportunidade</b> acrescenta desconto, valuation relativo e confiança. Campos ausentes não viram zero: saem da média e reduzem a cobertura.</p><strong>Ferramenta educacional. Confira as demonstrações e os riscos antes de qualquer decisão financeira.</strong></section>
+  </div>;
+}
 function RankingChart({ rows, title, direction }) {
   return <article className="radar-chart"><div className="radar-chart-head"><div><span className="eyebrow">GRÁFICO 0–100</span><h3>{title}</h3></div><small>mesma escala para todos</small></div><div className="rank-chart" role="img" aria-label={title}>
     {rows.map((row, index) => <div className="rank-chart-row" key={row.ticker}><b>{index + 1}</b><span>{row.ticker}</span><i><em className={direction} style={{ width: `${row.score}%` }} /></i><strong>{row.score}</strong></div>)}
@@ -1081,7 +1176,7 @@ function Home() {
   const [investorProfile, setInvestorProfile] = useState(DEFAULT_INVESTOR_PROFILE);
   const [profileReady, setProfileReady] = useState(false);
   const [radar, setRadar] = useState(null);
-  const [page, setPage] = useState(() => window.location.hash === "#radar-diario" ? "radar" : "home");
+  const [page, setPage] = useState(() => window.location.hash === "#radar-diario" ? "radar" : window.location.hash === "#oportunidades" ? "opportunity" : "home");
   const load = useCallback(async (force = false) => {
     setLoading(true);
     localStorage.removeItem("b3-score-cache-v6");
@@ -1183,7 +1278,7 @@ function Home() {
     };
   }, [load]);
   useEffect(() => {
-    const syncPage = () => setPage(window.location.hash === "#radar-diario" ? "radar" : "home");
+    const syncPage = () => setPage(window.location.hash === "#radar-diario" ? "radar" : window.location.hash === "#oportunidades" ? "opportunity" : "home");
     window.addEventListener("hashchange", syncPage);
     return () => window.removeEventListener("hashchange", syncPage);
   }, []);
@@ -1245,7 +1340,7 @@ function Home() {
     setShowAndroidGuide(true);
   };
   const openPage = (next) => {
-    window.location.hash = next === "radar" ? "radar-diario" : "top";
+    window.location.hash = next === "radar" ? "radar-diario" : next === "opportunity" ? "oportunidades" : "top";
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -1268,14 +1363,14 @@ function Home() {
     <header className="site-header"><div className="header-inner"><a className="brand" href="#top"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></a><div className="header-actions"><button className="platform-btn" onClick={() => {
     setShowAndroidGuide(false);
     setShowPlatformChooser(true);
-  }}>▣ <span>Web / Android</span></button><button className={`radar-nav ${page === "radar" ? "active" : ""}`} onClick={() => openPage("radar")}>⌁ <span>Radar diário</span></button><button className="portfolio-nav" onClick={() => {
-    if (page === "radar") openPage("home");
+  }}>▣ <span>Web / Android</span></button><button className={`opportunity-nav ${page === "opportunity" ? "active" : ""}`} onClick={() => openPage("opportunity")}>◇ <span>Valuation</span></button><button className={`radar-nav ${page === "radar" ? "active" : ""}`} onClick={() => openPage("radar")}>⌁ <span>Radar diário</span></button><button className="portfolio-nav" onClick={() => {
+    if (page !== "home") openPage("home");
     window.setTimeout(() => document.getElementById("carteira")?.scrollIntoView({ behavior: "smooth" }), 40);
   }}>▦ <span>Carteira</span></button><button className="install-btn" onClick={() => {
     setShowAndroidGuide(true);
     setShowPlatformChooser(true);
   }}>↓ <span>Instalar app</span></button><button className={`refresh-btn ${loading ? "loading" : ""}`} disabled={loading} aria-label={loading ? "Atualizando dados" : "Atualizar dados"} title={loading ? "Atualizando dados" : "Atualizar dados"} onClick={() => load(true)}>↻</button></div></div></header>
-    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p><button className="hero-radar-button" onClick={() => openPage("radar")}>Abrir Radar diário →</button></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
+    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunity" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p><div className="hero-buttons"><button className="hero-radar-button" onClick={() => openPage("opportunity")}>Ações baratas e caras →</button><button className="hero-radar-button secondary" onClick={() => openPage("radar")}>Radar diário →</button></div></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
       <section className="trust-row"><article><b>B3 D-1</b><span>último fechamento oficial disponível</span></article><article><b>CVM</b><span>DFP/ITR e informes de FIIs</span></article><article><b>0 invenção</b><span>só aparece valor calculável</span></article><article><b>Score correto</b><span>empresas e FIIs usam critérios diferentes</span></article></section>
       <InvestorProfile profile={investorProfile} onChange={setInvestorProfile} />
       <AnalysisGuide />
