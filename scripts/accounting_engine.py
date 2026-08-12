@@ -10,6 +10,33 @@ from __future__ import annotations
 from datetime import date
 
 
+FINANCIAL_ROOTS = {
+    "ABCB", "BBAS", "BBDC", "BBSE", "BEES", "BMGB", "BMIN", "BPAC",
+    "BRSR", "BSLI", "ITUB", "MERC", "PINE", "SANB",
+}
+
+
+def is_financial_company(ticker_root, company_name):
+    """Identify banks, insurers and financial holdings needing sector rules."""
+    name = str(company_name or "").upper()
+    financial_terms = (
+        "BANCO", "FINANCEIRA", "SEGURIDADE", "SEGUROS", "RESSEGUROS",
+        "PREVIDENCIA", "PREVIDÊNCIA",
+    )
+    return str(ticker_root or "").upper() in FINANCIAL_ROOTS or any(
+        term in name for term in financial_terms
+    )
+
+
+def latest_annual_pair(history, issuer):
+    """Return the two newest annual statements in current/previous shape."""
+    references = sorted((history.get(issuer) or {}).keys(), reverse=True)
+    return {
+        "current": history[issuer][references[0]] if references else {},
+        "previous": history[issuer][references[1]] if len(references) > 1 else {},
+    }
+
+
 def parse_date(value):
     try:
         return date.fromisoformat(value)

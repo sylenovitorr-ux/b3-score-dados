@@ -23,7 +23,9 @@ from pathlib import Path
 from accounting_engine import (
     calculate_ttm,
     growth_analysis,
+    is_financial_company,
     isolate_quarters,
+    latest_annual_pair,
     period_days,
     reconcile_balance,
     select_statement_scope,
@@ -626,8 +628,6 @@ tickers_by_company = defaultdict(list)
 for ticker, row in security.items():
     tickers_by_company[row["CNPJ_Companhia"]].append(ticker)
 
-financial_roots = {"ABCB", "BBAS", "BBDC", "BEES", "BMGB", "BMIN", "BPAC", "BRSR", "BSLI", "ITUB", "MERC", "PINE", "SANB"}
-
 company_fundamentals = {}
 for cnpj, company_tickers in tickers_by_company.items():
     candidates = {}
@@ -641,6 +641,8 @@ for cnpj, company_tickers in tickers_by_company.items():
     accounting_scope = scope_selection["scope"]
     scoped = scope_data[accounting_scope]
     annual_dre = scoped["dfp_dre"].get(cnpj, {"current": {}, "previous": {}})
+    if not annual_dre.get("current"):
+        annual_dre = latest_annual_pair(scope_history[accounting_scope]["dre"], cnpj)
     interim_dre = scoped["itr_dre"].get(cnpj, {"current": {}, "previous": {}})
     annual_dfc = scoped["dfp_dfc"].get(cnpj, {"current": {}, "previous": {}})
     interim_dfc = scoped["itr_dfc"].get(cnpj, {"current": {}, "previous": {}})
@@ -675,7 +677,10 @@ for cnpj, company_tickers in tickers_by_company.items():
     bpa = latest_bpa["current"]
     bpp = latest_bpp["current"]
     root = company_tickers[0][:4]
-    is_financial = root in financial_roots or any(word in security[company_tickers[0]].get("Nome_Empresarial", "").upper() for word in ("BANCO", "FINANCEIRA"))
+    is_financial = is_financial_company(
+        root,
+        security[company_tickers[0]].get("Nome_Empresarial", ""),
+    )
     equity_total = account(bpp, "2.08", "2.07", "2.03") if is_financial else account(bpp, "2.03")
     minority = account(bpp, "2.03.09") or 0
     equity = equity_total - minority if equity_total is not None else None
