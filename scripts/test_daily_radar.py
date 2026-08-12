@@ -27,6 +27,9 @@ class DailyRadarTest(unittest.TestCase):
         self.assertGreaterEqual(pressure["target"], asset["price"] * .65)
         self.assertLess(strength["defensiveExit"], strength["entryLow"])
 
+    def test_market_news_query_can_be_overridden(self):
+        self.assertEqual(radar.headline_score("Ibovespa avança com crescimento"), 74)
+
 
 if __name__ == "__main__":
     unittest.main()

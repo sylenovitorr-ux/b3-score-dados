@@ -105,12 +105,12 @@ def headline_score(title: str) -> int:
     return round(clamp(50 + balance * 12))
 
 
-def fetch_news(asset: dict) -> dict:
+def fetch_news(asset: dict, query_override: str | None = None) -> dict:
     if os.environ.get("RADAR_SKIP_NEWS") == "1":
         return {"score": 50, "coverage": 0, "headlines": []}
     company = asset["fundamentals"].get("companyName") or asset.get("name") or asset["ticker"]
-    query = f'("{asset["ticker"]}" OR "{company[:55]}") sourcecountry:Brazil'
-    params = urllib.parse.urlencode({"query": query, "mode": "artlist", "maxrecords": 8, "timespan": "3d", "format": "json", "sort": "datedesc"})
+    query = query_override or f'("{asset["ticker"]}" OR "{company[:55]}")'
+    params = urllib.parse.urlencode({"query": query, "mode": "artlist", "maxrecords": 12, "timespan": "7d", "format": "json", "sort": "datedesc"})
     url = f"https://api.gdeltproject.org/api/v2/doc/doc?{params}"
     try:
         request = urllib.request.Request(url, headers={"User-Agent": "B3ScoreRadar/1.0"})
@@ -175,6 +175,19 @@ def build() -> dict:
     unique = {row["asset"]["ticker"]: row for row in candidates}
     with ThreadPoolExecutor(max_workers=4) as pool:
         news_rows = dict(zip(unique, pool.map(fetch_news, [row["asset"] for row in unique.values()])))
+    market_news = fetch_news(
+        {"ticker": "IBOV", "fundamentals": {"companyName": "mercado brasileiro"}},
+        '(Ibovespa OR "bolsa brasileira" OR "Brazil stock market")',
+    )
+    for ticker, company_news in news_rows.items():
+        if not market_news["coverage"]:
+            continue
+        if company_news["coverage"]:
+            company_news["score"] = round(company_news["score"] * .7 + market_news["score"] * .3)
+            company_news["coverage"] += market_news["coverage"]
+            company_news["headlines"] = (company_news["headlines"][:2] + market_news["headlines"][:1])
+        else:
+            news_rows[ticker] = {**market_news, "headlines": market_news["headlines"][:3]}
     completed = {ticker: (finish(row, news_rows[ticker], "strength"), finish(row, news_rows[ticker], "pressure")) for ticker, row in unique.items()}
     strength = sorted((pair[0] for pair in completed.values()), key=lambda row: (row["score"], row["potentialPct"]), reverse=True)[:10]
     pressure = sorted((pair[1] for pair in completed.values()), key=lambda row: (row["score"], -row["potentialPct"]), reverse=True)[:10]
