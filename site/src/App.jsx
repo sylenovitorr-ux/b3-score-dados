@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildOpportunity, fairValueRange } from "./opportunity-engine";
 const FILTERS = [
   { id: "all", label: "Todos" },
   { id: "stocks", label: "A\xE7\xF5es" },
@@ -200,42 +201,6 @@ function peerComparison(asset, assets) {
     ].filter((row) => row.asset !== null && row.asset !== void 0 && row.peer !== null)
   };
 }
-function fairValueRange(asset) {
-  if (asset.kind === "fii" && asset.fund) {
-    const f = asset.fund;
-    if (!(f.navPerShare > 0)) return null;
-    const quality = (f.scores.quality ?? 50) / 100;
-    const safety = (f.scores.risk ?? 50) / 100;
-    const targetPb = bounded(0.78 + quality * 0.16 + safety * 0.14, 0.72, 1.08);
-    const base = f.navPerShare * targetPb;
-    return {
-      low: base * 0.88,
-      base,
-      high: base * 1.12,
-      method: `VP/cota × P/VP-alvo ${number(targetPb)} ajustado por qualidade e risco`
-    };
-  }
-  const f = asset.fundamentals;
-  if (!f) return null;
-  const anchors = [];
-  if (f.eps > 0) {
-    const fairPe = bounded(8 + Math.max(0, f.roe ?? 0) * 0.35 + Math.max(-5, Math.min(15, f.revenueGrowth ?? 0)) * 0.15, 7, 18);
-    anchors.push({ value: f.eps * fairPe, label: `LPA × P/L-alvo ${number(fairPe, 1)}` });
-  }
-  if (f.bookValuePerShare > 0) {
-    const fairPb = bounded(0.65 + Math.max(0, f.roe ?? 0) / 20, 0.65, 2);
-    anchors.push({ value: f.bookValuePerShare * fairPb, label: `VPA × P/VP-alvo ${number(fairPb, 1)}` });
-  }
-  const valid = anchors.filter((anchor) => Number.isFinite(anchor.value) && anchor.value > 0);
-  if (!valid.length) return null;
-  const base = valid.reduce((sum, anchor) => sum + anchor.value, 0) / valid.length;
-  return {
-    low: base * 0.82,
-    base,
-    high: base * 1.18,
-    method: valid.map((anchor) => anchor.label).join(" + ")
-  };
-}
 function decisionPillars(asset) {
   if (asset.kind === "fii" && asset.fund) {
     const scores = asset.fund.scores;
@@ -328,85 +293,6 @@ function buildDecision(asset, profile = DEFAULT_INVESTOR_PROFILE, assets = []) {
     monitor,
     invalidators
   };
-}
-function averageAvailable(parts) {
-  const valid = parts.filter((part) => part.value !== null && part.value !== void 0 && Number.isFinite(part.value));
-  const weight = valid.reduce((sum, part) => sum + part.weight, 0);
-  return { score: weight ? Math.round(valid.reduce((sum, part) => sum + part.value * part.weight, 0) / weight) : null, coverage: Math.round(weight) };
-}
-function cashFlowScore(f) {
-  const rows = (f.history ?? []).slice(0, 5).map((row) => row.cashFlow?.freeCashFlow).filter((value) => Number.isFinite(value));
-  if (!rows.length) return null;
-  const positive = rows.filter((value) => value > 0).length / rows.length * 100;
-  const recentBonus = rows[0] > 0 ? 10 : -10;
-  return Math.round(bounded(positive + recentBonus));
-}
-function profitabilityScore(f) {
-  const parts = [];
-  if (Number.isFinite(f.roe)) parts.push(bounded(35 + f.roe * 2));
-  if (Number.isFinite(f.roic) && !f.financialCompany) parts.push(bounded(35 + f.roic * 2.2));
-  if (Number.isFinite(f.netMargin)) parts.push(bounded(40 + f.netMargin * 1.7));
-  if (Number.isFinite(f.scores?.quality)) parts.push(f.scores.quality);
-  return parts.length ? Math.round(parts.reduce((sum, value) => sum + value, 0) / parts.length) : null;
-}
-function fundamentalQuality(f) {
-  const result = averageAvailable([
-    { value: profitabilityScore(f), weight: 30 },
-    { value: f.scores?.debt ?? (f.financialCompany ? f.scores?.quality : null), weight: 25 },
-    { value: cashFlowScore(f), weight: 20 },
-    { value: f.scores?.growth, weight: 15 },
-    { value: f.scores?.dividends, weight: 10 }
-  ]);
-  return { ...result, profitability: profitabilityScore(f), health: f.scores?.debt ?? (f.financialCompany ? f.scores?.quality : null), cashFlow: cashFlowScore(f), growth: f.scores?.growth ?? null };
-}
-function evEbitdaValue(f) {
-  return f.enterpriseValue > 0 && f.ebitdaTTM > 0 ? f.enterpriseValue / f.ebitdaTTM : null;
-}
-function relativeValuation(asset, assets) {
-  const f = asset.fundamentals;
-  const sector = f?.sector || f?.segment || null;
-  let peers = assets.filter((row) => row.ticker !== asset.ticker && row.fundamentals && (row.fundamentals.sector || row.fundamentals.segment) === sector);
-  if (peers.length < 5) peers = assets.filter((row) => row.ticker !== asset.ticker && row.fundamentals);
-  const metrics = [{ value: f?.pe, get: (row) => row.fundamentals?.pe }, { value: f?.pb, get: (row) => row.fundamentals?.pb }, { value: evEbitdaValue(f), get: (row) => evEbitdaValue(row.fundamentals) }];
-  const scores = metrics.flatMap((metric) => {
-    if (!(metric.value > 0)) return [];
-    const values = peers.map(metric.get).filter((value) => value > 0).sort((a, b) => a - b);
-    if (values.length < 5) return [];
-    const cheaper = values.filter((value) => value >= metric.value).length / values.length * 100;
-    return [cheaper];
-  });
-  return scores.length ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length) : null;
-}
-function opportunitySignal(score, penalties) {
-  if (penalties.some((item) => item.severe)) return { label: "Desfavorável", tone: "bad" };
-  if (score >= 80) return { label: "Favorável", tone: "excellent" };
-  if (score >= 70) return { label: "Favorável com ressalvas", tone: "good" };
-  if (score >= 50) return { label: "Neutro", tone: "mid" };
-  if (score >= 30) return { label: "Cautela", tone: "warn" };
-  return { label: "Desfavorável", tone: "bad" };
-}
-function buildOpportunity(asset, assets) {
-  const f = asset.fundamentals;
-  if (!f) return null;
-  const fundamental = fundamentalQuality(f);
-  const fair = fairValueRange(asset);
-  const potential = fair?.base && asset.price ? (fair.base / asset.price - 1) * 100 : null;
-  const discountScore = potential === null ? null : Math.round(bounded(50 + potential * 1.2));
-  const valuation = relativeValuation(asset, assets);
-  const confidence = f.scores?.confidence ?? 0;
-  const calculation = averageAvailable([{ value: fundamental.score, weight: 45 }, { value: discountScore, weight: 25 }, { value: valuation, weight: 20 }, { value: confidence, weight: 10 }]);
-  const history = (f.history ?? []).slice(0, 3);
-  const losses = history.filter((row) => Number.isFinite(row.income?.netIncome) && row.income.netIncome <= 0).length;
-  const negativeCash = history.filter((row) => Number.isFinite(row.cashFlow?.freeCashFlow) && row.cashFlow.freeCashFlow <= 0).length;
-  const penalties = [];
-  if (f.equity !== null && f.equity <= 0) penalties.push({ label: "patrimônio líquido não positivo", points: 20, severe: true });
-  if (losses >= 2) penalties.push({ label: "prejuízo recorrente", points: 15, severe: true });
-  if (negativeCash >= 2) penalties.push({ label: "fluxo de caixa livre negativo recorrente", points: 12, severe: false });
-  if (!f.financialCompany && f.netDebtEbitda > 5) penalties.push({ label: "dívida líquida/EBITDA acima de 5", points: 10, severe: false });
-  let score = Math.round(bounded((calculation.score ?? 0) - penalties.reduce((sum, item) => sum + item.points, 0)));
-  if (confidence < 50) score = Math.min(score, 59);
-  const signal = opportunitySignal(score, penalties);
-  return { score, signal, fundamental, fair, potential, discountScore, valuation, confidence, coverage: calculation.coverage, penalties, evEbitda: evEbitdaValue(f) };
 }
 function ScoreRing({ value, size = "normal" }) {
   return <div className={`score-ring ${size} ${scoreTone(value)}`} style={{ "--score": `${value * 3.6}deg` }} role="img" aria-label={`Nota ${value} de 100: ${scoreLabel(value)}`} title={`Nota ${value}/100 \u2014 ${scoreLabel(value)}`}><strong>{value}</strong>{size === "normal" && <span>/100</span>}</div>;
@@ -1045,6 +931,18 @@ function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets }) {
     <div className="honest-note"><b>Leitura importante</b><p>DY passado não garante rendimentos futuros. Quando um informe não permite calcular um indicador com segurança, esse cartão é ocultado e a confiança da nota diminui.</p></div>
   </section></div>;
 }
+function ExecutiveSummary({ asset, assets, profile }) {
+  const opportunity = buildOpportunity(asset, assets);
+  if (!opportunity) return null;
+  const decision = buildDecision(asset, profile, assets);
+  const positives = decision.strengths.length ? decision.strengths : ["nenhum ponto forte atingiu o limite de destaque"];
+  const cautions = [...decision.blockers, ...decision.risks].slice(0, 4);
+  return <section className="executive-summary" id="resumo-ativo"><div className="executive-heading"><div><span className="eyebrow">RESUMO EXECUTIVO</span><h3>O essencial antes dos detalhes</h3><p>Leitura automática baseada somente nos dados disponíveis. Abra a auditoria para conferir pesos, cobertura e penalidades.</p></div><i className={`system-signal ${opportunity.signal.tone}`}>{opportunity.signal.label}</i></div>
+    <div className="executive-kpis"><article><span>Score Fundamental</span><b>{opportunity.fundamental.score ?? "N/D"}<small>/100</small></b><em>qualidade sem considerar o preço</em></article><article className="primary"><span>Score de Oportunidade</span><b>{opportunity.score}<small>/100</small></b><em>nota bruta {opportunity.rawScore} • cobertura {opportunity.coverage}%</em></article><article><span>Preço atual</span><b>{money(asset.price)}</b><em>B3 {shortDate(asset.date)}</em></article><article><span>Faixa justa</span><b>{money(opportunity.fair.low)} – {money(opportunity.fair.high)}</b><em>base {money(opportunity.fair.base)} • {percent(opportunity.potential)}</em></article><article><span>Confiança</span><b>{opportunity.confidence}<small>%</small></b><em>{opportunity.fair.model}</em></article></div>
+    <div className="executive-thesis"><article className="positive"><b>Pontos favoráveis</b>{positives.map((item) => <span key={item}>{item}</span>)}</article><article className="caution"><b>Riscos e ressalvas</b>{cautions.length ? cautions.map((item) => <span key={item}>{item}</span>) : <span>nenhuma trava grave foi acionada pelos dados disponíveis</span>}</article></div>
+    <details className="executive-audit"><summary>Ver composição e travas do Score <i>⌄</i></summary><div><section className="executive-components">{opportunity.components.map((component) => <article key={component.key}><div><span>{component.label}</span><b>{Math.round(component.value)}/100</b></div><i><em style={{ width: `${component.value}%` }} /></i><small>peso efetivo {number(component.effectiveWeight, 1)}% • contribuição {number(component.contribution, 1)}</small></article>)}</section><section className="executive-calculation"><article><b>Modelo de preço justo</b><p>{opportunity.fair.model}: {opportunity.fair.method}.</p>{opportunity.fair.anchors.map((anchor) => <span key={anchor.label}>{anchor.label}: {money(anchor.value)}{anchor.effectiveWeight ? ` • peso ${anchor.effectiveWeight}%` : ""}</span>)}</article><article><b>Ajustes da nota</b><p>Nota bruta {opportunity.rawScore} − penalidades {opportunity.penaltyPoints} = nota final {opportunity.score}.</p>{opportunity.penalties.map((item) => <span key={item.label}>−{item.points}: {item.label}</span>)}{opportunity.caps.map((item) => <span key={item}>Teto aplicado: {item}</span>)}{!opportunity.penalties.length && !opportunity.caps.length && <span>Sem penalidades ou tetos acionados.</span>}</article></section></div></details>
+  </section>;
+}
 function Detail({ asset, favorite, onFavorite, onClose, profile, assets }) {
   if (asset.kind === "fii" && asset.fund) return <FiiDetail asset={asset} favorite={favorite} onFavorite={onFavorite} onClose={onClose} profile={profile} assets={assets} />;
   const f = asset.fundamentals;
@@ -1093,7 +991,8 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets }) {
     <section className="detail-sheet" role="dialog" aria-modal="true" aria-label={`An\xE1lise de ${asset.ticker}`}>
 	      <div className="sheet-handle" /><div className="detail-top"><button className="back-btn" onClick={onClose}>← Voltar</button><button className={`favorite large ${favorite ? "active" : ""}`} onClick={onFavorite}>★</button></div>
 	      <div className="detail-title"><div><span className="asset-kind">{f?.companyName || asset.name || "ATIVO B3"}</span><h2>{asset.ticker}</h2>{f && <small>{f.cnpj} • CVM {f.cvmCode || "\u2014"}</small>}</div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
-	      <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
+	      <nav className="detail-jump-nav" aria-label="Seções da análise">{f && <a href="#resumo-ativo">Resumo</a>}<a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
+	      {f && <ExecutiveSummary asset={asset} assets={assets} profile={profile} />}
 	      <div className="score-hero"><ScoreRing value={scores.overall} /><div><span className="eyebrow">SCORE FUNDAMENTALISTA</span><h3>{scoreLabel(scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(scores.confidence)}`}>{scores.confidence}%</b>. A tela exibe somente valores calculados e verificáveis.</p></div></div>
 	      {f ? <StockScorePillars fundamentals={f} /> : <div className="honest-note"><b>Score provisório de mercado</b><p>Sem demonstrativos vinculados, esta leitura usa somente preço e liquidez e não é um score fundamentalista.</p></div>}<ScoreWhy scores={scores} categories={categoryMeta} details={f?.scoreDetails} />{f && <DecisionRadar asset={asset} profile={profile} assets={assets} />}{f && <ConfidenceBreakdown fundamentals={f} />}
 	      <MarketOverview asset={asset} marketCap={f?.marketCap} />
