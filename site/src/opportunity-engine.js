@@ -55,6 +55,39 @@ export function fairValueRange(asset) {
   return { low: base * (1 - spread), base, high: base * (1 + spread), model: f.financialCompany ? "Instituição financeira" : "Empresa não financeira", method: valid.map((anchor) => anchor.label).join(" + "), anchors: valid.map((anchor) => ({ ...anchor, effectiveWeight: Math.round(anchor.weight / totalWeight * 100) })) };
 }
 
+export function buildPositionPlan(asset, anomaly = null) {
+  const fair = fairValueRange(asset);
+  const price = finite(asset?.price);
+  if (!fair || !(price > 0)) return null;
+  const dailyVolatility = finite(anomaly?.dailyVolatilityPct) ?? Math.max(2, Math.abs(finite(asset.changepct) ?? 0));
+  const riskBand = bounded(dailyVolatility / 100 * 2, .04, .12);
+  const immediate = price <= fair.low;
+  const entryBase = immediate ? price : fair.low;
+  const entryLow = entryBase * (1 - riskBand / 2);
+  const entryHigh = Math.min(fair.low * 1.03, entryBase * (1 + riskBand / 2));
+  const defensiveRisk = bounded(dailyVolatility / 100 * 2.5, .08, .20);
+  const defensiveExit = entryLow * (1 - defensiveRisk);
+  const potentialPct = (fair.base / price - 1) * 100;
+  const marginFromEntryPct = (fair.base / entryHigh - 1) * 100;
+  const confidence = asset.kind === "fii" ? asset.fund?.scores?.confidence : asset.fundamentals?.scores?.confidence;
+  let horizon = "18–24 meses";
+  if ((confidence ?? 0) >= 75 && dailyVolatility < 2) horizon = "12–18 meses";
+  if ((confidence ?? 0) < 55 || dailyVolatility >= 3.5) horizon = "24–36 meses";
+  const validMargin = marginFromEntryPct >= 10;
+  return {
+    currentPrice: price, fair, entryLow, entryHigh, targetBase: fair.base, targetHigh: fair.high,
+    defensiveExit, dailyVolatility, potentialPct, marginFromEntryPct, horizon,
+    status: !validMargin ? "Sem margem matemática suficiente" : immediate ? "Preço dentro da zona calculada" : "Aguardar entrada na faixa",
+    tone: !validMargin ? "caution" : immediate ? "ready" : "wait",
+    conditions: [
+      "Recalcular após novo balanço, informe mensal do FII ou mudança material nos fundamentos.",
+      "Suspender a leitura se houver grupamento, desdobramento, provento extraordinário ou fato relevante ainda não refletido.",
+      "A saída defensiva é uma referência de risco, não uma ordem automática nem garantia contra perdas."
+    ],
+    method: `Faixa justa pelo modelo ${fair.model}; entrada limitada pela base conservadora e por ${fmt(riskBand * 100)}% de banda de volatilidade; saída defensiva calibrada em ${fmt(defensiveRisk * 100)}%.`
+  };
+}
+
 export function cashFlowScore(f) {
   const rows = (f.history ?? []).slice(0, 5).map((row) => row.cashFlow?.freeCashFlow).filter(Number.isFinite);
   if (!rows.length) return null;

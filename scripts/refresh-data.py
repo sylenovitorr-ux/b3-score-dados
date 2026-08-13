@@ -127,6 +127,10 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
+    if (work / annual_name).exists():
+        subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
+    else:
+        print("Current-year B3 history unavailable; preserving the previous anomaly analysis.")
 
     stock_data = json.loads((ROOT / "data/b3-fundamentals.json").read_text(encoding="utf-8"))
     fii_data = json.loads((ROOT / "data/fii-catalog.json").read_text(encoding="utf-8"))

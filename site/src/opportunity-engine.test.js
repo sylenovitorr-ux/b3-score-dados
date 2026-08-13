@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildOpportunity, fairValueRange, relativeValuation } from "./opportunity-engine.js";
+import { buildOpportunity, buildPositionPlan, fairValueRange, relativeValuation } from "./opportunity-engine.js";
 
 const fundamentals = (overrides = {}) => ({ financialCompany: false, eps: 2, bookValuePerShare: 8, roe: 18, roic: 14, netMargin: 12, revenueGrowth: 8, profitGrowth: 7, ebitdaTTM: 1_000, enterpriseValue: 6_000, netDebt: 1_000, sharesOutstanding: 500, equity: 4_000, netDebtEbitda: 1, sector: "Teste", scores: { quality: 75, debt: 78, growth: 70, dividends: 60, confidence: 85 }, history: [{ income: { netIncome: 120 }, cashFlow: { freeCashFlow: 100 } }, { income: { netIncome: 110 }, cashFlow: { freeCashFlow: 90 } }], ...overrides });
 const asset = (ticker, overrides = {}) => ({ ticker, kind: "stock", price: 10, fundamentals: fundamentals(), ...overrides });
@@ -30,4 +30,24 @@ test("baixa cobertura limita a classificação", () => {
   assert.ok(result.coverage < 70);
   assert.ok(result.score <= 69);
   assert.ok(result.caps.length > 0);
+});
+
+test("plano aguarda a faixa quando o preço está acima do valor conservador", () => {
+  const row = asset("WAIT3", { price: 30 });
+  const plan = buildPositionPlan(row, { dailyVolatilityPct: 2 });
+  assert.match(plan.status, /Aguardar/);
+  assert.ok(plan.entryHigh < plan.currentPrice);
+  assert.ok(plan.defensiveExit < plan.entryLow);
+});
+
+test("volatilidade elevada alonga a janela mínima", () => {
+  const row = asset("VOLA3", { fundamentals: fundamentals({ scores: { quality: 75, debt: 78, growth: 70, dividends: 60, confidence: 45 } }) });
+  assert.equal(buildPositionPlan(row, { dailyVolatilityPct: 4.5 }).horizon, "24–36 meses");
+});
+
+test("plano também calcula FII por valor patrimonial", () => {
+  const row = { kind: "fii", price: 90, changepct: .5, fund: { navPerShare: 100, scores: { quality: 75, risk: 70, confidence: 80 } } };
+  const plan = buildPositionPlan(row, { dailyVolatilityPct: 1.2 });
+  assert.ok(plan.fair.base > 0);
+  assert.ok(plan.targetHigh > plan.targetBase);
 });
