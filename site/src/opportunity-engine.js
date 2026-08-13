@@ -88,6 +88,34 @@ export function buildPositionPlan(asset, anomaly = null) {
   };
 }
 
+export function buildActionSignal(asset, assets = [], anomaly = null) {
+  const plan = buildPositionPlan(asset, anomaly);
+  if (!plan) return { code: "unavailable", label: "Dados insuficientes", tone: "neutral", holder: "Revisar os dados", newcomer: "Não iniciar posição", reasons: ["Não há âncoras suficientes para calcular valor justo e margem de segurança."] };
+  const opportunity = asset.kind === "fii" ? null : buildOpportunity(asset, assets);
+  const scores = asset.kind === "fii" ? asset.fund?.scores : asset.fundamentals?.scores;
+  const quality = asset.kind === "fii" ? scores?.overall : opportunity?.fundamental?.score;
+  const confidence = scores?.confidence ?? opportunity?.confidence ?? 0;
+  const severe = Boolean(opportunity?.penalties?.some((item) => item.severe));
+  const anomalyScore = anomaly?.score ?? 0;
+  const reasons = [`Preço atual ${fmt(plan.potentialPct)}% em relação ao valor justo central.`, `Qualidade ${quality ?? "N/D"}/100 e confiança ${confidence}/100.`];
+  if (anomalyScore >= 40) reasons.push(`Movimento com alerta estatístico ${anomalyScore}/100; investigar antes de agir.`);
+  if (severe) reasons.push("Há penalidade fundamental grave no histórico disponível.");
+
+  if (severe || (quality !== null && quality < 40)) {
+    return { code: "reduce", label: "Reavaliar: reduzir ou vender", tone: "sell", holder: "Reavaliar e considerar redução", newcomer: "Evitar nova entrada", reasons, plan, quality, confidence, anomalyScore };
+  }
+  if (asset.price >= plan.fair.high) {
+    return { code: "realize", label: "Boa faixa para realizar ou vender", tone: "sell", holder: "Considerar realização parcial", newcomer: "Não comprar acima da faixa justa", reasons, plan, quality, confidence, anomalyScore };
+  }
+  if (asset.price <= plan.fair.low && (quality ?? 0) >= 65 && confidence >= 60 && anomalyScore < 40) {
+    return { code: "buy", label: "Boa faixa para comprar", tone: "buy", holder: "Manter ou aportar dentro do limite", newcomer: "Entrada matematicamente favorável", reasons, plan, quality, confidence, anomalyScore };
+  }
+  if (asset.price <= plan.fair.high && (quality ?? 0) >= 55 && !severe) {
+    return { code: "hold", label: "Boa para manter", tone: "hold", holder: "Manter e acompanhar a tese", newcomer: asset.price <= plan.fair.base ? "Entrada parcial, com cautela" : "Aguardar margem melhor", reasons, plan, quality, confidence, anomalyScore };
+  }
+  return { code: "wait", label: "Aguardar", tone: "wait", holder: "Manter somente se a tese continuar válida", newcomer: "Não iniciar posição agora", reasons, plan, quality, confidence, anomalyScore };
+}
+
 export function cashFlowScore(f) {
   const rows = (f.history ?? []).slice(0, 5).map((row) => row.cashFlow?.freeCashFlow).filter(Number.isFinite);
   if (!rows.length) return null;

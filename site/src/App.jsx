@@ -1,12 +1,15 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { buildOpportunity, buildPositionPlan, fairValueRange } from "./opportunity-engine";
+import { buildActionSignal, buildOpportunity, buildPositionPlan, fairValueRange } from "./opportunity-engine";
 const FILTERS = [
   { id: "all", label: "Todos" },
   { id: "stocks", label: "A\xE7\xF5es" },
   { id: "fiis", label: "FIIs" },
   { id: "fundamentals", label: "Com dados oficiais" },
   { id: "candidates", label: "Radar: candidatas" },
+  { id: "buy", label: "Boa para comprar" },
+  { id: "hold", label: "Boa para manter" },
+  { id: "sell", label: "Boa para realizar / vender" },
   { id: "favorites", label: "\u2605 Favoritos" },
   { id: "gainers", label: "Em alta" },
   { id: "losers", label: "Em baixa" },
@@ -484,9 +487,9 @@ function DecisionRadar({ asset, profile, assets }) {
     <div className="decision-fit"><b>Encaixe na carteira</b><span>Limites definidos: até {profile.maxAsset}% por ativo e {profile.maxSector}% por setor. O app ainda não conhece suas posições reais; confirme a concentração no simulador antes de comprar.</span></div>
   </section>;
 }
-function AssetCard({ asset, favorite, onFavorite, onOpen, profile }) {
+function AssetCard({ asset, favorite, onFavorite, onOpen, assets, anomaly }) {
   const scores = asset.fund?.scores ?? asset.fundamentals?.scores ?? fallbackScore(asset);
-  const decision = buildDecision(asset, profile);
+  const signal = buildActionSignal(asset, assets, anomaly);
   const direction = (asset.changepct ?? 0) > 0 ? "up" : (asset.changepct ?? 0) < 0 ? "down" : "flat";
   const preview = asset.kind === "fii" ? [{ label: "P/VP", value: asset.fund?.pb, text: number(asset.fund?.pb ?? null, 2) }, { label: "DY 12m", value: asset.fund?.dy12, text: percent(asset.fund?.dy12 ?? null, false) }, { label: "Liquidez", value: asset.volume, text: compactMoney(asset.volume) }] : [{ label: "P/L", value: asset.fundamentals?.pe, text: number(asset.fundamentals?.pe ?? null, 1) }, { label: "P/VP", value: asset.fundamentals?.pb, text: number(asset.fundamentals?.pb ?? null, 1) }, { label: "ROE", value: asset.fundamentals?.roe, text: percent(asset.fundamentals?.roe ?? null, false) }];
   const visiblePreview = preview.filter((item) => item.value !== null && item.value !== void 0);
@@ -496,7 +499,7 @@ function AssetCard({ asset, favorite, onFavorite, onOpen, profile }) {
     onFavorite();
   }} aria-label="Alternar favorito">★</button></div>
     <div className="card-body"><div><strong className="asset-price">{money(asset.price)}</strong><span className={`change ${direction}`}>{direction === "up" ? "\u2197" : direction === "down" ? "\u2198" : "\u2192"} {percent(asset.changepct)}</span></div><ScoreRing value={scores.overall} size="small" /></div>
-    <div className="card-decision-row"><span className={`decision-chip ${decision.meta.tone}`}>{decision.meta.label}</span><small>perfil {decision.fitScore}/100</small></div>
+    <div className="card-decision-row"><span className={`action-chip ${signal.tone}`}>{signal.label}</span><small>confiança {signal.confidence ?? 0}/100</small></div>
     <div className="card-meta">{visiblePreview.length ? visiblePreview.map((item) => <span key={item.label}>{item.label} <b>{item.text}</b></span>) : <span><b>Preço e liquidez disponíveis</b></span>}</div>
     <div className="open-hint"><span>{asset.fund ? `FII \u2022 CVM ${shortDate(asset.fund.referenceDate ?? void 0)}` : asset.fundamentals ? `CVM \u2022 ${shortDate(asset.fundamentals.referenceDate)}` : "Sem v\xEDnculo oficial"}</span><b>Ver análise →</b></div>
   </article>;
@@ -905,6 +908,10 @@ function PositionPlan({ asset, anomaly }) {
     <details className="position-method"><summary>Como estas faixas foram calculadas <i>⌄</i></summary><div><p>{plan.method}</p><p>Potencial do preço atual até o justo: <b>{percent(plan.potentialPct)}</b>. Margem da entrada superior até o alvo: <b>{percent(plan.marginFromEntryPct)}</b>.</p>{plan.conditions.map((item) => <span key={item}>• {item}</span>)}</div></details>
   </section>;
 }
+function ActionReading({ asset, assets, anomaly }) {
+  const signal = buildActionSignal(asset, assets, anomaly);
+  return <section className={`action-reading ${signal.tone}`} id="leitura-ativo"><div className="action-reading-main"><span className="eyebrow">LEITURA DO SISTEMA</span><h3>{signal.label}</h3><p>Classificação matemática, não ordem personalizada. Ela muda quando preço, fundamentos, confiança ou anomalias mudam.</p></div><div className="action-audiences"><article><span>Se já possui</span><b>{signal.holder}</b></article><article><span>Se ainda não possui</span><b>{signal.newcomer}</b></article></div><details><summary>Por que o sistema chegou a esta leitura? <i>⌄</i></summary><div>{signal.reasons.map((reason) => <p key={reason}>• {reason}</p>)}<small>“Vender” pode significar realização por preço ou redução por deterioração. Confira qual motivo foi acionado antes de decidir.</small></div></details></section>;
+}
 function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly }) {
   const f = asset.fund;
   const metrics = [
@@ -925,7 +932,8 @@ function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anom
   return <div className="modal-backdrop" onMouseDown={(event) => event.currentTarget === event.target && onClose()}><section className="detail-sheet" role="dialog" aria-modal="true" aria-label={`An\xE1lise do FII ${asset.ticker}`}>
     <div className="sheet-handle" /><div className="detail-top"><button className="back-btn" onClick={onClose}>← Voltar</button><button className={`favorite large ${favorite ? "active" : ""}`} onClick={onFavorite}>★</button></div>
 	    <div className="detail-title"><div><span className="asset-kind">FUNDO IMOBILIÁRIO{f.segment ? ` \u2022 ${f.segment}` : ""}</span><h2>{asset.ticker}</h2><small>{f.name}{f.cnpj ? ` \u2022 ${f.cnpj}` : ""}</small></div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
-	    <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#plano-ativo">Plano</a><a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a><a href="#fontes-ativo">Fontes</a></nav>
+	    <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a><a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a><a href="#fontes-ativo">Fontes</a></nav>
+	    <ActionReading asset={asset} assets={assets} anomaly={anomaly} />
 	    <PositionPlan asset={asset} anomaly={anomaly} />
 	    <div className="score-hero fii-score"><ScoreRing value={f.scores.overall} /><div><span className="eyebrow">SCORE EXCLUSIVO PARA FII</span><h3>{scoreLabel(f.scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(f.scores.confidence)}`}>{f.scores.confidence}%</b>. A tela mostra apenas indicadores com valor verificável.</p></div></div>
 	    <div className="score-categories">{fiiCategoryMeta.filter((category) => f.scores[category.key] !== null).map((category) => {
@@ -1001,7 +1009,8 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly
     <section className="detail-sheet" role="dialog" aria-modal="true" aria-label={`An\xE1lise de ${asset.ticker}`}>
 	      <div className="sheet-handle" /><div className="detail-top"><button className="back-btn" onClick={onClose}>← Voltar</button><button className={`favorite large ${favorite ? "active" : ""}`} onClick={onFavorite}>★</button></div>
 	      <div className="detail-title"><div><span className="asset-kind">{f?.companyName || asset.name || "ATIVO B3"}</span><h2>{asset.ticker}</h2>{f && <small>{f.cnpj} • CVM {f.cvmCode || "\u2014"}</small>}</div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
-	      <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#plano-ativo">Plano</a>{f && <a href="#resumo-ativo">Resumo</a>}<a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
+	      <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a>{f && <a href="#resumo-ativo">Resumo</a>}<a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
+	      <ActionReading asset={asset} assets={assets} anomaly={anomaly} />
 	      <PositionPlan asset={asset} anomaly={anomaly} />
 	      {f && <ExecutiveSummary asset={asset} assets={assets} profile={profile} />}
 	      <div className="score-hero"><ScoreRing value={scores.overall} /><div><span className="eyebrow">SCORE FUNDAMENTALISTA</span><h3>{scoreLabel(scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(scores.confidence)}`}>{scores.confidence}%</b>. A tela exibe somente valores calculados e verificáveis.</p></div></div>
@@ -1092,6 +1101,27 @@ function IntegrityPage({ assets, anomalies, onBack, onOpen }) {
     <section className="radar-method"><h2>Como interpretar</h2><p>{anomalies?.methodology ?? "O modelo usa desvios estatísticos de preço e volume, repetição, reversão e liquidez."}</p><strong>{anomalies?.disclaimer ?? "Anomalia estatística não comprova fraude ou manipulação."}</strong><div className="integrity-sources"><a href="https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/" target="_blank" rel="noreferrer">Cotações históricas B3 ↗</a><a href="https://www.gov.br/cvm/pt-br/assuntos/normas/resolucoes/resolucoes-cvm" target="_blank" rel="noreferrer">Normas CVM ↗</a><a href="https://dados.cvm.gov.br/dataset/cia_aberta-doc-ipe" target="_blank" rel="noreferrer">Fatos e comunicados CVM ↗</a></div></section>
   </div>;
 }
+function OptionsPage({ assets, anomalies, onBack, onOpen }) {
+  const [query, setQuery] = useState("");
+  const [reading, setReading] = useState("all");
+  const rows = useMemo(() => assets.filter((asset) => asset.kind !== "fii" && asset.fundamentals && asset.price > 0).map((asset) => {
+    const anomaly = anomalies?.assets?.[asset.ticker];
+    const signal = buildActionSignal(asset, assets, anomaly);
+    const liquidityScore = Math.max(0, Math.min(100, 20 + Math.log10(Math.max(asset.volume ?? 1, 1)) * 10));
+    const confidence = asset.fundamentals.scores?.confidence ?? 0;
+    const anomalySafety = 100 - (anomaly?.score ?? 0);
+    const eligibility = Math.round(liquidityScore * .5 + confidence * .3 + anomalySafety * .2);
+    const study = signal.code === "buy" ? "Call comprada — estudo direcional" : signal.code === "hold" ? "Put protetiva ou call coberta" : signal.code === "realize" ? "Call coberta, somente com posição" : "Não montar estratégia agora";
+    return { asset, anomaly, signal, eligibility, study };
+  }).filter((row) => row.asset.ticker.includes(query.trim().toUpperCase()) || row.asset.name?.toUpperCase().includes(query.trim().toUpperCase())).filter((row) => reading === "all" || row.signal.code === reading).sort((a, b) => b.eligibility - a.eligibility), [assets, anomalies, query, reading]);
+  return <div className="options-page"><div className="daily-radar-top"><button className="back-btn" onClick={onBack}>← Visão geral</button><span>Camada educacional • sem lançamento descoberto</span></div>
+    <section className="options-hero"><div><span className="eyebrow">OPÇÕES • BETA RESPONSÁVEL</span><h1>Analise primeiro<br /><em>o ativo-base.</em></h1><p>Esta primeira versão reúne valuation, leitura do sistema, liquidez e anomalias para selecionar ativos-base que merecem estudo. Ela ainda não recomenda contratos específicos.</p></div><div className="options-risk-box"><b>RISCO MÁXIMO VISÍVEL</b><strong>100%</strong><span>do prêmio em uma opção comprada</span><small>Venda descoberta pode gerar perdas muito superiores. O app não sugere essa operação.</small></div></section>
+    <section className="options-boundary"><article><b>O que já está calculado</b><p>Preço e valor justo do ativo-base, leitura comprar/manter/realizar, liquidez, volatilidade e alertas de movimento.</p></article><article><b>O que permanece N/D</b><p>Série, vencimento, strike, bid/ask, volatilidade implícita, delta, theta e preço teórico. Sem esses dados não haverá indicação de contrato.</p></article></section>
+    <section className="options-controls"><label>Ativo-base<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="PETR4" /></label><label>Leitura<select value={reading} onChange={(event) => setReading(event.target.value)}><option value="all">Todas</option><option value="buy">Boa faixa para comprar</option><option value="hold">Boa para manter</option><option value="realize">Faixa de realização</option><option value="wait">Aguardar</option></select></label></section>
+    <section className="options-table"><div className="options-head"><span>Ativo-base</span><span>Leitura</span><span>Preço / justo</span><span>Liquidez</span><span>Anomalia</span><span>Adequação ao estudo</span><span>Estratégia educacional</span></div>{rows.slice(0, 100).map(({ asset, anomaly, signal, eligibility, study }) => <article key={asset.ticker}><span className="option-underlying"><b>{asset.ticker}</b><small>{asset.name}</small></span><span><i className={`action-chip ${signal.tone}`}>{signal.label}</i></span><span><b>{money(asset.price)}</b><small>{money(signal.plan?.fair?.base)}</small></span><span><b>{compactMoney(asset.volume)}</b><small>volume B3</small></span><span><b>{anomaly?.score ?? "N/D"}</b><small>{anomaly?.classification?.label ?? "histórico ausente"}</small></span><span><b>{eligibility}/100</b><small>filtro do ativo-base</small></span><span><b>{study}</b><button onClick={() => onOpen(asset.ticker)}>Abrir análise do ativo →</button></span></article>)}</section>
+    <section className="radar-method"><h2>Por que não indicar uma opção agora?</h2><p>Uma tese correta sobre a ação ainda pode perder dinheiro numa opção se o strike, o vencimento, o prêmio, a volatilidade implícita ou a liquidez forem inadequados. A próxima camada só deve entrar quando uma fonte auditável entregar a cadeia completa.</p><strong>Derivativos podem ampliar perdas. Defina limite de risco e nunca trate o Score do ativo-base como garantia para a opção.</strong><div className="integrity-sources"><a href="https://www.gov.br/investidor/pt-br/investir/tipos-de-investimentos/derivativos/mercado-de-opcoes" target="_blank" rel="noreferrer">Mercado de opções — CVM ↗</a><a href="https://www.gov.br/investidor/pt-br/investir/tipos-de-investimentos/derivativos/riscos" target="_blank" rel="noreferrer">Riscos dos derivativos — CVM ↗</a></div></section>
+  </div>;
+}
 function Home() {
   const [assets, setAssets] = useState([]);
   const [query, setQuery] = useState("");
@@ -1112,7 +1142,7 @@ function Home() {
   const [profileReady, setProfileReady] = useState(false);
   const [radar, setRadar] = useState(null);
   const [anomalies, setAnomalies] = useState(null);
-  const [page, setPage] = useState(() => window.location.hash === "#radar-diario" ? "radar" : window.location.hash === "#oportunidades" ? "opportunity" : window.location.hash === "#integridade" ? "integrity" : "home");
+  const [page, setPage] = useState(() => window.location.hash === "#radar-diario" ? "radar" : window.location.hash === "#oportunidades" ? "opportunity" : window.location.hash === "#integridade" ? "integrity" : window.location.hash === "#opcoes" ? "options" : "home");
   const load = useCallback(async (force = false) => {
     setLoading(true);
     fetch(REMOTE_ANOMALY_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload) => payload && setAnomalies(payload)).catch(() => void 0);
@@ -1217,7 +1247,7 @@ function Home() {
     };
   }, [load]);
   useEffect(() => {
-    const syncPage = () => setPage(window.location.hash === "#radar-diario" ? "radar" : window.location.hash === "#oportunidades" ? "opportunity" : window.location.hash === "#integridade" ? "integrity" : "home");
+    const syncPage = () => setPage(window.location.hash === "#radar-diario" ? "radar" : window.location.hash === "#oportunidades" ? "opportunity" : window.location.hash === "#integridade" ? "integrity" : window.location.hash === "#opcoes" ? "options" : "home");
     window.addEventListener("hashchange", syncPage);
     return () => window.removeEventListener("hashchange", syncPage);
   }, []);
@@ -1246,13 +1276,18 @@ function Home() {
     if (filter === "favorites") result = result.filter((a) => favorites.has(a.ticker));
     if (filter === "fundamentals") result = result.filter((a) => a.fundamentals || a.fund?.cnpj);
     if (filter === "candidates") result = result.filter((a) => buildDecision(a, investorProfile).status === "candidate");
+    if (["buy", "hold", "sell"].includes(filter)) result = result.filter((a) => {
+      const signal = buildActionSignal(a, assets, anomalies?.assets?.[a.ticker]);
+      if (filter === "sell") return signal.code === "realize" || signal.code === "reduce";
+      return signal.code === filter;
+    });
     if (filter === "stocks") result = result.filter((a) => a.kind === "stock" || a.kind === "unit");
     if (filter === "fiis") result = result.filter((a) => a.kind === "fii");
     if (filter === "gainers") result = result.filter((a) => (a.changepct ?? 0) > 0);
     if (filter === "losers") result = result.filter((a) => (a.changepct ?? 0) < 0);
     if (filter === "units") result = result.filter((a) => a.kind === "unit");
     return [...result].sort((a, b) => sort === "ticker" ? a.ticker.localeCompare(b.ticker) : sort === "change" ? filter === "losers" ? (a.changepct ?? Infinity) - (b.changepct ?? Infinity) : (b.changepct ?? -Infinity) - (a.changepct ?? -Infinity) : sort === "volume" ? (b.volume ?? -Infinity) - (a.volume ?? -Infinity) : sort === "decision" ? buildDecision(b, investorProfile).fitScore - buildDecision(a, investorProfile).fitScore : assetScore(b) - assetScore(a));
-  }, [assets, query, filter, favorites, sort, investorProfile]);
+  }, [assets, query, filter, favorites, sort, investorProfile, anomalies]);
   const market = useMemo(() => ({ up: assets.filter((a) => (a.changepct ?? 0) > 0).length, down: assets.filter((a) => (a.changepct ?? 0) < 0).length, stocks: assets.filter((a) => a.kind !== "fii").length, fiis: assets.filter((a) => a.kind === "fii").length, covered: assets.filter((a) => a.fundamentals || a.fund?.cnpj).length }), [assets]);
   const dataCoverage = useMemo(() => {
     const stocks = assets.filter((asset) => asset.kind !== "fii");
@@ -1279,7 +1314,7 @@ function Home() {
     setShowAndroidGuide(true);
   };
   const openPage = (next) => {
-    window.location.hash = next === "radar" ? "radar-diario" : next === "opportunity" ? "oportunidades" : next === "integrity" ? "integridade" : "top";
+    window.location.hash = next === "radar" ? "radar-diario" : next === "opportunity" ? "oportunidades" : next === "integrity" ? "integridade" : next === "options" ? "opcoes" : "top";
     setPage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -1297,19 +1332,16 @@ function Home() {
         <article className="android-option"><div className="platform-icon android">▣</div><span className="platform-tag">APP ANDROID • PWA</span><h3>Instalar no celular</h3><p>Adicione o B3 Score à tela inicial e abra como um aplicativo.</p><ul><li>Ícone na tela inicial</li><li>Tela cheia, sem barra do navegador</li><li>Cache para falhas temporárias</li></ul><button className="android-choice" onClick={installAndroid}>{standalone ? "App j\xE1 instalado" : "Instalar no Android"}</button></article>
       </div>
       {showAndroidGuide && <div className="android-guide"><b>Instalação manual no Android</b><ol><li>Abra este site no <strong>Google Chrome</strong>.</li><li>Toque no menu <strong>⋮</strong> no canto superior.</li><li>Escolha <strong>“Instalar app”</strong> ou <strong>“Adicionar à tela inicial”</strong>.</li></ol><small>Não é necessário baixar APK nem pagar pela instalação.</small></div>}
-      <p className="platform-footnote">Você pode trocar de opção depois pelo botão “Web / Android” no topo.</p>
+      <p className="platform-footnote">Você pode abrir esta escolha novamente pelo botão “Web / instalar” no topo.</p>
     </section></div>}
-    <header className="site-header"><div className="header-inner"><a className="brand" href="#top"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></a><div className="header-actions"><button className="platform-btn" onClick={() => {
-    setShowAndroidGuide(false);
-    setShowPlatformChooser(true);
-  }}>▣ <span>Web / Android</span></button><button className={`opportunity-nav ${page === "opportunity" ? "active" : ""}`} onClick={() => openPage("opportunity")}>◇ <span>Valuation</span></button><button className={`radar-nav ${page === "radar" ? "active" : ""}`} onClick={() => openPage("radar")}>⌁ <span>Radar diário</span></button><button className={`integrity-nav ${page === "integrity" ? "active" : ""}`} onClick={() => openPage("integrity")}>◎ <span>Integridade</span></button><button className="portfolio-nav" onClick={() => {
+    <header className="site-header"><div className="header-inner"><a className="brand" href="#top"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></a><div className="header-actions"><button className={`opportunity-nav ${page === "opportunity" ? "active" : ""}`} onClick={() => openPage("opportunity")}>◇ <span>Preço justo</span></button><button className={`radar-nav ${page === "radar" ? "active" : ""}`} onClick={() => openPage("radar")}>⌁ <span>Momento</span></button><button className={`integrity-nav ${page === "integrity" ? "active" : ""}`} onClick={() => openPage("integrity")}>◎ <span>Alertas</span></button><button className={`options-nav ${page === "options" ? "active" : ""}`} onClick={() => openPage("options")}>◉ <span>Opções β</span></button><button className="portfolio-nav" onClick={() => {
     if (page !== "home") openPage("home");
     window.setTimeout(() => document.getElementById("carteira")?.scrollIntoView({ behavior: "smooth" }), 40);
   }}>▦ <span>Carteira</span></button><button className="install-btn" onClick={() => {
     setShowAndroidGuide(true);
     setShowPlatformChooser(true);
-  }}>↓ <span>Instalar app</span></button><button className={`refresh-btn ${loading ? "loading" : ""}`} disabled={loading} aria-label={loading ? "Atualizando dados" : "Atualizar dados"} title={loading ? "Atualizando dados" : "Atualizar dados"} onClick={() => load(true)}>↻</button></div></div></header>
-    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunity" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "integrity" ? <IntegrityPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p><div className="hero-buttons"><button className="hero-radar-button" onClick={() => openPage("opportunity")}>Ações baratas e caras →</button><button className="hero-radar-button secondary" onClick={() => openPage("radar")}>Radar diário →</button><button className="hero-radar-button secondary" onClick={() => openPage("integrity")}>Integridade dos movimentos →</button></div></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
+  }}>▣ <span>Web / instalar</span></button><button className={`refresh-btn ${loading ? "loading" : ""}`} disabled={loading} aria-label={loading ? "Atualizando dados" : "Atualizar dados"} title={loading ? "Atualizando dados" : "Atualizar dados"} onClick={() => load(true)}>↻</button></div></div></header>
+    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunity" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "integrity" ? <IntegrityPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "options" ? <OptionsPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Ações e FIIs.<br /><em>Cada um com sua régua.</em></h1><p>Compare empresas e fundos imobiliários com indicadores calculados a partir dos arquivos oficiais da B3 e da CVM — sempre com fórmula, período e fonte.</p><div className="hero-buttons"><button className="hero-radar-button" onClick={() => openPage("opportunity")}>Preço justo →</button><button className="hero-radar-button secondary" onClick={() => openPage("radar")}>Momento do mercado →</button><button className="hero-radar-button secondary" onClick={() => openPage("integrity")}>Alertas de movimentos →</button><button className="hero-radar-button secondary" onClick={() => openPage("options")}>Opções (Beta) →</button></div></div><div className="market-card"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{assets.length || 650}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100 : 0}%` }} /></div><div className="market-stats"><span>{market.stocks} ações/units</span><span>{market.fiis} FIIs</span><span>{market.covered} com CVM</span></div></div></section>
       <section className="trust-row"><article><b>B3 D-1</b><span>último fechamento oficial disponível</span></article><article><b>CVM</b><span>DFP/ITR e informes de FIIs</span></article><article><b>0 invenção</b><span>só aparece valor calculável</span></article><article><b>Score correto</b><span>empresas e FIIs usam critérios diferentes</span></article></section>
       <InvestorProfile profile={investorProfile} onChange={setInvestorProfile} />
       <AnalysisGuide />
@@ -1327,7 +1359,7 @@ function Home() {
     setVisible(24);
   }}><option value="decision">Melhor encaixe no perfil</option><option value="score">Maior nota</option><option value="ticker">Código A–Z</option><option value="change">Maior alta</option><option value="volume">Maior liquidez</option></select></label></div></div>
       <section className="score-legend" aria-label="Legenda das notas"><div className="legend-title"><span className="eyebrow">COMO LER A NOTA</span><p>A cor resume a faixa do score. Toque no ativo para ver o motivo da nota.</p></div><div className="legend-items">{SCORE_LEGEND.map((item) => <div className={`legend-item ${item.tone}`} key={item.range}><i /><span><b>{item.range}</b>{item.label}</span></div>)}</div><p className="confidence-legend"><b>Confiança dos dados:</b> <span className="high">alta</span> <span className="medium">média</span> <span className="low">baixa</span></p></section>
-      {loading && !assets.length ? <div className="skeleton-grid">{Array.from({ length: 8 }).map((_, i) => <div className="skeleton" key={i} />)}</div> : filtered.length ? <><div className="asset-grid">{filtered.slice(0, visible).map((asset) => <AssetCard key={asset.ticker} asset={asset} favorite={favorites.has(asset.ticker)} onFavorite={() => toggleFavorite(asset.ticker)} onOpen={() => setSelected(asset)} profile={investorProfile} />)}</div>{visible < filtered.length && <button className="load-more" onClick={() => setVisible((v) => v + 24)}>Mostrar mais ↓</button>}</> : <div className="empty-state"><div>⌕</div><h3>Nenhum ativo encontrado</h3><p>Tente outro código ou filtro.</p></div>}
+      {loading && !assets.length ? <div className="skeleton-grid">{Array.from({ length: 8 }).map((_, i) => <div className="skeleton" key={i} />)}</div> : filtered.length ? <><div className="asset-grid">{filtered.slice(0, visible).map((asset) => <AssetCard key={asset.ticker} asset={asset} favorite={favorites.has(asset.ticker)} onFavorite={() => toggleFavorite(asset.ticker)} onOpen={() => setSelected(asset)} assets={assets} anomaly={anomalies?.assets?.[asset.ticker]} />)}</div>{visible < filtered.length && <button className="load-more" onClick={() => setVisible((v) => v + 24)}>Mostrar mais ↓</button>}</> : <div className="empty-state"><div>⌕</div><h3>Nenhum ativo encontrado</h3><p>Tente outro código ou filtro.</p></div>}
       <section className="nd-section"><div className="nd-heading"><div><span className="eyebrow">COBERTURA DOS DADOS</span><h2>Indicadores completos, sem cartões vazios.</h2></div><p>O aplicativo mostra somente valores que consegue calcular e verificar. Uma lacuna reduz a confiança da análise, mas nunca vira zero nem número estimado.</p></div><div className="coverage-grid"><article><strong>{dataCoverage.linked}/{dataCoverage.total}</strong><span>ações/units com vínculo contábil seguro</span></article><article><strong>{dataCoverage.pe}</strong><span>com P/L calculável</span></article><article><strong>{dataCoverage.pb}</strong><span>com P/VP calculável</span></article><article><strong>{dataCoverage.roe}</strong><span>com ROE calculável</span></article><article className="coverage-alert"><strong>{dataCoverage.dividends}</strong><span>com dividend yield normalizado</span></article></div><div className="nd-explanation"><article><b>1. Indicadores disponíveis</b><p>P/L, P/VP, ROE, margens, crescimento e endividamento aparecem quando as contas necessárias estão vinculadas ao balanço oficial.</p></article><article><b>2. Regras por setor</b><p>Indicadores industriais de dívida são ocultados em bancos, onde não são diretamente comparáveis.</p></article><article><b>3. Proventos oficiais</b><p>Dividend yield, regularidade e payout entram quando a B3 identifica o evento e a classe correta da ação. Datas ausentes continuam N/D.</p></article><article className="nd-impact"><b>Como isso afeta a nota?</b><p>A nota usa apenas os blocos válidos e informa a cobertura pela confiança. Portanto, 80/100 com confiança de 40% é menos completo que 80/100 com confiança de 90%.</p><code>score = soma dos blocos válidos ÷ quantidade de blocos válidos</code></article></div></section>
       <section className="how-section"><div><span className="eyebrow">MÉTODO AUDITÁVEL</span><h2>Duas réguas.<br />Nenhum atalho.</h2><p>Empresas são avaliadas por preço, qualidade, dívida e dividendos. FIIs usam P/VP, renda, imóveis, risco e liquidez. O total considera somente os blocos disponíveis.</p></div><div className="how-grid">{[["01", "Empresas", "CVM + B3: valuation, rentabilidade, d\xEDvida e proventos"], ["02", "Fundos imobili\xE1rios", "Informes: P/VP, DY, patrim\xF4nio, passivos e vac\xE2ncia"], ["03", "Pre\xE7o oficial", "Fechamento B3 com a data real do preg\xE3o"], ["04", "Sem preenchimento", "Campo sem base segura \xE9 ocultado e sai da m\xE9dia"]].map(([id, title, text]) => <article key={id}><span>{id}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
       <section className="install-section" id="install-guide"><div className="phone-icon">↓</div><div><span className="eyebrow">WEB OU ANDROID</span><h2>Escolha como usar</h2><p>Continue na versão Web ou instale o PWA no Android. As duas versões compartilham os mesmos recursos e dados.</p></div><button onClick={() => {
