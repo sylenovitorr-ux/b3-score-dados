@@ -47,4 +47,8 @@ jobs:
             exit 0
           fi
           git commit -m "Atualizar dados oficiais B3 e CVM"
-          git push
+          # A atualização pode levar vários minutos. Nesse intervalo, outro
+          # commit legítimo pode chegar à branch. Reaplique o commit de dados
+          # sobre o HEAD remoto para preservar ambos, sem force push.
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
