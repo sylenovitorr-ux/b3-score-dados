@@ -75,6 +75,37 @@ def download_history(work: Path, kind: str, years: range) -> list[int]:
     return available
 
 
+def materialize_daily_sessions_from_annual(work: Path, limit: int = 2) -> int:
+    """Create daily COTAHIST ZIPs from the latest official annual archive sessions.
+
+    B3's daily endpoint can be temporarily unavailable while the annual archive
+    remains accessible. This fallback preserves the official source and never
+    fabricates a quote.
+    """
+    sessions: dict[bytes, list[bytes]] = {}
+    for annual_path in sorted(work.glob("COTAHIST_A*.ZIP")):
+        with zipfile.ZipFile(annual_path) as archive:
+            with archive.open(archive.namelist()[0]) as source:
+                for line in source:
+                    if len(line) < 10 or line[:2] != b"01":
+                        continue
+                    reference = line[2:10]
+                    sessions.setdefault(reference, []).append(line)
+                    if len(sessions) > limit:
+                        sessions.pop(min(sessions))
+    created = 0
+    for reference, lines in sorted(sessions.items()):
+        year, month, day = reference[:4].decode(), reference[4:6].decode(), reference[6:8].decode()
+        name = f"COTAHIST_D{day}{month}{year}.ZIP"
+        target = work / name
+        if target.exists():
+            continue
+        with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr(name.replace(".ZIP", ".TXT"), b"".join(lines))
+        created += 1
+    return created
+
+
 with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     work = Path(folder)
     year = date.today().year
@@ -95,6 +126,14 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     if not quarterly_ok:
         raise SystemExit("No CVM quarterly FII file available")
 
+    annual_history = []
+    for history_year in (year - 1, year):
+        annual_name = f"COTAHIST_A{history_year}.ZIP"
+        if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{annual_name}", work / annual_name):
+            annual_history.append(history_year)
+        else:
+            print(f"B3 annual history unavailable for {history_year}; continuing with available years.")
+
     sessions = 0
     cursor = date.today()
     for _ in range(12):
@@ -104,12 +143,12 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
             if sessions == 2:
                 break
         cursor -= timedelta(days=1)
+    if sessions < 2 and annual_history:
+        created = materialize_daily_sessions_from_annual(work)
+        sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
+        print(f"B3 daily endpoint incomplete; recovered {created} official sessions from COTAHIST annual.")
     if sessions < 2:
         raise SystemExit("Could not obtain two recent B3 trading sessions")
-
-    annual_name = f"COTAHIST_A{year}.ZIP"
-    if not download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{annual_name}", work / annual_name):
-        print("Current-year B3 history unavailable; radar will use the latest session only.")
 
     dfp_years = download_history(work, "dfp", range(year, year - 11, -1))
     dfp_year = max(dfp_years)
@@ -127,7 +166,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
-    if (work / annual_name).exists():
+    if annual_history:
         subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
     else:
         print("Current-year B3 history unavailable; preserving the previous anomaly analysis.")
@@ -144,7 +183,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "fiiCount": len(fii_data),
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
-        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5},
+        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 260, "b3HistoryYears": annual_history},
         "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

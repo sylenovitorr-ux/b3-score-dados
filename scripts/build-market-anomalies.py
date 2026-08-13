@@ -39,26 +39,27 @@ def read_history(folder: Path | None, universe: set[str]) -> dict[str, list[dict
     paths = sorted(folder.glob("COTAHIST_A*.ZIP")) if folder else []
     if not paths:
         return history
-    with zipfile.ZipFile(paths[-1]) as archive:
-        text = archive.read(archive.namelist()[0]).decode("latin1")
-    for line in text.splitlines():
-        if len(line) < 245 or line[:2] != "01" or line[10:12] != "02" or line[24:27] != "010":
-            continue
-        ticker = line[12:24].strip()
-        if ticker not in universe:
-            continue
-        try:
-            close = int(line[108:121]) / 100
-            volume = int(line[170:188]) / 100
-        except ValueError:
-            continue
-        if close <= 0:
-            continue
-        history.setdefault(ticker, []).append({
-            "date": f"{line[2:6]}-{line[6:8]}-{line[8:10]}",
-            "close": close,
-            "volume": max(0, volume),
-        })
+    for path in paths[-2:]:
+        with zipfile.ZipFile(path) as archive:
+            text = archive.read(archive.namelist()[0]).decode("latin1")
+        for line in text.splitlines():
+            if len(line) < 245 or line[:2] != "01" or line[10:12] != "02" or line[24:27] != "010":
+                continue
+            ticker = line[12:24].strip()
+            if ticker not in universe:
+                continue
+            try:
+                close = int(line[108:121]) / 100
+                volume = int(line[170:188]) / 100
+            except ValueError:
+                continue
+            if close <= 0:
+                continue
+            history.setdefault(ticker, []).append({
+                "date": f"{line[2:6]}-{line[6:8]}-{line[8:10]}",
+                "close": close,
+                "volume": max(0, volume),
+            })
     for rows in history.values():
         rows.sort(key=lambda row: row["date"])
     return history
@@ -130,7 +131,7 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
         "flags": flags,
         "sessions": len(rows),
         "lastDate": rows[-1]["date"],
-        "series": [{**row, "returnPct": round(returns[index - 1], 2) if index > 0 else None} for index, row in enumerate(rows[-60:], start=len(rows) - len(rows[-60:]))],
+        "series": [{**row, "returnPct": round(returns[index - 1], 2) if index > 0 else None} for index, row in enumerate(rows[-260:], start=len(rows) - len(rows[-260:]))],
     }
     return result
 
@@ -148,10 +149,10 @@ def build() -> dict:
     return {
         "generatedAt": datetime.now(UTC).isoformat(),
         "quoteDate": max((row["lastDate"] for row in assets.values()), default=None),
-        "modelVersion": "1.0.0",
+        "modelVersion": "2.0.0",
         "universe": len(universe),
         "analysed": len(assets),
-        "methodology": "Z-scores de retorno e log-volume, repetição de extremos, reversão e contexto de liquidez. Janela de referência de até 60 pregões.",
+        "methodology": "Z-scores de retorno e log-volume, repetição de extremos, reversão e contexto de liquidez. Série auditável de até 260 pregões; os z-scores usam até 60 pregões anteriores.",
         "disclaimer": "Anomalia estatística não comprova fraude, manipulação, intenção ou irregularidade. Verifique eventos corporativos, fatos relevantes e notícias antes de interpretar o movimento.",
         "sources": ["B3 COTAHIST", "CVM Resolução 62", "CVM documentos periódicos e eventuais"],
         "assets": assets,

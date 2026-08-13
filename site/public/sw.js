@@ -1,4 +1,4 @@
-const CACHE = "b3-score-github-pages-v32";
+const CACHE = "b3-score-github-pages-v33";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./app-icon.svg"];
 
 self.addEventListener("install", (event) => {

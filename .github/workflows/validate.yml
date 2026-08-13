@@ -1,0 +1,35 @@
+name: Validar expansão quantitativa
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Testes dos motores de dados
+        run: python -m unittest discover -s scripts -p 'test_*.py' -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Instalar dependências
+        working-directory: site
+        run: npm ci
+      - name: Testes quantitativos e regressão
+        working-directory: site
+        run: npm test
+      - name: Build GitHub Pages
+        working-directory: site
+        run: npm run build

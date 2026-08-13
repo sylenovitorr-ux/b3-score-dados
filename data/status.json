@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "updatedAt": "2026-08-13T05:28:58.648636+00:00",
+  "updatedAt": "2026-08-13T10:52:21.045259+00:00",
   "stockQuoteDate": "2026-08-12",
   "fiiQuoteDate": "2026-08-12",
   "stockCount": 370,
@@ -29,7 +29,12 @@
   ],
   "historyPolicy": {
     "annualYears": 10,
-    "quarterlyYears": 5
+    "quarterlyYears": 5,
+    "marketSessions": 260,
+    "b3HistoryYears": [
+      2025,
+      2026
+    ]
   },
   "sources": [
     "B3 COTAHIST",

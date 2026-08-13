@@ -44,21 +44,22 @@ def price_history(folder: Path | None) -> dict[str, list[dict]]:
     paths = sorted(folder.glob("COTAHIST_A*.ZIP"))
     if not paths:
         return history
-    with zipfile.ZipFile(paths[-1]) as archive:
-        text = archive.read(archive.namelist()[0]).decode("latin1")
-    for line in text.splitlines():
-        if len(line) < 245 or line[:2] != "01" or line[10:12] != "02" or line[24:27] != "010":
-            continue
-        ticker = line[12:24].strip()
-        specification = line[39:49].strip().upper()
-        if not re.fullmatch(r"[A-Z]{4}[0-9]{1,2}", ticker) or not specification.startswith(("ON", "PN", "UNT")):
-            continue
-        history.setdefault(ticker, []).append({
-            "date": f"{line[2:6]}-{line[6:8]}-{line[8:10]}",
-            "high": int(line[69:82]) / 100,
-            "low": int(line[82:95]) / 100,
-            "close": int(line[108:121]) / 100,
-        })
+    for path in paths[-2:]:
+        with zipfile.ZipFile(path) as archive:
+            text = archive.read(archive.namelist()[0]).decode("latin1")
+        for line in text.splitlines():
+            if len(line) < 245 or line[:2] != "01" or line[10:12] != "02" or line[24:27] != "010":
+                continue
+            ticker = line[12:24].strip()
+            specification = line[39:49].strip().upper()
+            if not re.fullmatch(r"[A-Z]{4}[0-9]{1,2}", ticker) or not specification.startswith(("ON", "PN", "UNT")):
+                continue
+            history.setdefault(ticker, []).append({
+                "date": f"{line[2:6]}-{line[6:8]}-{line[8:10]}",
+                "high": int(line[69:82]) / 100,
+                "low": int(line[82:95]) / 100,
+                "close": int(line[108:121]) / 100,
+            })
     for rows in history.values():
         rows.sort(key=lambda row: row["date"])
     return history

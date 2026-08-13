@@ -30,6 +30,11 @@ class MarketAnomalyTest(unittest.TestCase):
         self.assertIn("volume", codes)
         self.assertGreaterEqual(result["score"], 40)
 
+    def test_auditable_series_keeps_up_to_260_sessions(self):
+        rows = [{"date": f"D{index:03d}", "close": 10 + index * .01, "volume": 1_000_000} for index in range(300)]
+        result = MODULE.analyse("TEST3", rows)
+        self.assertEqual(len(result["series"]), 260)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,33 +1,40 @@
-# B3 Score — dados oficiais
+# B3 Score — fundamentos e análise quantitativa aberta
 
-Este repositório mantém os dados públicos usados pelo B3 Score Gratuito.
+Aplicativo educacional para analisar ações, units, FIIs e estratégias com opções usando dados públicos, cálculos determinísticos e trilha de auditoria. A decisão final permanece com o usuário.
 
-## Fontes
+## Fontes e atualização
 
-- **B3 COTAHIST:** preço oficial de fechamento, abertura, máxima, mínima, volume e quantidade negociada.
-- **CVM Dados Abertos:** cadastro, patrimônio, número de cotistas, P/VP calculado, dividend yield informado, imóveis, vacância, inadimplência e composição patrimonial dos FIIs.
+- **B3 COTAHIST:** fechamento, abertura, máxima, mínima, volume, quantidade e histórico de até 260 pregões.
+- **B3 Proventos:** eventos em dinheiro por classe de ação.
+- **CVM Dados Abertos:** DFP, ITR, FCA e informes mensais/trimestrais de FIIs.
+- **GDELT e Google Notícias RSS:** manchetes secundárias identificadas como contexto no radar; ausência de notícia não é tratada como fato positivo ou negativo.
 
-Nenhum dado ausente é inventado. Indicadores sem base oficial suficiente permanecem vazios.
+O workflow `update-data.yml` roda diariamente às 19h17 de Boa Vista e preserva o snapshot anterior quando uma fonte falha. Datas, fontes e estados de disponibilidade são exibidos na interface.
 
-## Atualização automática
+## Camadas
 
-O GitHub Actions executa em dias úteis às **19h17 de Boa Vista (23h17 UTC)** e também pode ser iniciado manualmente:
+1. `data/` — snapshots recebidos ou derivados de fontes públicas.
+2. `scripts/` — coleta, validação contábil, proventos, radar e anomalias.
+3. `site/src/quant/` — perfis, validade, estatística, valuation, opções e carteira.
+4. `site/src/` — interface React/PWA compatível com GitHub Pages.
 
-1. Abra a aba **Actions**.
-2. Selecione **Atualizar dados oficiais B3 e CVM**.
-3. Clique em **Run workflow**.
+Dados ausentes permanecem `null`. A interface apresenta “Dado indisponível” ou “Dados insuficientes para calcular”; ausência nunca é substituída silenciosamente por zero.
 
-Se o pregão mais recente ainda não estiver publicado, o script procura as datas anteriores. Se a coleta falhar, o arquivo anterior continua disponível.
+## Desenvolvimento
 
-## Arquivos consumidos pelo aplicativo
+```bash
+python -m unittest discover -s scripts -p 'test_*.py' -v
+cd site
+npm ci
+npm test
+npm run build
+```
 
-- `data/fii-catalog.json` — cotações e indicadores de FIIs.
-- `data/status.json` — data/hora da coleta, data do pregão e quantidade de fundos.
+Metodologia detalhada: [`docs/quant-methodology.md`](docs/quant-methodology.md).
 
-URL pública do catálogo:
+## Limitações importantes
 
-`https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/fii-catalog.json`
-
-## Escopo atual
-
-Esta primeira automação cobre **FIIs**. Ações e units continuarão usando o snapshot já existente até a próxima etapa, que adicionará DFP/ITR/FCA da CVM e o fechamento oficial da B3 para calcular P/L, P/VP, ROE, margens e endividamento com período e fórmula exibidos.
+- Não existe ainda uma cadeia oficial de opções integrada. O laboratório aceita entradas manuais e identifica sua origem como “informada pelo usuário”.
+- CDI, IPCA e IBOV sincronizados ainda não fazem parte do snapshot; comparações que dependeriam dessas séries ficam indisponíveis.
+- Alertas estatísticos de preço/volume não comprovam fraude, manipulação ou intenção.
+- Scores, preço justo, payoff e backtests são ferramentas educacionais, não ordens nem garantias.
