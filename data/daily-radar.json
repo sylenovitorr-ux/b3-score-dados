@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-12T23:27:13.792006+00:00",
-  "quoteDate": "2026-08-11",
+  "generatedAt": "2026-08-13T00:36:55.176593+00:00",
+  "quoteDate": "2026-08-12",
   "modelVersion": "1.0.0",
-  "universe": 226,
+  "universe": 224,
   "weights": {
     "fundamentals": 42,
     "technical": 32,
@@ -14,23 +14,24 @@
   "sources": [
     "B3 COTAHIST",
     "CVM DFP/ITR/FCA",
-    "GDELT DOC 2.0"
+    "GDELT DOC 2.0",
+    "Google Notícias RSS (fallback)"
   ],
   "strength": [
     {
       "ticker": "MILS3",
       "name": "Mills",
       "price": 15.57,
-      "quoteDate": "2026-08-11",
+      "quoteDate": "2026-08-12",
       "score": 72,
       "fundamentalScore": 79,
-      "technicalScore": 64,
-      "newsScore": 50,
+      "technicalScore": 62,
+      "newsScore": 49,
       "confidence": 100,
-      "newsCoverage": 0,
-      "return20": 0.45,
-      "return60": 24.96,
-      "historySessions": 152,
+      "newsCoverage": 24,
+      "return20": 0.84,
+      "return60": 16.72,
+      "historySessions": 153,
       "entryLow": 15.26,
       "entryHigh": 15.73,
       "target": 19.33,
@@ -38,239 +39,490 @@
       "potentialPct": 24.13,
       "fairValue": 25.36,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Mills (MILS3) lucra R$ 79 milhões no 4T25 - Nord Investimentos",
+          "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE40RkJoT1hSQkdEZEkzVlptbU80d1VJanlTZE52bktmTlRxaFhjX0EtNVRqR0JldnNiQ2hibGhZUHNtY3ZNZmFKNnRISGgtSjI0YnBabEhXUmY2ZVJacmg2amRFY180WEVDYkMydUVvZURvaFZkaUJxUXdB0gF_QVVfeXFMT0xjUG9CeC1oWTloLWx6Nmx4UnBGZGVEMTItS1IwXzBOd1VoUUxiN3VzSjI3eFpjSnJHTVlUNkdJY3V2VlBTWXpfRkVVbmg1d1FIemVtUGM4Y0g5Z2Z1Vk5MSngtcnFyNGp3MXJTemhoLVJTa0hrSzg4eVJmQnJfaw?oc=5",
+          "domain": "Nord Investimentos",
+          "seenDate": "Sat, 08 Aug 2026 18:29:12 GMT"
+        },
+        {
+          "title": "Small cap dá adeus à B3: Mills (MILS3) anuncia aquisição por grupo francês, que fará OPA - Seu Dinheiro",
+          "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPbDRMSG5JYlc4bTVZVHZ6cGp2Y3NWNWVqaUtKY3NyYUY1R2FmcW5tc3hWaFV4R3hWbzJDaUR3S1loUzF4Z2FUbUQxbVloYTVVVlc5aW13c1N3LXJHMll6cnk3OVNsNmtoZWN4VE1YTkVBdy12eFJmUUM2aDFRN0RKOGZWNURsd1F4dUtsaTkwclNicTJ2amNicGFENVN2YjJCSV9XZ2ZkemJVVE1CWkVLNVdSdVFQWkJnSFV0LXdhU0kxSHRUbmd2U0pVQlk?oc=5",
+          "domain": "Seu Dinheiro",
+          "seenDate": "Mon, 25 May 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "DOTZ3",
       "name": "Dotz Sa",
-      "price": 6.09,
-      "quoteDate": "2026-08-11",
+      "price": 5.93,
+      "quoteDate": "2026-08-12",
       "score": 72,
       "fundamentalScore": 60,
       "technicalScore": 92,
-      "newsScore": 50,
+      "newsScore": 49,
       "confidence": 89,
-      "newsCoverage": 0,
-      "return20": 55.75,
-      "return60": 56.15,
-      "historySessions": 152,
+      "newsCoverage": 24,
+      "return20": 52.84,
+      "return60": 58.13,
+      "historySessions": 153,
       "entryLow": 3.83,
-      "entryHigh": 5.69,
-      "target": 6.43,
+      "entryHigh": 5.54,
+      "target": 6.33,
       "defensiveExit": 3.67,
-      "potentialPct": 5.58,
-      "fairValue": 6.19,
+      "potentialPct": 6.75,
+      "fairValue": 6.02,
       "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": []
-    },
-    {
-      "ticker": "JHSF3",
-      "name": "Jhsf Part",
-      "price": 10.28,
-      "quoteDate": "2026-08-11",
-      "score": 71,
-      "fundamentalScore": 88,
-      "technicalScore": 47,
-      "newsScore": 50,
-      "confidence": 100,
-      "newsCoverage": 0,
-      "return20": -4.55,
-      "return60": 1.08,
-      "historySessions": 152,
-      "entryLow": 10.07,
-      "entryHigh": 10.38,
-      "target": 13.86,
-      "defensiveExit": 9.67,
-      "potentialPct": 34.87,
-      "fairValue": 36.47,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
-    },
-    {
-      "ticker": "CSED3",
-      "name": "Cruzeiro Edu",
-      "price": 4.17,
-      "quoteDate": "2026-08-11",
-      "score": 71,
-      "fundamentalScore": 84,
-      "technicalScore": 55,
-      "newsScore": 50,
-      "confidence": 100,
-      "newsCoverage": 0,
-      "return20": 5.57,
-      "return60": 3.47,
-      "historySessions": 152,
-      "entryLow": 3.79,
-      "entryHigh": 4.21,
-      "target": 5.49,
-      "defensiveExit": 3.64,
-      "potentialPct": 31.6,
-      "fairValue": 9.05,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
-    },
-    {
-      "ticker": "SANB3",
-      "name": "Santander Br",
-      "price": 14.94,
-      "quoteDate": "2026-08-11",
-      "score": 71,
-      "fundamentalScore": 69,
-      "technicalScore": 72,
-      "newsScore": 50,
-      "confidence": 100,
-      "newsCoverage": 0,
-      "return20": 13.35,
-      "return60": 16.36,
-      "historySessions": 152,
-      "entryLow": 12.48,
-      "entryHigh": 15.09,
-      "target": 17.87,
-      "defensiveExit": 11.98,
-      "potentialPct": 19.59,
-      "fairValue": 21.55,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
-    },
-    {
-      "ticker": "FLRY3",
-      "name": "Fleury",
-      "price": 18.59,
-      "quoteDate": "2026-08-11",
-      "score": 71,
-      "fundamentalScore": 68,
-      "technicalScore": 73,
-      "newsScore": 50,
-      "confidence": 100,
-      "newsCoverage": 0,
-      "return20": 12.6,
-      "return60": 21.34,
-      "historySessions": 152,
-      "entryLow": 16.42,
-      "entryHigh": 16.42,
-      "target": 19.73,
-      "defensiveExit": 15.77,
-      "potentialPct": 6.13,
-      "fairValue": 15.37,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Dotz (DOTZ3): resultado do 3T25, Techfin e perspectivas - monitormercantil.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPVHc2UmdKNXhCbklnNGcxR25yejRRMkRiXzFpQnpWVjNtMktIb0lsMDFuUWM1akVaQ3VnSG5XdTBkendTOUcydjBXc3NaeVh6Tmd2eGJmYkJBemJHZkU1Ui1SeVJic0pMMGJNUUR5ZUpEdnhVVmFXVUxyOHhSRG1zZUJ4UGFmVFV1RVBoTQ?oc=5",
+          "domain": "monitormercantil.com.br",
+          "seenDate": "Fri, 14 Nov 2025 08:00:00 GMT"
+        },
+        {
+          "title": "Dotz aprova recompra de até 10% das ações e anima investidores na bolsa de valores - ADVFN",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNN3VyakxGZEVuUkhySzhhcTNJRDFReWhvbjFONUFJd2pocWg0MGVoQkVoZXFHUlV3NXU1WmJ1dkhrc0RlM0lXbTZDVDdNY2U3YjBBalNFUWs4cXgtZ1J2WDRINkw0SHB5S1g2LVRVTlFiWUtjaDNSdk1VeGpRVXZHelFEOWxNMVRaMmRYOTFpcEl4a3dLNkFtVXF6Zm13QWRnUEJISnFZRzJwaVl4LUpFWkJ0U0gwWUZo?oc=5",
+          "domain": "ADVFN",
+          "seenDate": "Tue, 31 Mar 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "TEND3",
       "name": "Tenda",
-      "price": 32.4,
-      "quoteDate": "2026-08-11",
-      "score": 70,
+      "price": 33.43,
+      "quoteDate": "2026-08-12",
+      "score": 71,
       "fundamentalScore": 81,
-      "technicalScore": 52,
+      "technicalScore": 55,
       "newsScore": 50,
       "confidence": 100,
-      "newsCoverage": 0,
-      "return20": -1.94,
-      "return60": 11.65,
-      "historySessions": 152,
+      "newsCoverage": 24,
+      "return20": 2.89,
+      "return60": 7.35,
+      "historySessions": 153,
       "entryLow": 28.68,
-      "entryHigh": 32.72,
-      "target": 43.7,
+      "entryHigh": 33.76,
+      "target": 45.08,
       "defensiveExit": 27.54,
-      "potentialPct": 34.89,
+      "potentialPct": 34.86,
       "fairValue": 117.51,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Tenda (TEND3) Pagará Dividendos Intercalares de R$ 0,63 por Ação - Forbes Brasil",
+          "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOUkcxOW51dU1IUDVva2pDeTY5OFZFX3R2TnZLQ0pfRElXZE1Kc0x5VDRPSnVhSVpaQlR4cnFKLWhROXNvQTh0X2NPbWs2OHVTOWdqamFwMWZKNnVUVEMwQm91UnZNczhVMHZlR0Q2ZDBYWWUwRzlpUFM3RjlTaWpvNjlXcjZjS1RJZjlBQXpIdTk5dXBCbXdVQVppdXVIejJEcHVUVHFn?oc=5",
+          "domain": "Forbes Brasil",
+          "seenDate": "Mon, 10 Aug 2026 14:18:22 GMT"
+        },
+        {
+          "title": "Tenda (TEND3): Conversão consistente de resultados em caixa sustenta perspectivas positivas - XP Investimentos",
+          "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxPdm14c2NDMHFBeXNRbWtYNGVZRXd3d3V4UThoSTlFSW9kY0dCX0JRRUppWUVqcjRFYWlQbkRhS3RIUjJWQlBKYUtveFpaLTQzNDBnRkw2MGZWUm1tb1FHMW83dEFDYkgzbFNJT0RKVUdjSmlOaW4zNEtmNll0enVWejdSOHJzYXBFTHJxbXhCNDNsNXNuVkM1RGtLdGZkSGl3NDdiUnlPU3NSUXZRZ281emgxa1V1Z0ZYTEFVd2QxODdzOU45OE1HSEQybXZrVGlT?oc=5",
+          "domain": "XP Investimentos",
+          "seenDate": "Tue, 11 Aug 2026 18:59:25 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
-      "ticker": "CURY3",
-      "name": "Cury S/A",
-      "price": 31.5,
-      "quoteDate": "2026-08-11",
-      "score": 70,
-      "fundamentalScore": 83,
-      "technicalScore": 50,
-      "newsScore": 50,
+      "ticker": "CSED3",
+      "name": "Cruzeiro Edu",
+      "price": 4.12,
+      "quoteDate": "2026-08-12",
+      "score": 71,
+      "fundamentalScore": 84,
+      "technicalScore": 53,
+      "newsScore": 52,
       "confidence": 100,
-      "newsCoverage": 0,
-      "return20": -3.76,
-      "return60": 9.22,
-      "historySessions": 152,
-      "entryLow": 28.99,
-      "entryHigh": 31.82,
-      "target": 34.72,
-      "defensiveExit": 27.83,
-      "potentialPct": 10.23,
-      "fairValue": 36.13,
+      "newsCoverage": 24,
+      "return20": 5.1,
+      "return60": -4.63,
+      "historySessions": 153,
+      "entryLow": 3.79,
+      "entryHigh": 4.16,
+      "target": 5.43,
+      "defensiveExit": 3.64,
+      "potentialPct": 31.79,
+      "fairValue": 9.05,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Cruzeiro do Sul (CSED3) tem lucro de R$ 100,7 milhões no 2T26, alta de 60,6% - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxNR25SZkdaLWhwcEEyY3dCU1hCcU5vS2psRDZfdmEzQmc3TnRLU3ZQamFTZGJ3aGxId0xXcDNQMUhBX3dBTll4bHdydmh4MXJiTkJpRDFDTnI1MndpZ3p1VV8zOVc4V0xUYUZJUExrekRWajZQNHNHNFlETXFPb1o4MDc1SnB4OGE1amUycjZRVk1fcU9JSmstbGZrZGRaVTdLRi1oY3NlRVFFUlY4TUg4QWxLVW9QMWFHZURIOdIBvAFBVV95cUxNR25SZkdaLWhwcEEyY3dCU1hCcU5vS2psRDZfdmEzQmc3TnRLU3ZQamFTZGJ3aGxId0xXcDNQMUhBX3dBTll4bHdydmh4MXJiTkJpRDFDTnI1MndpZ3p1VV8zOVc4V0xUYUZJUExrekRWajZQNHNHNFlETXFPb1o4MDc1SnB4OGE1amUycjZRVk1fcU9JSmstbGZrZGRaVTdLRi1oY3NlRVFFUlY4TUg4QWxLVW9QMWFHZURIOQ?oc=5",
+          "domain": "Investidor10",
+          "seenDate": "Wed, 12 Aug 2026 19:39:24 GMT"
+        },
+        {
+          "title": "Cruzeiro do Sul (CSED3) aumenta lucro em 60,6% e reduz dívida no 2T26 - Estadão",
+          "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOMjhFNmZNQ3hFNG5LUnUwblh5YmMzekhDTzBPYURncGtqMVV2Nl94SzQxbE55UFRqNGpfTnBXWTdDazlKSnQtTUNZemJIYzdnd1hxaFN0ZVktR2hpU2JaeGEtTDNkTWItblQ1R01GRVk2QzVUSWM0SWZIc3hoTVQ4MTNaLUhfUDJJZlBUVWY2a3hValpGMUlFSkRHYTBVVWVhOEl2Ujk0S1A5NVVCZkR1TmdpX0Q5NmdwTHNZTUJvNlQzWU5hZ0pmT1J3UG8?oc=5",
+          "domain": "Estadão",
+          "seenDate": "Tue, 11 Aug 2026 22:55:48 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
+    },
+    {
+      "ticker": "SANB3",
+      "name": "Santander Br",
+      "price": 14.9,
+      "quoteDate": "2026-08-12",
+      "score": 71,
+      "fundamentalScore": 69,
+      "technicalScore": 71,
+      "newsScore": 51,
+      "confidence": 100,
+      "newsCoverage": 24,
+      "return20": 13.31,
+      "return60": 12.11,
+      "historySessions": 153,
+      "entryLow": 12.48,
+      "entryHigh": 15.05,
+      "target": 17.83,
+      "defensiveExit": 11.98,
+      "potentialPct": 19.7,
+      "fairValue": 21.55,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "Previsão SANB3 — Preço Alvo para 2027 - TradingView",
+          "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5PS3lmU1dPVk9lOTlETTBBQ0Z4OGpadXp6TUpvdW1VcnZuUjA3ZG9zelRCLVAxd3F0b0gxaWx5U1dHQ3dGQTNCM0sxdC0ydGR6NnV5OWZpRWkxQ0VwWXRkXzlvNDNQVGxjVS1Tc3o5X2VuQUdibFdMV2RLbVI0U2M?oc=5",
+          "domain": "TradingView",
+          "seenDate": "Thu, 25 Jun 2026 20:25:57 GMT"
+        },
+        {
+          "title": "Santander Brasil (SANB11) aprova JCP de R$ 0,53 por unit - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQdE1FZ2E3S0RZRVFWbXBkU3JBSVpOc2o0TWRaQ3ZkdVNTanNpTTA2S09kUUtkR1pBNmNxNk5McU56RlNUWHJqR0pQY01QNE5GeXVtd3JlbWhUX1M5VTVHNk5GbFFOR0F0ZndLU1AtbGV2SW5HVThaSEk1Vk5nQnVLYV9mS0FiOUZTa3U3UW1zZUc0bjB6?oc=5",
+          "domain": "Visno Invest",
+          "seenDate": "Fri, 10 Jul 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "ALPA4",
       "name": "Alpargatas",
-      "price": 12.87,
-      "quoteDate": "2026-08-11",
+      "price": 12.95,
+      "quoteDate": "2026-08-12",
       "score": 70,
       "fundamentalScore": 76,
-      "technicalScore": 60,
-      "newsScore": 50,
+      "technicalScore": 59,
+      "newsScore": 51,
       "confidence": 100,
-      "newsCoverage": 0,
-      "return20": 7.16,
-      "return60": 14.1,
-      "historySessions": 152,
+      "newsCoverage": 24,
+      "return20": 8.92,
+      "return60": 6.94,
+      "historySessions": 153,
       "entryLow": 10.91,
       "entryHigh": 11.78,
       "target": 14.03,
       "defensiveExit": 10.47,
-      "potentialPct": 9.01,
+      "potentialPct": 8.34,
       "fairValue": 12.8,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Petrobras (PETR4), Assaí (ASAI3), Allos (ALOS3), Alpargatas (ALPA4) e mais: Veja os destaques das empresas - valorinveste.globo.com",
+          "url": "https://news.google.com/rss/articles/CBMikAJBVV95cUxOeWpHLVo1MUlMTWNUTFU4LTVnWkdOV2d4ell3dFFFSllQelpxN19qTV9kRHlCeFlBbzk2Q3FUZ1d4c3YwNC00bkRud2NUTzdVdVR5NU5JZmo3Vy1ZSnRmbmJCRURONTdhY3ZCSEpocXVVUTgtQzg0TThaN3NmNDJWTXlKbUoyWGFTSThJN3pjTjV5LW5nVERUNmJzME5DVUhkR1lYLUJEUHFFRURsZXRhb0RfZWVORkY0cXA5MkR3Vm5PdW5OREwtNnN6aVp4WUhnQjFBLTRGX2UzYnptTFltanptcjZxOHpFdWNxVHFDa0V0elRGcjNoNk92RE1ScXdiNmxjZjduWk5iNW9RYmRhNNIBnwJBVV95cUxNTi02RWF5ZHhOWTdpSl8yRVVLTUt1dHFsN1FmWVRyaEc3ZXYxc2FnUDRYenhhb3YybUtYNXVid09odGt6OXI0alNsUjVQMlo0MU1tcHpxR0NQTzJaOElfQjVMX3JhOGt5S1FVZFJ1OW80Q1YyYTNxSkpVbWlQdzhnTVdaeWFXYVNEbXBYXzg1aEEySndTaUNrcXdXWENrLWNfSy0zUWd1alNXcnJYMU0yT3pRdWljRERZNEt4bGNfZmR5cDBFRG1nSWg2dHRqWFRZNTRsemhvUzh4SS16bUU5dkUxaDdMb0RsdldQNXBpU3RXeFlELWtoOTNiN2ljbmhHRzhjYjlRUHl6NHpMdFBxQUIwRWN3cWpNbk1xWlNRcw?oc=5",
+          "domain": "valorinveste.globo.com",
+          "seenDate": "Fri, 07 Aug 2026 11:08:52 GMT"
+        },
+        {
+          "title": "Alpargatas (ALPA4): 2T com resultados fortes - XP Investimentos",
+          "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPbE9JclFteC1XcUZNYnJ5eWo1QTZRS0Jqc2xLZ3FSNFFGWTBhWUtCSUtDSzdHSUxLOEx1UWJ0cDdvLXZDdVR2bVNMNVpjYldJZ1dSTktXbE9tTjJPN2Y5NmpGV3BVVngzd1RlYmI4STdfek11TmJaOHljSVBqSDM4SURrV2VlcUJnVWpRTU55MFRnNjBu?oc=5",
+          "domain": "XP Investimentos",
+          "seenDate": "Fri, 07 Aug 2026 03:21:35 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
-      "ticker": "BRSR3",
-      "name": "Banrisul",
-      "price": 17.54,
-      "quoteDate": "2026-08-11",
+      "ticker": "FLRY3",
+      "name": "Fleury",
+      "price": 18.25,
+      "quoteDate": "2026-08-12",
+      "score": 70,
+      "fundamentalScore": 68,
+      "technicalScore": 70,
+      "newsScore": 53,
+      "confidence": 100,
+      "newsCoverage": 24,
+      "return20": 11.14,
+      "return60": 15.51,
+      "historySessions": 153,
+      "entryLow": 16.42,
+      "entryHigh": 16.42,
+      "target": 19.73,
+      "defensiveExit": 15.77,
+      "potentialPct": 8.11,
+      "fairValue": 15.37,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "Ação do Fleury (flry3) Dispara Mais de 14% após Resultado Acima do Esperado - Forbes Brasil",
+          "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQV21NZHYzWUM5TkwzdkZ1LU51cmxiVEk3ODRQck1taXBIQm5iako2Vjg1ZDM5eE9iNTlIUUltMEdFV09oUTExYmd5enVZN0Nnc29BUFNKMHNsMkxCdzJNZTJfcEdoTzdXNllVdkppRkJLamNPWjY5cE1KRVVDNDRBXzFoNVpSS0sydmlLczJkeUtxc3RwSG5oMTM5OF9RMEEtTVZTUTBRdHdJSHNuR1ZCMkpYSmQxSkk?oc=5",
+          "domain": "Forbes Brasil",
+          "seenDate": "Fri, 07 Aug 2026 14:30:37 GMT"
+        },
+        {
+          "title": "Fleury (FLRY3): ação dispara quase 10% após resultados do 2T; o que animou tanto? - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPa0NSYmhHUXZRX2xfdU16TWMyTUZkT0c3LTlXeFE2MFc1akpTM2U4U2s2OFc4enktclQtLXJLWXJjVURZN1ZFalZkMXQ1bk9FTWNFWmo2NXRGYktyLWEwdnQ0bF9KSFVXYU1OajBHRXpJaGRseGd0ZnZPM2R1MHVsSFgtc1VHamx2eXZ2Z1VjT0doamJxTkhjd1dkRTFidjV4ZWg3Z3dtVEFhbkZMdDFtS2VhdGNRalXSAbwBQVVfeXFMT01ZODlGNTc0MDFOWndYR25WbVFaVzRNMFF6X0hGOHp3eVM1ekN2YTRleER5Y2JLUndGbExaampxMG5KRUZFTVFhb1h4OWhhNDNNcVhEZktmNTM3WDMwa2l5bzVDNWdqUGxQQ3l3VlN6OTkzTWtETEF2MmY2czJxdEhKcGhxdldZbEZ2bVA5czNzLUNtN1h5bUVyWkFKT2hDRDBKTHZDd1o5cW5qLTFfRDc0N0I3Snd6M01kLXc?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Fri, 07 Aug 2026 20:45:42 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
+    },
+    {
+      "ticker": "CASH3",
+      "name": "Meliuz",
+      "price": 5.38,
+      "quoteDate": "2026-08-12",
+      "score": 70,
+      "fundamentalScore": 59,
+      "technicalScore": 84,
+      "newsScore": 51,
+      "confidence": 95,
+      "newsCoverage": 24,
+      "return20": 22.27,
+      "return60": 31.54,
+      "historySessions": 153,
+      "entryLow": 4.07,
+      "entryHigh": 4.07,
+      "target": 5.65,
+      "defensiveExit": 3.91,
+      "potentialPct": 5.0,
+      "fairValue": 2.47,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "JP Morgan atinge 5% da Méliuz (CASH3) - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1ic1lyY0NrTzZDUkRDQnFfSnZIRmZ2cUVZUW5nclZXOGU3TjJ3M1pxNWM3NjFhUGxBQ1ZRdml5SFQ5RzFjbEwxN2hseTU4NE85bVZBUnhYVUc5aVVVck9LRVFOTEZKbEs2ZWZFR1VXdTBCcDhhcFlFa2VEdUY?oc=5",
+          "domain": "Visno Invest",
+          "seenDate": "Wed, 12 Aug 2026 21:20:00 GMT"
+        },
+        {
+          "title": "Méliuz (CASH3) Conclui Recompra de Ações e Amplia Estratégia com Bitcoin - Forbes Brasil",
+          "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNall3THpYaTRJdXk0b3Mwd01paGJudHNxYUJNVlY3cmdxQjU5ZFhDTFJNTWVnVWJKMmJMNlk3YWV2MGlKcUtHVXV2ZFZ0aXJFV1JYM1VhZWozM1V4NkkwMEY0SmlnQlk5NGdtZnZuV2UtcVU2OXpOYVBJOFZISUZKQUNGV0psaTI3aHBpc01ZeDU?oc=5",
+          "domain": "Forbes Brasil",
+          "seenDate": "Thu, 06 Aug 2026 16:48:53 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
+    },
+    {
+      "ticker": "PFRM3",
+      "name": "Profarma",
+      "price": 6.99,
+      "quoteDate": "2026-08-12",
       "score": 69,
-      "fundamentalScore": 86,
-      "technicalScore": 50,
+      "fundamentalScore": 74,
+      "technicalScore": 61,
       "newsScore": 50,
       "confidence": 100,
-      "newsCoverage": 0,
-      "return20": -0.51,
-      "return60": 2.57,
-      "historySessions": 152,
-      "entryLow": 17.19,
-      "entryHigh": 17.72,
-      "target": 23.6,
-      "defensiveExit": 16.5,
-      "potentialPct": 34.56,
-      "fairValue": 53.47,
+      "newsCoverage": 24,
+      "return20": 1.6,
+      "return60": 10.08,
+      "historySessions": 153,
+      "entryLow": 6.17,
+      "entryHigh": 7.06,
+      "target": 9.23,
+      "defensiveExit": 5.92,
+      "potentialPct": 32.02,
+      "fairValue": 15.59,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Profarma (PFRM3) vai às compras, volta ao ramo de medicamentos especiais e aposta nas canetas emagrecedoras - Estadão",
+          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPaFBCRHE2dkI1Zi12U3doc251OGVWUU0wZl95azVnWUJfeHBwRVJWVEpreHYxVGFYeW42QlVGeTlNWldPR2NBdDY0OFhNZkxmLWJSVXVHdE1nUGpQUnE3UzdZcXl0RXhPWjlRWGxwRzd3LVMyVTU5UFJRZUM3WGNNUU5XRVBseERyYlB4OEQ2MFRlRjE0aFBXQ2RaWVY5ZGtpd09scFp4OFptQmvSAbABQVVfeXFMTXN4bDc2emNJR1hNN01wc3BLdV92ZHhFVVBCd2RKdFdYWE1fNWFJRDFsNjQwZ01nQ281SnNqM1c4bzBKSHZHTXZ2R2FFc05wYjkxa1BhNkxLaHNCSUhPMl93QVZvUTMtVzFJZklBN0VNMlBMYURpRWtlS1ExVUpZWXhTWVBFQ0NfVTBzaGJGUVBSRmV1SGFxQ3ljWnVIUFBDeUJJaFZ0YndtSldnNVhGeXA?oc=5",
+          "domain": "Estadão",
+          "seenDate": "Tue, 24 Mar 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Profarma (PFRM3) conclui aquisição da 4Bio Medicamentos - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQY3lTeG9fMFBJLWl4R1dUVkQwc0ljWVFoWGtkdXZEZl9wZ054bTJ6LTdPYjFfd2xManVWeXNselRTX0JrVzZiVThkRXo1SkNhVXRwbklCaWZCTk1GdUpQU0FEUlRSWUlub01Zd2EzZEd5eXBDdjNVcWEzZGJiZmxDeGIxdWVjSE03Zjl0MnBXUTg1NzN2UEE?oc=5",
+          "domain": "Visno Invest",
+          "seenDate": "Mon, 04 May 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
+    },
+    {
+      "ticker": "TECN3",
+      "name": "Technos",
+      "price": 9.81,
+      "quoteDate": "2026-08-12",
+      "score": 69,
+      "fundamentalScore": 75,
+      "technicalScore": 60,
+      "newsScore": 51,
+      "confidence": 100,
+      "newsCoverage": 24,
+      "return20": -0.1,
+      "return60": 12.11,
+      "historySessions": 153,
+      "entryLow": 9.19,
+      "entryHigh": 9.91,
+      "target": 12.03,
+      "defensiveExit": 8.82,
+      "potentialPct": 22.64,
+      "fairValue": 15.33,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "Technos (TECN3) Cancela 730 Mil Ações em Tesouraria e Reduz Base Acionária - Forbes Brasil",
+          "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQZFZCM3YxM1NXemRhM1pZc3JHRE14ZE5qcFJndzlRaG1Hc1dZSVZXNXFhMDk1dTB1N3NXS0lQaV83Y2FEUnlhLUREWXN1cG9nQnIxcF9UVEl6UVdPMjk4ZW14Z09LUkhsUVYxQ3M3XzByRDAtUlhYckJIeU00QmhaaFoxVVVIM0RSbXc?oc=5",
+          "domain": "Forbes Brasil",
+          "seenDate": "Tue, 11 Aug 2026 14:01:03 GMT"
+        },
+        {
+          "title": "Hora de dividendos? Grupo Technos (TECN3) usa até reserva de lucros em 2025 - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNOXJkdUNGWVR4NHNTYkNpMUhFUGtmOS1qcER1TDUyMVNTNjBQaUpicW1sc1lqUDQ0MXpnWlpkYXJFQzR5b3VQNUk3ZWJlbDNuN1FEZ3pfX01Oakt0bW8ybnViWHJ0c0FndFc3NGNjNk1oWWFEN0Jndi1hUGdwQ1VKZUI0V0Y4TlNKMmhlamp6U0hQRzdvc2M4SFRacTd5MU9NTGIxY2hTdks2THdVX2JUMzFIa081TWVP0gG-AUFVX3lxTE5aQjV4MHgxUUlRTmpWeEJZcUc5RGdHTjZWVHprVlFzMjNmUjJoWkw1SFFETmVpb2hTTmkwNnYwRk1DTTNaYVFCZ1JYVDc4b2c2TU8xMnhrVTFoUnFuaVhud0NiV3JxRGo3T1duSnVESnpKVVhoZzlBTy1TX05ObExaWDkxTHlWX25hekNZWlRVV3ktWEw1RDVpNDR2Y3Q4TXNZUERUNWZxbWt0MGt3M0t1VGhKS1FRTzBuYTBHZEE?oc=5",
+          "domain": "Investidor10",
+          "seenDate": "Mon, 22 Dec 2025 08:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     }
   ],
   "pressure": [
     {
+      "ticker": "MEAL3",
+      "name": "Imc S/A",
+      "price": 0.56,
+      "quoteDate": "2026-08-12",
+      "score": 68,
+      "fundamentalScore": 29,
+      "technicalScore": 11,
+      "newsScore": 46,
+      "confidence": 88,
+      "newsCoverage": 24,
+      "return20": -24.32,
+      "return60": -41.67,
+      "historySessions": 153,
+      "entryLow": 0.42,
+      "entryHigh": 0.44,
+      "target": 0.43,
+      "defensiveExit": 0.55,
+      "potentialPct": -23.71,
+      "fairValue": 0.09,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "IMC (MEAL3) tem prejuízo de quase R$ 51 mi no 4º trimestre - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPclJtNnBzcHVaVXJtcDZNNG0xUG9XWkhuR2NRMkdWeDdYMGViamo3d2Q5ajV3WFhjZlFQdXZIenhraVk2U0tJdk5hSUhJak0xQlpFOFQzNWRxTVBodHlDUVVBcFlMLTl4enFNN0NWcEU3TlFNaFk4M1pfX2hXOHJyNTlUY1R3YjFK0gGOAUFVX3lxTE15WWQwZEcwTmNGY01kOUFwdVBfOFR6ck1TZ1ZLRWNjVGNSbTEwejdLWXRaOE9ia0IxRXl5cVVzYVhTQzNUcWlzaUxWd2w1Q3FHUkdmYlFLWXhxczE4ZUJNdDFiakxyUTVBTXdfbXBWcWZ2NlNvT1lRdk96SURuZENFVy1aRDkweTlGOEd4Zmc?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Tue, 31 Mar 2026 07:00:00 GMT"
+        },
+        {
+          "title": "IMC amplia prejuízo para R$ 74,1 milhões no 1T26, e vê Ebitda despencar na B3 - ADVFN",
+          "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQNENLWGw5OUFuci1HTFNfTThid01XYVVzZ2lMRU5pS0tuRzRXVDM0aWV3aWNpQWprTTRMQ0F0OHVlQ0stSHJsbHROYVVCb3AyczBEMVYzaElJbVQwdkt0Ykg1emR4VlVhS2VvUWlhUXFXUFBrcjVGZFRiLTVlOW54ZDhIbDh2cGlSb2JVMmUtMmxYSFhrMWI3LWxRc0RSalR0eVZOUHB5aFJRRHNUOUZnRA?oc=5",
+          "domain": "ADVFN",
+          "seenDate": "Fri, 15 May 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
+    },
+    {
       "ticker": "GFSA3",
       "name": "Gafisa",
-      "price": 0.22,
-      "quoteDate": "2026-08-11",
-      "score": 64,
+      "price": 0.23,
+      "quoteDate": "2026-08-12",
+      "score": 65,
       "fundamentalScore": 37,
       "technicalScore": 8,
-      "newsScore": 50,
+      "newsScore": 48,
       "confidence": 94,
-      "newsCoverage": 0,
-      "return20": -55.1,
-      "return60": -80.18,
-      "historySessions": 152,
+      "newsCoverage": 24,
+      "return20": -47.73,
+      "return60": -80.17,
+      "historySessions": 153,
       "entryLow": 0.17,
-      "entryHigh": 0.17,
-      "target": 0.17,
+      "entryHigh": 0.18,
+      "target": 0.18,
       "defensiveExit": 0.21,
-      "potentialPct": -23.31,
+      "potentialPct": -23.42,
       "fairValue": 0.04,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Concórdia atinge 5,69% da Gafisa (GFSA3) - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9POXE5T1dSOHBZY3dMYzh2aTZJUVgyZ2ZmS1k0QWRMTk00ZDJYOEZBZjhhaWNyeGpWbGtVNzRxbkVWSElJZm1fNUxVUnFva0Y1SVhxaWFTaE56RW9aOXhsWEJHaHBqUjRIT3lGVGFVRjNXV3MzeWFsTXFBNDA1Tkk?oc=5",
+          "domain": "Visno Invest",
+          "seenDate": "Tue, 11 Aug 2026 01:36:00 GMT"
+        },
+        {
+          "title": "Gafisa (GFSA3) afunda 30% na bolsa antes de assembleia que mira governança da incorporadora - Seu Dinheiro",
+          "url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxPOG5MVmVmajczN1ZOS19ydllVWDBQNlhka2lyVFNkZkZBck5lNEhVbUR5SWdiN0FNUTkyazFaNnVEOVNoWUw3amFPY08yOUhjUUZUcThrd3VZMlN1czFuWTlIMDRMVzlyLXV5N2lreWZhZVBOTUtCZEtaUWczVGVEV0lIYjMyMTBoejdCLVdCdnVvUUtlY3NCeFFHZ3QxTE5zeUtWbjhzNWdvc002OEU4c0MzUlpCbFZCcmhWcDRYVmRMUXliQjRuNjNBc09GWWdfSGc?oc=5",
+          "domain": "Seu Dinheiro",
+          "seenDate": "Mon, 06 Jul 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "ONCO3",
@@ -280,9 +532,9 @@
       "score": 62,
       "fundamentalScore": 34,
       "technicalScore": 17,
-      "newsScore": 50,
+      "newsScore": 47,
       "confidence": 94,
-      "newsCoverage": 0,
+      "newsCoverage": 24,
       "return20": -18.64,
       "return60": -39.24,
       "historySessions": 132,
@@ -293,7 +545,26 @@
       "potentialPct": -34.38,
       "fairValue": 0.31,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Como o Goldman Sachs virou alvo de investigação no caso da OPA da Oncoclínicas (ONCO3) - Seu Dinheiro",
+          "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQMkJ4TTA3MVNVRXd1enI5UklSU1dxYV94T3lyUmRFZzlQWU9ueko5MzVydTBGZTZrQjhWU19iM3JxNWxZSkllVEp1eXdtQm1yaVRrSFZmZTBuLVpQZWcxcUNybGNONWh3WjlHNjN1czhVbVRwS0hTbjhBOUdXTFdUcjBvSVpwdnZCYXg0MUFaOGV5NjNPT1VZTWswN0FfUlJmQnY1WDU5T1VHOUluTllYSEhvc05YbURMS0doLTNkSXVnaUlFOHBxNDhkdHE?oc=5",
+          "domain": "Seu Dinheiro",
+          "seenDate": "Mon, 10 Aug 2026 22:56:51 GMT"
+        },
+        {
+          "title": "Crise da Oncoclínicas (ONCO3) chega a 111 fundos, mas risco maior é de quem comprou títulos; entenda - Estadão",
+          "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxNUk5jMUtVM2Q2T1JlOHRjV1pnUlZoOTZ3NGhBTDA5dWVrR01vdnFDanFkWDZ3TGtXNTlzN0hjeU8xMU80MVFQaHN2Rld2UFJ4U1czODFPRWJnbVp0UU9Sa2FVN1QwdVZhNU11eEMtWmZ2bzZtRXVwdUZmcjF0SkFsTFpxamVOTzV2TFp3aGxZYTNIc2NLaGZySVlFSjc0UmhuR2J0NU1uWnotUERfTWVDd1ktNHhySkVIQS1NQTFubWRaUl9LQ01ZbE14RzlETlJsZklVa01DZDlCN3VkRVhQam4tOVNFQXUxRllsd29GRQ?oc=5",
+          "domain": "Estadão",
+          "seenDate": "Fri, 24 Jul 2026 08:35:30 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "AALR3",
@@ -303,9 +574,9 @@
       "score": 61,
       "fundamentalScore": 24,
       "technicalScore": 46,
-      "newsScore": 50,
+      "newsScore": 48,
       "confidence": 36,
-      "newsCoverage": 0,
+      "newsCoverage": 24,
       "return20": -3.13,
       "return60": -4.92,
       "historySessions": 148,
@@ -316,168 +587,278 @@
       "potentialPct": -6.48,
       "fairValue": 2.76,
       "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Alliança Saúde (AALR3): Justiça de SP Aceita Processar Recuperação Extrajudicial de R$ 1,1 Bi - Forbes Brasil",
+          "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOcnMwRXctRGFuczlSaXBaUGhmQVVzeHF5cFl0cHl6eHRBeWNrZWRpYjg1Z2ZEZkJfVDFjZ0Z2ZHlRYWVaNjZOZkZDZVBOVUFXdXk4QlBmLTRKUkNSQWo4RXNFeXVfLU8xTC1BTDdpRVNkR0RfRDhsLXp3dWJURS01YUhJQXl1YzdZN0R6YVlnSFdPU0VocDF1ZXRaYllnaldfbHZQVTcxNjRVaWRWUlptcXRwemJleWsxb2JZZ0NmY1AyRHZwVFNweXB2d2w?oc=5",
+          "domain": "Forbes Brasil",
+          "seenDate": "Wed, 12 Aug 2026 19:45:11 GMT"
+        },
+        {
+          "title": "Alliança Saúde (AALR3): Justiça aprova processamento de recuperação extrajudicial - Estadão",
+          "url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxQQUxKSVFlZEpBV3lwSVRCUnhWNkx2Sk5udHhrcllmeERyaHhZTUpNX1E0MHo1UnVUSzByMmpqQnh0elVFVnlVYk5uTXZwT2NoV0toX0RpTkZlb0ZIMHB6M2JDWGQyUmtHendKeDJqLUlFY2hxeWJpdGRBeXBJRTJXZm5JY19PNEhpWjFiV1FQVFpOeXd0M294NVdDS2tLOUYyQlN0RjM4ekVETUYtTlBPeVVFUXZKU3B4d1BTTnBTckc4VlRxWHBYbkpUckNmcEJ2OHNwMjRfcVVxekw5MVE?oc=5",
+          "domain": "Estadão",
+          "seenDate": "Tue, 11 Aug 2026 18:50:37 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "SAPR3",
       "name": "Sanepar",
-      "price": 6.86,
-      "quoteDate": "2026-08-11",
-      "score": 60,
+      "price": 6.79,
+      "quoteDate": "2026-08-12",
+      "score": 61,
       "fundamentalScore": 39,
-      "technicalScore": 24,
+      "technicalScore": 23,
       "newsScore": 50,
       "confidence": 50,
-      "newsCoverage": 0,
-      "return20": -18.53,
-      "return60": -15.93,
-      "historySessions": 152,
-      "entryLow": 6.43,
-      "entryHigh": 6.69,
-      "target": 6.56,
-      "defensiveExit": 6.57,
+      "newsCoverage": 24,
+      "return20": -19.07,
+      "return60": -18.68,
+      "historySessions": 153,
+      "entryLow": 6.36,
+      "entryHigh": 6.62,
+      "target": 6.49,
+      "defensiveExit": 6.55,
       "potentialPct": -4.42,
-      "fairValue": 6.56,
+      "fairValue": 6.49,
       "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Sanepar (SAPR11) deposita R$ 452 milhões hoje; veja quem recebe - Estadão",
+          "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxON1dNc1N3VU1teVc3dUlUdWxtczhfQTZuajdYZHlHVjZuMklXWEZ2QWtFYnh5QzZCbHFFTVhMVHg4Ul9kLUNJbF9WMkpUUUxpbmFuY0tveUJWSTNRVTBMaTFLZk5sOGFLUEdNWDZJaXczRHhvdTItZ0ttdGE5dnlPNTRkUjJuZ3F0cm1QMTVmWm1uU0J0ZldNZUxaRmd2bXgxS3ZUYUQ1NGVUM3JyVnlGX3VB0gG3AUFVX3lxTFAxdVFXYkcxdHFwMWtDU0dxZWZBb2VBWU45MTNjLUpMNXRoVm1IVjBjdHhhS21WWWhoc3cwSXdUTDQxQU1mcHBVNFZiemVMUGFPa3hrVzBCOUpabkw3S1V1VGxfam9MMDRrSGhYQ3AwOExaejVnRzFLaHRRcE5yc1hCMHVKNTQ0MUJDUlZ2R2dtNUhlRXk1aFZCLWxKMHo5dy03Ykl2Mm00Y1hlUUpvR25tWDNTRDc1QQ?oc=5",
+          "domain": "Estadão",
+          "seenDate": "Fri, 29 May 2026 01:29:59 GMT"
+        },
+        {
+          "title": "Sanepar (SAPR4; SAPR11) cai forte após proposta sobre R$ 3,9 bi; entenda o impacto - Guia do Investidor",
+          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNS2pkb0dZTEQ2Ukhfal9saENzWnByenNzSDNWeTJ3dUw2Uk5ZRnZnWHF5b2d2cmtKWVNzLXdQc3hmLXpzQTFPWGN3YzJuYTFTOS05UmhzNGdqOWJCeDhWVVdrZVBSdll2ZUh1N2RSeENqTVpjQW1mNHE3V1JYME1OX1pQRTJOUklwTUFqamE0RXdFRlVPMTNkYUswNVRTT2hUTHRpV2VxZlBzOXkwRWxCYUpYRDVmZnR5?oc=5",
+          "domain": "Guia do Investidor",
+          "seenDate": "Tue, 24 Mar 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "AZUL3",
       "name": "Azul",
-      "price": 21.5,
-      "quoteDate": "2026-08-11",
-      "score": 59,
+      "price": 21.22,
+      "quoteDate": "2026-08-12",
+      "score": 60,
       "fundamentalScore": 31,
-      "technicalScore": 31,
-      "newsScore": 50,
+      "technicalScore": 30,
+      "newsScore": 48,
       "confidence": 100,
-      "newsCoverage": 0,
-      "return20": -1.83,
-      "return60": -37.72,
-      "historySessions": 79,
-      "entryLow": 15.7,
-      "entryHigh": 16.34,
-      "target": 16.02,
+      "newsCoverage": 24,
+      "return20": -3.98,
+      "return60": -34.1,
+      "historySessions": 80,
+      "entryLow": 15.49,
+      "entryHigh": 16.12,
+      "target": 15.81,
       "defensiveExit": 20.38,
       "potentialPct": -25.51,
       "fairValue": 0.0,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "O que esperar da nova fase da Azul (AZUL3), depois de chegar à elite de Wall Street - Seu Dinheiro",
+          "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNaGFGa2ZydnV4Zk1xT00xZHRTMml1UTlmdHVDUG5tenBFVU9ZR05zUkowM0pqWHJmU2hWeHdFQ2pDNmZUNEh1RDV5NXZtczM0MG5BUTBjclR3R0ZCS3VDeVNWcWhSVi1wbDE0MzdHWnRjdWktaHMwWkY1OFlXUlFaaFhNV0hjd0otWTVwV2xFc3hKb09uTm5IZGtMWHNXR2NZSjBzd0s2bzdMOFFDV2p4bzR6V3dOM1pTamY1eG9GUDJHZXlmN1Vz?oc=5",
+          "domain": "Seu Dinheiro",
+          "seenDate": "Fri, 10 Jul 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ações da Azul (AZUL3): entenda a mudança da AZUL4 e como investir - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPeUYwQ1MtRlZ3MTVqV0RjaVlyUFMtVlNSQW5mbVFodHpQNUxveGhPNV9tdnZGZGFYNUY4b0hGcFE4RVFOeURYdDE0cWhndHdiTFYxS1poTmtLa19sNXZ4TndsMzdTNFhWc1ZXdFRkT3hseGFGUUlob0xxY1ItOGxya2hvd1RtRm1Tam5NTjZNdC1rUV9kRU05OVBDa3NnMWI5UEFoQlhlVldxNnfSAbABQVVfeXFMTXo0WFdubThhRkdhTnJpb2pGMlNFN05NSkpiUGdpNFhGMEgtRGF1eHdKRnF4VklnOHlBU256WGdwUG1IdFMzWDNLOFdOeE94OGNIdTJsNDVMdllQWkU4UlBpRHRCM3o0MFJOTUVjUlp1VzJkdkpoQ3lVNXBhQWRIaUdZNnFSWEZMSnBpMDhxdHY5WFQ4dmI5MVdad1JZMUstell2RVhvTGVMMlVSWDZidm0?oc=5",
+          "domain": "Investidor10",
+          "seenDate": "Tue, 04 Aug 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "SAPR11",
       "name": "Sanepar",
-      "price": 31.55,
-      "quoteDate": "2026-08-11",
-      "score": 58,
+      "price": 31.45,
+      "quoteDate": "2026-08-12",
+      "score": 59,
       "fundamentalScore": 39,
-      "technicalScore": 27,
-      "newsScore": 50,
+      "technicalScore": 26,
+      "newsScore": 48,
       "confidence": 50,
-      "newsCoverage": 0,
-      "return20": -15.32,
-      "return60": -14.8,
-      "historySessions": 152,
-      "entryLow": 29.55,
-      "entryHigh": 30.76,
-      "target": 30.15,
-      "defensiveExit": 30.87,
+      "newsCoverage": 24,
+      "return20": -15.53,
+      "return60": -17.43,
+      "historySessions": 153,
+      "entryLow": 29.46,
+      "entryHigh": 30.66,
+      "target": 30.06,
+      "defensiveExit": 30.82,
       "potentialPct": -4.42,
-      "fairValue": 30.16,
+      "fairValue": 30.07,
       "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": []
-    },
-    {
-      "ticker": "SAPR4",
-      "name": "Sanepar",
-      "price": 6.25,
-      "quoteDate": "2026-08-11",
-      "score": 58,
-      "fundamentalScore": 39,
-      "technicalScore": 28,
-      "newsScore": 50,
-      "confidence": 50,
-      "newsCoverage": 0,
-      "return20": -13.91,
-      "return60": -13.43,
-      "historySessions": 152,
-      "entryLow": 5.85,
-      "entryHigh": 6.09,
-      "target": 5.97,
-      "defensiveExit": 6.11,
-      "potentialPct": -4.42,
-      "fairValue": 5.98,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Lucro da Sanepar (SAPR4) desaba -71% no 1T26, para R$ 352,7 milhões - Nord Investimentos",
+          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1Cd3VOWW9UVkllVkl1M2E2WnRwZVRESlFYZkJXR3VTLUtuQlBRdEpIS1I3VGJvbUlNa284ajdLV2Z0TWotVjhkZkRUX3Q0YVNrUkx6Z0xPMU1Zd3F4c0VYQU54OVE0VWEyQzJqSzViNTQ2TmZDMjJmSnBIeFTSAYIBQVVfeXFMTjFXbGV3cFdCWjFxa1VYZjdpX1Q2MHltdFpZOUZRSlRMRWdfc016eC1wcVVoUmhwV0NlWFFza0RxdmFpWlJ1YzNhMlljcUdEazlydU43SnVBcEY4UExXUzFNdlBsTDhjV29wTHlBUzNwblBnbDZvbUp0QzNxcFhPOTdLdw?oc=5",
+          "domain": "Nord Investimentos",
+          "seenDate": "Wed, 27 May 2026 15:32:00 GMT"
+        },
+        {
+          "title": "Sanepar se despede da carteira de dividendos da Empiricus - Seu Dinheiro",
+          "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPTGVtS2ptVk13TGtDeUloc0JNSUxZWEQ5UTc0QzNiaTQxWjIwSUNqTDljMmtiRTRqa0d2RHNzWllfaVpPMktCakRMak9EZ3dMZGd3Z1V6T0VfbUd1Wm0zSmwyNEdVQ3dyekl1VlNXak9ndnZ0d1hhNHc0NWZnUHRfblBnRHZLN3h4QUpVbDFBMW5HX0JwQzlVb2h4UG5oaU00Qm9nUEZ5RXFVTjc5Wkk1cGFXZ3Bvb3M5cFF5bDd5M21NdHB6bUV6UWRrbU9jR2E4SVFabkJvSjZjeWlOMlZ3NGx0dVRod3RDa0JRdjl5MFU2WXJZZm9tSXFyUzRLbHpBbWpn?oc=5",
+          "domain": "Seu Dinheiro",
+          "seenDate": "Thu, 16 Jul 2026 13:03:50 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "BHIA3",
       "name": "Casas Bahia",
-      "price": 0.66,
-      "quoteDate": "2026-08-11",
+      "price": 0.68,
+      "quoteDate": "2026-08-12",
       "score": 58,
       "fundamentalScore": 51,
-      "technicalScore": 9,
-      "newsScore": 50,
+      "technicalScore": 8,
+      "newsScore": 49,
       "confidence": 94,
-      "newsCoverage": 0,
-      "return20": -38.32,
-      "return60": -47.62,
-      "historySessions": 152,
+      "newsCoverage": 24,
+      "return20": -36.45,
+      "return60": -56.41,
+      "historySessions": 153,
       "entryLow": 0.63,
       "entryHigh": 0.65,
       "target": 0.64,
-      "defensiveExit": 0.65,
-      "potentialPct": -3.0,
+      "defensiveExit": 0.63,
+      "potentialPct": -5.88,
       "fairValue": 1.22,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "Itaú BBA vê ‘recuperação impressionante’ da Casas Bahia (BHIA3) — mas há um calcanhar de Aquiles - Seu Dinheiro",
+          "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxOYUh5UU5WbEl4M1JFd25XeV9XVUQwQzM5czhJc3JwaVpyZmtlaGdHOHVRVjZiOWZCVVVCZnJIamZFSW1yNTcyc0wxY0N0RTRUM25QWjcwTzF0QlI2bG5UTndXRjhad1daR2NHTlpMRndHMVJqdVhRc01VcGRLM3QxN0Z3elpaNUZfSnI5dXdIaXRXQzBjTHZGX0RGUExnbTA5ZzNhSjg0eUdsdmM4NHVDR1BodkI3R3h0R2FIbDlDZXViNjhDZTJvSmlYOGZPc0RjODlZZWtTQktEYWtXVmF5UDI5UzJOenp3UXZ3dVJ0bmxBdw?oc=5",
+          "domain": "Seu Dinheiro",
+          "seenDate": "Wed, 29 Jul 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Casas Bahia (BHIA3) aprova aumento de capital no valor de R$ 140,6 milhões - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxNQWJMOXdWSWRIdVpBVDRnR1dlTWJaRjdNT3k1cTFyZ29EbjRkQWlOdkx3OHo5ZW1wNDVoa1JydmZfZGw1ZlloUUx1bUJFSENtdkFwRUF1c0RGZGhCWU1kUEZmR21TQTcxZTAxUzJEaXJQUW5DdC1uWWx4NWx0dmstenV5a0kzQ0p5YVJIcGRyTms2bE9CbW13V19fOG4yczJZVDk5T0oxRURaODMzdUHSAbMBQVVfeXFMTW9HX055TEhaQWJadlFmbDJxRV8za2lWSlRuTDF3ZDJ6VTFXdW0xZUk3WWk3S2RsMjBtMWV5UHdwa2g3VlhhbFlhZWRKR0VwSDhKR3ZlMVlzTTNkTEpDSE5KR3ljWWFBSXFKQ0lBZXJGTG1hNU9ualMxaXJLcXNDd0xsSHZKaVo1UjF1d3dham5Gdl9xUEZNVlA0aGJRRUozYWhiWjFPQmVCXy1OUi11cWxKVFE?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Mon, 20 Jul 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
-      "ticker": "TPIS3",
-      "name": "Triunfo Part",
-      "price": 8.1,
-      "quoteDate": "2026-08-11",
-      "score": 56,
-      "fundamentalScore": 42,
-      "technicalScore": 27,
-      "newsScore": 50,
-      "confidence": 95,
-      "newsCoverage": 0,
-      "return20": -13.65,
-      "return60": -17.77,
-      "historySessions": 152,
-      "entryLow": 7.52,
-      "entryHigh": 7.82,
-      "target": 7.67,
-      "defensiveExit": 7.61,
-      "potentialPct": -5.32,
-      "fairValue": 7.52,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": []
+      "ticker": "SAPR4",
+      "name": "Sanepar",
+      "price": 6.28,
+      "quoteDate": "2026-08-12",
+      "score": 58,
+      "fundamentalScore": 39,
+      "technicalScore": 29,
+      "newsScore": 49,
+      "confidence": 50,
+      "newsCoverage": 24,
+      "return20": -12.29,
+      "return60": -14.91,
+      "historySessions": 153,
+      "entryLow": 5.88,
+      "entryHigh": 6.12,
+      "target": 6.0,
+      "defensiveExit": 6.11,
+      "potentialPct": -4.42,
+      "fairValue": 6.0,
+      "fairValueMethod": "preço ajustado pelo score fundamental",
+      "headlines": [
+        {
+          "title": "Lucro da Sanepar (SAPR4) desaba -71% no 1T26, para R$ 352,7 milhões - Nord Investimentos",
+          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1Cd3VOWW9UVkllVkl1M2E2WnRwZVRESlFYZkJXR3VTLUtuQlBRdEpIS1I3VGJvbUlNa284ajdLV2Z0TWotVjhkZkRUX3Q0YVNrUkx6Z0xPMU1Zd3F4c0VYQU54OVE0VWEyQzJqSzViNTQ2TmZDMjJmSnBIeFTSAYIBQVVfeXFMTjFXbGV3cFdCWjFxa1VYZjdpX1Q2MHltdFpZOUZRSlRMRWdfc016eC1wcVVoUmhwV0NlWFFza0RxdmFpWlJ1YzNhMlljcUdEazlydU43SnVBcEY4UExXUzFNdlBsTDhjV29wTHlBUzNwblBnbDZvbUp0QzNxcFhPOTdLdw?oc=5",
+          "domain": "Nord Investimentos",
+          "seenDate": "Wed, 27 May 2026 15:32:00 GMT"
+        },
+        {
+          "title": "Previsão SAPR4 — Preço Alvo para 2027 - TradingView",
+          "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE50bTUtV0d6bE1lZGRSSkl0eUk1MkxfOFZMQnk3U3gwbEt2dUJLOFRERk5qYjRHNkVvZUoyMTZLbkVYdzgxWXA0Vnk1TDVTeEt6X2F1WlVZMlBMMnFYSjNuSk5Ta0RRN0VjNTJQTzY3Tm9OSTRNRUR4cm5mVktYQzQ?oc=5",
+          "domain": "TradingView",
+          "seenDate": "Thu, 25 Jun 2026 15:20:03 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     },
     {
       "ticker": "BRKM5",
       "name": "Braskem",
-      "price": 5.64,
-      "quoteDate": "2026-08-11",
-      "score": 55,
+      "price": 5.2,
+      "quoteDate": "2026-08-12",
+      "score": 57,
       "fundamentalScore": 47,
-      "technicalScore": 19,
-      "newsScore": 50,
+      "technicalScore": 17,
+      "newsScore": 47,
       "confidence": 94,
-      "newsCoverage": 0,
-      "return20": -12.01,
-      "return60": -53.47,
-      "historySessions": 152,
-      "entryLow": 5.36,
-      "entryHigh": 5.58,
-      "target": 5.47,
-      "defensiveExit": 5.49,
+      "newsCoverage": 24,
+      "return20": -14.75,
+      "return60": -57.31,
+      "historySessions": 153,
+      "entryLow": 4.94,
+      "entryHigh": 5.14,
+      "target": 5.04,
+      "defensiveExit": 5.1,
       "potentialPct": -3.0,
-      "fairValue": 5.64,
+      "fairValue": 5.2,
       "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": []
+      "headlines": [
+        {
+          "title": "IBOV, WINQ26, WDOU26, PETR4, VALE3 e mais. Braskem (BRKM5) -7,80% - Investing.com Brasil - Finanças, Câmbio e Investimentos",
+          "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQSkRBMkdSUGY1LWdwZV9LbU93RjgwcmJLeWtMX1Q2dVV0cTZndkE4YlBoX29FUFBua18yYkE2MlFaS3o3T19VSTJvZTQ0QnJqSlBuNHltTVN3T1FLbHRDbXFXY1Z4TmdmSmRfdU9oNmJzY05CX3ktTFRLdFZ3aVhIcmlDMG0ySVlMcDlmaTdjUFVjNUw3S213amhjN29PaGlj?oc=5",
+          "domain": "Investing.com Brasil - Finanças, Câmbio e Investimentos",
+          "seenDate": "Wed, 12 Aug 2026 23:09:00 GMT"
+        },
+        {
+          "title": "Braskem (BRKM5): Recuperação extrajudicial está a caminho e pode chegar em agosto, dizem fontes - Money Times",
+          "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPbGJ5eTNnS3lMa1lzTlNsVlpOTF96WWRJb2kyN3lDTWVSOXQ4QUE1allRWlZwUF9scnpvYWMwMktRdG5tdzFHVmY5VnlVRE5nazU0VF9vMFBuS3hEN1hIU3FDY2FQOFJibkhDTVpKd21fX3FIRFNvZ0FGNkVZZjNodk5WM1c3UXNLcVI0WnBBMVh0cVQ3WXIycmN3NU5IZnpHcFczNUoyNk9tZjFfRWwzbGs1aFhSMWJBX2xKWnM1bw?oc=5",
+          "domain": "Money Times",
+          "seenDate": "Wed, 12 Aug 2026 23:36:00 GMT"
+        },
+        {
+          "title": "Ibovespa cai pela sétima sessão seguida, em mês todo no vermelho até aqui - infomoney.com.br",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOZVhEbFU4TEYzdnJ1b1p6NFhDLWpHaWxWT1RTa3RaampIOU80NVNmdlkyemdYS21sWEJrbkJSa05fSnI4dkpXbkZMYmtOVGhjOWw0R1dWVXhDQ284RnVoRmRVTDdKVEJDcFJGYUZRdlJfTjkyaUNJWHhpZXZEV3BGM040OGF3Nk42bDByaERFOA?oc=5",
+          "domain": "infomoney.com.br",
+          "seenDate": "Wed, 12 Aug 2026 20:26:49 GMT"
+        }
+      ]
     }
   ]
 }
