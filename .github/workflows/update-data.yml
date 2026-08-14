@@ -3,6 +3,8 @@ name: Atualizar dados oficiais B3 e CVM
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/update-data.yml"
       - "scripts/**"

@@ -32,7 +32,7 @@ class OptionsBuilderTest(unittest.TestCase):
         self.assertIsNone(option["bid"])
         self.assertIsNone(option["openInterest"])
 
-    def test_excludes_ambiguous_underlying_mapping(self):
+    def test_excludes_ambiguous_root_mapping(self):
         lines = [record("PETR3", "010", name="PETROBRAS"), record("PETR4", "010", name="PETROBRAS"), record("PETRA300", "070", name="PETROBRAS", specification="OPC")]
         self.assertEqual(MODULE.parse_options(lines), [])
 
