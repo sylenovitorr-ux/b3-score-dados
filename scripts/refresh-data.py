@@ -165,6 +165,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     ], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
+    subprocess.run([sys.executable, str(ROOT / "scripts/build-options.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
     if annual_history:
         subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
@@ -184,6 +185,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
         "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 260, "b3HistoryYears": annual_history},
-        "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII"],
+        "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 1178"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

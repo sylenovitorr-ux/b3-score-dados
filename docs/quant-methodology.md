@@ -49,7 +49,9 @@ Beta e correlação exigem uma série sincronizada do benchmark. Sem ela, perman
 
 ## Opções
 
-O motor de opções usa a versão `2.0.0`. O contrato é cadastrado manualmente até existir uma cadeia pública e auditável; o spot continua vindo do fechamento B3 identificado na tela. A origem, a data de referência e a distinção entre dado informado e cálculo local acompanham a análise.
+O motor de opções usa a versão `2.0.0`. A cadeia diária é extraída do COTAHIST oficial da B3. O arquivo fornece série, tipo, vencimento, strike, último prêmio, negócios, quantidade e volume financeiro no fechamento D-1. O spot vem do mesmo pregão e a taxa de referência vem da série Selic 1178 do Banco Central.
+
+Bid, ask e open interest não existem no COTAHIST e permanecem `null`. Contratos cujo ativo-objeto não possa ser vinculado de maneira única por nome e raiz são excluídos. O modo manual permanece disponível e é identificado separadamente.
 
 ### Cálculos do contrato
 
