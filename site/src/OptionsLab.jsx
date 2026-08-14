@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { analyzeOptionContract, strategyPayoffAtExpiration } from "./quant/options-engine";
 import { formatMoney, formatNumber } from "./formatters";
 
@@ -32,6 +32,10 @@ export default function OptionsLab({ assets, anomalies }) {
   const [form, setForm] = useState(initialForm);
   const [contracts, setContracts] = useState(localContracts);
   const [filters, setFilters] = useState(initialFilters);
+  useEffect(() => {
+    if (!stockAssets.length || stockAssets.some((item) => item.ticker === ticker)) return;
+    setTicker(stockAssets.find((item) => item.ticker === "BBSE3")?.ticker ?? stockAssets[0].ticker);
+  }, [assets, stockAssets, ticker]);
   const asset = stockAssets.find((item) => item.ticker === ticker);
   const historicalVolatilityPct = anomalies?.assets?.[ticker]?.annualizedVolatilityPct ?? null;
   const contract = useMemo(() => ({
