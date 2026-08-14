@@ -52,5 +52,18 @@ jobs:
           # A atualização pode levar vários minutos. Nesse intervalo, outro
           # commit legítimo pode chegar à branch. Reaplique o commit de dados
           # sobre o HEAD remoto para preservar ambos, sem force push.
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git fetch origin "${GITHUB_REF_NAME}"
+          # Durante um rebase, "theirs" é o commit de dados que está sendo
+          # reaplicado. Assim, em conflito apenas entre arquivos gerados, a
+          # execução mais recente prevalece e os demais commits são mantidos.
+          git rebase -X theirs "origin/${GITHUB_REF_NAME}"
+          for tentativa in 1 2 3; do
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            echo "A branch avançou durante o envio; nova tentativa ${tentativa}/3."
+            git fetch origin "${GITHUB_REF_NAME}"
+            git rebase -X theirs "origin/${GITHUB_REF_NAME}"
+          done
+          echo "Não foi possível publicar os dados após três tentativas."
+          exit 1
