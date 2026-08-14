@@ -50,7 +50,7 @@ def session_date(lines: list[str]) -> str | None:
 
 
 def underlying_map(lines: list[str]) -> dict[str, str]:
-    by_name: dict[str, list[str]] = {}
+    by_root: dict[str, list[str]] = {}
     for line in lines:
         if len(line) < 245 or line[:2] != "01" or line[24:27] != "010":
             continue
@@ -58,16 +58,8 @@ def underlying_map(lines: list[str]) -> dict[str, str]:
         specification = line[39:49].strip().upper()
         if not re.fullmatch(r"[A-Z]{4}\d{1,2}", ticker) or not (specification.startswith("ON") or specification.startswith("PN") or specification.startswith("UNT")):
             continue
-        by_name.setdefault(line[27:39].strip().upper(), []).append(ticker)
-    result: dict[str, str] = {}
-    for name, tickers in by_name.items():
-        roots: dict[str, list[str]] = {}
-        for ticker in tickers:
-            roots.setdefault(ticker[:4], []).append(ticker)
-        for root, candidates in roots.items():
-            if len(candidates) == 1:
-                result[f"{name}|{root}"] = candidates[0]
-    return result
+        by_root.setdefault(ticker[:4], []).append(ticker)
+    return {root: candidates[0] for root, candidates in by_root.items() if len(candidates) == 1}
 
 
 def parse_options(lines: list[str]) -> list[dict]:
@@ -77,8 +69,7 @@ def parse_options(lines: list[str]) -> list[dict]:
         if len(line) < 245 or line[:2] != "01" or line[24:27] not in {"070", "080"}:
             continue
         ticker = line[12:24].strip()
-        name = line[27:39].strip().upper()
-        underlying = mapping.get(f"{name}|{ticker[:4]}")
+        underlying = mapping.get(ticker[:4])
         expiration = iso_date(line[202:210])
         strike = money(line, 188, 201)
         premium = money(line, 108, 121)
@@ -103,7 +94,7 @@ def parse_options(lines: list[str]) -> list[dict]:
             "openInterest": None,
             "isin": line[230:242].strip() or None,
             "source": "B3 COTAHIST",
-            "mappingQuality": "nome e raiz únicos no pregão",
+            "mappingQuality": "raiz do código aponta para um único ativo no pregão",
         })
     return sorted(output, key=lambda row: (row["underlying"], row["expiration"], row["type"], row["strike"], row["ticker"]))
 
