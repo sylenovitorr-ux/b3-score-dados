@@ -26,10 +26,11 @@ function PayoffChart({ result, strike }) {
 
 function Metric({ label, value, note, tone = "" }) { return <article className={tone}><span>{label}</span><b>{value}</b>{note && <small>{note}</small>}</article>; }
 
-export default function OptionsLab({ assets, anomalies }) {
+export default function OptionsLab({ assets, anomalies, optionChain }) {
   const stockAssets = assets.filter((item) => item.kind !== "fii" && item.price > 0);
   const [ticker, setTicker] = useState(stockAssets.find((item) => item.ticker === "BBSE3")?.ticker ?? stockAssets[0]?.ticker ?? "");
   const [form, setForm] = useState(initialForm);
+  const [officialId, setOfficialId] = useState("");
   const [contracts, setContracts] = useState(localContracts);
   const [filters, setFilters] = useState(initialFilters);
   useEffect(() => {
@@ -38,15 +39,25 @@ export default function OptionsLab({ assets, anomalies }) {
   }, [assets, stockAssets, ticker]);
   const asset = stockAssets.find((item) => item.ticker === ticker);
   const historicalVolatilityPct = anomalies?.assets?.[ticker]?.annualizedVolatilityPct ?? null;
+  const officialContracts = useMemo(() => (optionChain?.contracts ?? []).filter((item) => item.underlying === ticker), [optionChain, ticker]);
+  const selectedOfficial = officialContracts.find((item) => item.ticker === officialId) ?? null;
   const contract = useMemo(() => ({
     contractTicker: form.contractTicker.trim().toUpperCase(), underlyingTicker: ticker, type: form.type, spot: asset?.price ?? null,
     strike: num(form.strike), premium: num(form.premium), expiration: form.expiration || null, dte: num(form.dte), rate: num(form.rate) === null ? null : num(form.rate) / 100,
     volatility: num(form.volatility) === null ? null : num(form.volatility) / 100, dividendYield: num(form.dividendYield) === null ? 0 : num(form.dividendYield) / 100,
-    bid: num(form.bid), ask: num(form.ask), volume: num(form.volume), openInterest: num(form.openInterest), strategy: form.strategy, quantity: num(form.quantity), width: num(form.width), secondPremium: num(form.secondPremium), source: "Informado manualmente pelo usuário",
-  }), [form, ticker, asset]);
+    bid: num(form.bid), ask: num(form.ask), volume: num(form.volume), openInterest: num(form.openInterest), strategy: form.strategy, quantity: num(form.quantity), width: num(form.width), secondPremium: num(form.secondPremium),
+    source: selectedOfficial ? "B3 COTAHIST — fechamento diário" : "Informado manualmente pelo usuário", updatedAt: selectedOfficial ? optionChain?.quoteDate : null,
+  }), [form, ticker, asset, selectedOfficial, optionChain]);
   const analysis = useMemo(() => analyzeOptionContract(contract, { historicalVolatilityPct, spotSource: "B3 COTAHIST", spotReferenceDate: asset?.date }), [contract, historicalVolatilityPct, asset]);
   const score = assetScores(asset);
-  const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const set = (key, value) => { setOfficialId(""); setForm((current) => ({ ...current, [key]: value })); };
+  const selectUnderlying = (value) => { setTicker(value); setOfficialId(""); setForm(initialForm); };
+  const selectOfficial = (value) => {
+    setOfficialId(value);
+    const row = officialContracts.find((item) => item.ticker === value);
+    if (!row) return;
+    setForm((current) => ({ ...current, contractTicker: row.ticker, type: row.type, strike: String(row.strike), premium: String(row.premium), expiration: row.expiration, dte: "", rate: optionChain?.referenceRate?.valuePct === null || optionChain?.referenceRate?.valuePct === undefined ? "" : String(optionChain.referenceRate.valuePct), volatility: historicalVolatilityPct === null ? "" : String(historicalVolatilityPct), bid: "", ask: "", volume: row.volume === null ? "" : String(row.volume), openInterest: "", strategy: row.type === "put" ? "long-put" : "long-call" }));
+  };
   const field = (key, label, props = {}) => <label>{label}<input value={form[key]} onChange={(event) => set(key, event.target.value)} type={props.type ?? "number"} step={props.step ?? "any"} min={props.min ?? (props.type === "date" ? undefined : "0")} placeholder={props.placeholder} /></label>;
   const persist = (next) => { setContracts(next); localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); };
   const save = () => {
@@ -72,10 +83,11 @@ export default function OptionsLab({ assets, anomalies }) {
   const scenarioReturn = scenarioPayoff !== null && analysis.payoff.capitalRequired > 0 ? scenarioPayoff / analysis.payoff.capitalRequired * 100 : null;
 
   return <section className="options-lab">
-    <header className="options-lab-head"><div><span>LABORATÓRIO DE CONTRATOS</span><h2>Opções com cálculo auditável</h2><p>Cadastre contratos reais consultados por você, compare liquidez, Option Score, Greeks e payoff. O score do contrato é separado do score fundamentalista do ativo.</p></div><strong>ESTRATÉGIA PARA ESTUDO</strong></header>
-    <div className="option-source-warning"><b>Sem cadeia oficial de opções integrada</b><span>Contrato, strike, prêmio, vencimento, bid, ask, volume e open interest são entradas manuais. O app não preenche lacunas nem trata esses valores como cotação automática.</span></div>
+    <header className="options-lab-head"><div><span>LABORATÓRIO DE CONTRATOS</span><h2>Opções com cálculo auditável</h2><p>Selecione uma série oficial do fechamento B3 ou cadastre um contrato manual. IV, Greeks, Option Score e payoff são calculados localmente e separados do score fundamentalista do ativo.</p></div><strong>ESTRATÉGIA PARA ESTUDO</strong></header>
+    <div className="option-source-warning official-chain"><b>{optionChain?.contracts?.length ? `Cadeia B3 carregada • ${optionChain.contracts.length} séries` : "Cadeia B3 aguardando atualização"}</b><span>{optionChain?.contracts?.length ? `Fechamento de ${optionChain.quoteDate}. Série, vencimento, strike, último prêmio e volume são oficiais. Bid/ask e open interest permanecem N/D porque não existem no COTAHIST.` : "O modo manual continua disponível. Nenhum contrato será fabricado enquanto o arquivo oficial não estiver disponível."}</span></div>
     <div className="options-lab-grid"><aside className="option-form">
-      <label>Ativo-objeto<select value={ticker} onChange={(event) => setTicker(event.target.value)}>{stockAssets.map((item) => <option value={item.ticker} key={item.ticker}>{item.ticker} • {formatMoney(item.price)}</option>)}</select></label>
+      <label>Ativo-objeto<select value={ticker} onChange={(event) => selectUnderlying(event.target.value)}>{stockAssets.map((item) => <option value={item.ticker} key={item.ticker}>{item.ticker} • {formatMoney(item.price)}</option>)}</select></label>
+      <label>Série oficial B3<select value={officialId} onChange={(event) => selectOfficial(event.target.value)}><option value="">{officialContracts.length ? `Selecione entre ${officialContracts.length} séries` : "Nenhuma série vinculada"}</option>{officialContracts.map((item) => <option value={item.ticker} key={item.ticker}>{item.ticker} • {item.type.toUpperCase()} • K {formatMoney(item.strike)} • {item.expiration} • {formatMoney(item.premium)}</option>)}</select></label>
       {field("contractTicker", "Ticker do contrato", { type: "text", placeholder: "Ex.: BBSEA..." })}<label>Tipo<select value={form.type} onChange={(event) => set("type", event.target.value)}><option value="call">CALL</option><option value="put">PUT</option></select></label>
       {field("strike", "Strike (R$)")}{field("premium", "Prêmio de mercado (R$)")}{field("expiration", "Vencimento", { type: "date" })}{field("dte", "DTE manual (fallback)")}{field("rate", "Taxa livre de risco a.a. (%)")}{field("volatility", "Volatilidade usada a.a. (%)")}
       {historicalVolatilityPct !== null && <button type="button" onClick={() => set("volatility", String(historicalVolatilityPct))}>Usar HV observada: {pct(historicalVolatilityPct)}</button>}{field("dividendYield", "Dividend yield a.a. (%)")}
@@ -88,7 +100,7 @@ export default function OptionsLab({ assets, anomalies }) {
       <details className="quant-trace"><summary><span>Por que esta nota?</span><b>componentes, parâmetros e limitações</b><i>⌄</i></summary><div><div className="option-score-components">{Object.values(analysis.optionScore.components).map((item) => <article className={item.available ? "" : "missing"} key={item.key}><span>{COMPONENTS[item.key]}</span><b>{item.available ? `${item.score}/${item.max}` : "N/D"}</b><i><em style={{ width: `${item.available ? item.score / item.max * 100 : 0}%` }} /></i><small>{item.explanation}</small></article>)}</div><p><b>Leitura:</b> {analysis.optionScore.reason}</p><p><b>Fonte do contrato:</b> {analysis.metadata.contractSource}. <b>Spot:</b> {analysis.metadata.spotSource}, referência {analysis.metadata.spotReferenceDate ?? "indisponível"}. <b>Cálculos:</b> {analysis.metadata.calculations}, modelo {analysis.metadata.modelVersion}.</p><p><b>Limitações:</b> Option Score não prevê retorno, não substitui a análise do ativo e não é calculado com cobertura inferior a 70%.</p></div></details>
     </div></div>
 
-    <section className="option-liquidity"><h3>Mercado e liquidez do contrato</h3><div>{field("bid", "Bid (R$)")}{field("ask", "Ask (R$)")}{field("volume", "Volume")}{field("openInterest", "Open interest")}</div>{analysis.liquidity.alert && <strong>{analysis.liquidity.alert}</strong>}<small>{analysis.liquidity.formula}</small></section>
+    <section className="option-liquidity"><h3>Mercado e liquidez do contrato</h3><div>{field("bid", "Bid (R$)")}{field("ask", "Ask (R$)")}{field("volume", "Volume (quantidade)")}{field("openInterest", "Open interest")}</div>{analysis.liquidity.alert && <strong>{analysis.liquidity.alert}</strong>}<small>{analysis.liquidity.formula} No modo automático, volume vem da B3; bid/ask e OI continuam indisponíveis.</small></section>
     <section className="strategy-builder"><div className="strategy-controls"><label>Estratégia<select value={form.strategy} onChange={(event) => set("strategy", event.target.value)}>{Object.entries(STRATEGIES).map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>{field("quantity", "Quantidade", { min: "1" })}{["bull-call", "bear-put", "collar"].includes(form.strategy) && <>{field("width", "Distância entre strikes")}{field("secondPremium", "Prêmio da 2ª perna")}</>}</div>
       {analysis.payoff.available ? <><div className="payoff-summary"><Metric label="Capital requerido" value={formatMoney(analysis.payoff.capitalRequired)}/><Metric label="Lucro máximo" value={analysis.payoff.profitUnlimited ? "Ilimitado" : formatMoney(analysis.payoff.maxProfit)}/><Metric label="Prejuízo máximo" value={formatMoney(analysis.payoff.maxLoss)}/><Metric label="Break-even" value={formatMoney(analysis.payoff.breakEven)}/><Metric label="Risco/retorno" value={formatNumber(analysis.payoff.riskReward, 2)}/></div><PayoffChart result={analysis.payoff} strike={contract.strike}/><div className="scenario-simulator"><div><h3>Simulador no vencimento</h3><p>Altere o cenário do ativo-objeto. O cálculo usa o payoff matemático da estratégia selecionada.</p></div>{field("scenarioPct", "Variação do ativo (%)", { min: "-100" })}<Metric label="Preço no cenário" value={formatMoney(scenarioPrice)}/><Metric label="P&L da posição" value={formatMoney(scenarioPayoff)} tone={scenarioPayoff >= 0 ? "positive" : "negative"}/><Metric label="Retorno sobre capital" value={pct(scenarioReturn)} tone={scenarioReturn >= 0 ? "positive" : "negative"}/></div><p className="quant-note">{analysis.payoff.formula} {analysis.payoff.limitation}</p></> : <p className="quant-empty">{analysis.payoff.reason}</p>}
     </section>
