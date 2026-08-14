@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildActionSignal, buildOpportunity, buildPositionPlan, fairValueRange } from "./opportunity-engine";
 import QuantPage from "./QuantPage";
 import OptionsLab from "./OptionsLab";
+import { formatCompactMoney, formatMoney, formatNumber, formatPercent } from "./formatters";
 const FILTERS = [
   { id: "all", label: "Todos" },
   { id: "stocks", label: "A\xE7\xF5es" },
@@ -26,11 +27,11 @@ const n = (value) => {
   const parsed = Number(value);
   return value === null || value === void 0 || value === "" || !Number.isFinite(parsed) ? null : parsed;
 };
-const money = (value) => value === null ? "\u2014" : value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const number = (value, digits = 2) => value === null ? "\u2014" : value.toLocaleString("pt-BR", { maximumFractionDigits: digits });
-const compactMoney = (value) => value === null ? "\u2014" : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(value);
+const money = formatMoney;
+const number = formatNumber;
+const compactMoney = formatCompactMoney;
 const compactNumber = (value) => value === null || value === void 0 ? "\u2014" : new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 2 }).format(value);
-const percent = (value, sign = true) => value === null ? "\u2014" : `${sign && value > 0 ? "+" : ""}${number(value)}%`;
+const percent = formatPercent;
 const shortDate = (value) => value ? (/* @__PURE__ */ new Date(`${value}T12:00:00`)).toLocaleDateString("pt-BR") : "n\xE3o informada";
 const STOCK_WEIGHTS = { price: 25, quality: 35, debt: 25, dividends: 15 };
 const FINANCIAL_WEIGHTS = { price: 30, quality: 50, debt: 0, dividends: 20 };
