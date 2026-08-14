@@ -49,9 +49,36 @@ Beta e correlação exigem uma série sincronizada do benchmark. Sem ela, perman
 
 ## Opções
 
-O laboratório implementa Black-Scholes europeu, Delta, Gamma, Theta, Vega, Rho e volatilidade implícita por bisseção. Também calcula valor intrínseco/extrínseco, moneyness, break-even, liquidez e payoff de call comprada, put comprada, call coberta, put protetiva, bull call spread, bear put spread e collar.
+O motor de opções usa a versão `2.0.0`. O contrato é cadastrado manualmente até existir uma cadeia pública e auditável; o spot continua vindo do fechamento B3 identificado na tela. A origem, a data de referência e a distinção entre dado informado e cálculo local acompanham a análise.
 
-Não existe recomendação automática de lançamento descoberto. Entradas do contrato são manuais até uma cadeia auditável ser integrada.
+### Cálculos do contrato
+
+- ATM quando `|K/S − 1| ≤ 1%`; fora dessa faixa, o valor intrínseco determina ITM ou OTM;
+- DTE é o teto da diferença entre o fim do vencimento em UTC e a data de referência;
+- spread absoluto é `ask − bid` e spread relativo é `spread / midpoint`;
+- CALL: intrínseco `max(S − K, 0)` e break-even `K + prêmio`;
+- PUT: intrínseco `max(K − S, 0)` e break-even `K − prêmio`;
+- valor extrínseco é `prêmio − valor intrínseco`.
+
+Black-Scholes europeu calcula preço teórico, Delta, Gamma, Theta, Vega e Rho somente com spot, strike, prazo, taxa e volatilidade válidos. A volatilidade implícita é encontrada por bisseção entre 0,01% e 500% a.a., respeitando limites de não arbitragem. Falha de entrada ou convergência permanece como dado indisponível.
+
+### Option Score
+
+O **Option Score** mede o contrato, não a empresa. Ele é independente do B3 Score do ativo e possui cinco componentes configuráveis:
+
+- liquidez: 25 pontos (spread 12, volume 7, open interest 6);
+- preço e volatilidade: 25 pontos;
+- strike: 20 pontos;
+- tempo: 15 pontos;
+- risco/retorno: 15 pontos.
+
+A nota só existe com pelo menos 70% de cobertura. Dados ausentes saem do denominador; não recebem zero. Volume alto não compensa automaticamente spread superior a 8%, que produz alerta de execução.
+
+### Estratégias e payoff
+
+O simulador calcula no vencimento call comprada, put comprada, call coberta, put protetiva, bull call spread, bear put spread e collar. Exibe capital requerido, lucro máximo, prejuízo máximo, break-even e relação risco/retorno quando matematicamente finitos. Não inclui corretagem, emolumentos, impostos, exercício antecipado ou slippage.
+
+Não existe recomendação automática de lançamento descoberto. Contratos cadastrados são guardados em `b3-score-option-contracts-v1`, sem alterar posições ou preferências anteriores.
 
 ## Carteira e persistência
 
