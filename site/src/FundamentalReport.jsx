@@ -1,0 +1,49 @@
+import { buildQuantAnalysis } from "./quant/quant-engine.js";
+
+const valid = (value) => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+const money = (value) => valid(value) ? Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL", notation: Math.abs(value) >= 1e9 ? "compact" : "standard", maximumFractionDigits: 2 }) : "Dado indisponível";
+const number = (value, digits = 2) => valid(value) ? Number(value).toLocaleString("pt-BR", { maximumFractionDigits: digits }) : "Dado indisponível";
+const pct = (value) => valid(value) ? `${Number(value) > 0 ? "+" : ""}${number(value)}%` : "Dado indisponível";
+const tone = (value, good, caution = 0) => !valid(value) ? ["⚪", "Dados insuficientes"] : (good(value) ? ["🟢", "Positivo"] : (caution && caution(value) ? ["🟡", "Atenção"] : ["🔴", "Negativo"]));
+const status = (value, good, caution) => { const [icon, label] = tone(value, good, caution); return <span className="fundamental-status">{icon} {label}</span>; };
+
+function Section({ title, children, open = false }) { return <details className="fundamental-disclosure" open={open}><summary>{title}<i>⌄</i></summary><div>{children}</div></details>; }
+function Metric({ label, value, reading }) { return <article className="fundamental-metric"><span>{label}</span><b>{value}</b>{reading && <small>{reading}</small>}</article>; }
+
+function reportState(asset, analysis) {
+  const f = asset.fundamentals ?? asset.fund ?? {};
+  const score = f.scores?.overall;
+  const confidence = analysis.confidence;
+  const quality = f.scores?.quality;
+  const debt = f.netDebtEbitda ?? f.netDebtEbit;
+  const revenueGrowth = f.revenueGrowth;
+  const netMargin = f.netMargin;
+  const overall = score >= 70 && confidence >= 60 && (debt === null || debt === undefined || debt <= 3) ? "positivo" : score >= 45 ? "neutro" : "preocupante";
+  const thesis = overall === "positivo" ? "O conjunto de dados aponta fundamentos relativamente sólidos, mas a tese depende de manter rentabilidade e qualidade dos resultados." : overall === "preocupante" ? "Os dados disponíveis não sustentam uma tese confortável: qualidade, cobertura ou risco financeiro exigem cautela antes de qualquer conclusão." : "O quadro é misto: há pontos favoráveis e pontos que ainda precisam de confirmação nos próximos resultados.";
+  return { f, score, confidence, quality, debt, revenueGrowth, netMargin, overall, thesis };
+}
+
+export default function FundamentalReport({ asset, assets, anomaly }) {
+  const analysis = buildQuantAnalysis(asset, assets, anomaly);
+  const { f, score, confidence, quality, debt, revenueGrowth, netMargin, overall, thesis } = reportState(asset, analysis);
+  const isFii = asset.kind === "fii";
+  const fair = analysis.levels?.fair;
+  const growthTone = tone(revenueGrowth, (v) => v > 5, (v) => v >= 0);
+  const marginTone = tone(netMargin, (v) => v >= 12, (v) => v >= 5);
+  const debtTone = tone(debt, (v) => v <= 2, (v) => v <= 3.5);
+  const cashFlow = f.freeCashFlow ?? f.cashFlow?.freeCashFlow;
+  const cashTone = tone(cashFlow, (v) => v > 0, () => false);
+  const sector = f.sector ?? f.segment ?? "Setor/segmento indisponível";
+  const operational = isFii ? [["P/VP", f.pb ?? f.priceToBook], ["DY 12 meses", f.dy12 ?? f.dividendYield], ["Vacância", f.vacancyPct], ["Liquidez", asset.volume]] : [["Receita TTM", f.revenueTTM], ["EBITDA TTM", f.ebitdaTTM], ["Lucro líquido TTM", f.netIncomeTTM], ["Fluxo de caixa livre", cashFlow]];
+  const risks = [debtTone[0] === "🔴" ? "alavancagem acima da faixa confortável" : null, marginTone[0] === "🔴" ? "margem líquida baixa ou negativa" : null, confidence < 60 ? "cobertura/confiança de dados limitada" : null, analysis.risk?.volatility60Pct > 45 ? "volatilidade elevada na janela observada" : null].filter(Boolean);
+  return <section className="fundamental-report"><header><div><span>ANÁLISE FUNDAMENTALISTA ESTRUTURADA</span><h3>Tese, evidências e limites da conclusão</h3><p>Diagnóstico fundamentalista — não é recomendação de compra, venda ou manutenção.</p></div><b className={`report-state ${overall}`}>{overall}</b></header>
+    <Section title="1. Resumo da tese" open><p>{thesis} A leitura usa preço B3 de {asset.date ?? "data indisponível"} e demonstrações {f.filingType ?? "oficiais disponíveis"} com referência em {f.referenceDate ?? "data indisponível"}.</p><div className="fundamental-metrics"><Metric label="Score" value={valid(score) ? `${Math.round(score)}/100` : "Dado indisponível"} reading={`confiança ${valid(confidence) ? `${confidence}/100` : "indisponível"}`} /><Metric label="Preço atual" value={money(asset.price)} reading={`B3 em ${asset.date ?? "data indisponível"}`} /><Metric label="Valor justo consensual" value={money(fair)} reading={fair ? "estimativa de modelos válidos" : "dados insuficientes"} /></div></Section>
+    <Section title="2–3. O que aconteceu e o que significa"><div className="fundamental-metrics">{operational.map(([label, value]) => <Metric key={label} label={label} value={label.includes("DY") ? pct(value) : label === "Liquidez" ? money(value) : label === "P/VP" ? number(value) : money(value)} />)}</div><p>{valid(revenueGrowth) ? `A receita acumulada varia ${pct(revenueGrowth)}. ` : "Crescimento de receita indisponível. "}{valid(netMargin) ? `A margem líquida é ${pct(netMargin)}: ela mostra quanto de cada R$ 100 vendidos permanece como lucro. ` : "Margem líquida indisponível. "}{valid(cashFlow) ? (cashFlow > 0 ? "Há fluxo de caixa livre positivo no dado disponível; isso melhora a qualidade do resultado, mas não prova recorrência." : "O fluxo de caixa livre informado é negativo; lucro contábil, sozinho, não confirma geração de caixa.") : "Não é possível avaliar conversão de lucro em caixa com os dados disponíveis."}</p></Section>
+    <Section title="4. Qualidade operacional"><div className="fundamental-quality"><p>{growthTone[0]} <b>Crescimento:</b> {valid(revenueGrowth) ? pct(revenueGrowth) : "dados insuficientes"} — {growthTone[1]}.</p><p>{marginTone[0]} <b>Margens:</b> {valid(netMargin) ? pct(netMargin) : "dados insuficientes"} — {marginTone[1]}.</p><p>{valid(f.roe) ? (f.roe >= 15 ? "🟢" : f.roe >= 8 ? "🟡" : "🔴") : "⚪"} <b>Rentabilidade:</b> ROE {pct(f.roe)}.</p><p>{cashTone[0]} <b>Caixa:</b> {money(cashFlow)} — {cashTone[1]}.</p></div><p>Custos, despesas e tendências trimestrais exigem histórico comparável. Quando ele não estiver disponível, o app não cria uma narrativa artificial.</p></Section>
+    <Section title="5. Endividamento"><div className="fundamental-metrics"><Metric label="Dívida bruta" value={money(f.grossDebt)} /><Metric label="Dívida líquida" value={money(f.netDebt)} /><Metric label="Dívida líquida / EBITDA ou EBIT" value={number(debt)} reading={debtTone[1]} /><Metric label="Liquidez corrente" value={number(f.currentRatio)} /></div><p>{valid(debt) ? `A alavancagem observada é ${number(debt)}x. A classificação é ${debtTone[1].toLowerCase()}; ela não substitui a análise de vencimentos, juros e covenants, que não estão no conjunto atual.` : "Dados insuficientes para classificar alavancagem."}</p></Section>
+    <Section title="6–7. Setor e percepção de mercado"><p><b>Classificação disponível:</b> {sector}. Métricas operacionais específicas — como produção, inadimplência, sinistralidade, vendas mesmas lojas ou lifting cost — só aparecem quando a fonte as fornece de forma verificável.</p><p>O mercado pode reprecificar risco, crescimento, margens, dívida, juros, câmbio ou commodity. O app mostra evidências e associação temporal; não afirma causalidade sem fonte específica.</p></Section>
+    <Section title="8–10. Riscos, catalisadores e cenários"><div className="fundamental-columns"><article><b>Riscos observáveis</b>{risks.length ? risks.map((risk) => <span key={risk}>• {risk}</span>) : <span>• Nenhum alerta quantitativo grave no conjunto atual; isso não elimina riscos externos.</span>}</article><article><b>Catalisadores a acompanhar</b><span>• melhoria sustentável de margens</span><span>• crescimento com geração de caixa</span><span>• redução de dívida e despesa financeira</span></article></div><p><b>Otimista:</b> crescimento e margens melhoram sem elevar alavancagem. <b>Base:</b> resultados seguem próximos aos dados atuais. <b>Pessimista:</b> pioram margem, caixa ou dívida; acompanhe esses indicadores antes de concluir que há recuperação.</p></Section>
+    <Section title="11–13. Valuation, diagnóstico e próximos resultados"><div className="fundamental-metrics"><Metric label="P/L" value={number(f.pe)} /><Metric label="P/VP" value={number(f.pb)} /><Metric label="EV/EBIT" value={number(f.evEbit ?? f.evEbitda)} /><Metric label="Dividend yield" value={pct(f.dividendYield ?? f.dy12)} /></div><p>Preço da ação não é valor da empresa. Múltiplo baixo pode indicar oportunidade, mas também lucro cíclico, risco ou deterioração: possível <i>value trap</i>. Comparação com pares só é confiável com setor e modelo de negócio compatíveis.</p><div className="fundamental-diagnosis"><span>Crescimento: {growthTone[0]}</span><span>Rentabilidade: {valid(f.roe) && f.roe >= 15 ? "🟢" : valid(f.roe) ? "🟡" : "⚪"}</span><span>Margens: {marginTone[0]}</span><span>Endividamento: {debtTone[0]}</span><span>Caixa: {cashTone[0]}</span><span>Valuation: {fair && asset.price ? (asset.price < fair ? "🟢" : "🟡") : "⚪"}</span><span>Risco: {analysis.risk?.volatility60Pct > 45 ? "🔴" : "🟡"}</span></div><p><b>Próximos resultados:</b> acompanhe receita, margem líquida/EBITDA, lucro, fluxo de caixa livre, dívida líquida e o indicador setorial quando for disponibilizado.</p></Section>
+    <footer><b>Rastreabilidade:</b> preço: B3 ({asset.date ?? "indisponível"}); fundamentos: CVM ({f.referenceDate ?? "indisponível"}); cálculos: B3 Score Quant. Confiança {valid(confidence) ? `${confidence}/100` : "indisponível"}. Dados ausentes permanecem indisponíveis.</footer>
+  </section>;
+}
