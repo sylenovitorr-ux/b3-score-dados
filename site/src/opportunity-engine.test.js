@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildActionSignal, buildOpportunity, buildPositionPlan, fairValueRange, relativeValuation, valuationRiskAssessment } from "./opportunity-engine.js";
+import { buildActionSignal, buildOpportunity, buildPositionPlan, buildThreeWayDecision, fairValueRange, relativeValuation, valuationRiskAssessment } from "./opportunity-engine.js";
 
 const fundamentals = (overrides = {}) => ({ financialCompany: false, eps: 2, bookValuePerShare: 8, roe: 18, roic: 14, netMargin: 12, revenueGrowth: 8, profitGrowth: 7, ebitdaTTM: 1_000, enterpriseValue: 6_000, netDebt: 1_000, sharesOutstanding: 500, equity: 4_000, netDebtEbitda: 1, sector: "Teste", scores: { quality: 75, debt: 78, growth: 70, dividends: 60, confidence: 85 }, history: [{ income: { netIncome: 120 }, cashFlow: { freeCashFlow: 100 } }, { income: { netIncome: 110 }, cashFlow: { freeCashFlow: 90 } }], ...overrides });
 const asset = (ticker, overrides = {}) => ({ ticker, kind: "stock", price: 10, fundamentals: fundamentals(), ...overrides });
@@ -56,6 +56,23 @@ test("compra exige desconto, qualidade, confiança e ausência de anomalia", () 
   const row = asset("BUY3", { price: 12 });
   assert.equal(buildActionSignal(row, [row], { score: 10, dailyVolatilityPct: 2 }).code, "buy");
   assert.notEqual(buildActionSignal(row, [row], { score: 65, dailyVolatilityPct: 2 }).code, "buy");
+});
+
+test("nota de decisão reduz a leitura a comprar, manter ou vender sem ocultar o sinal", () => {
+  const buy = buildThreeWayDecision(asset("BUY3", { price: 12 }), [asset("BUY3", { price: 12 })], { score: 10, dailyVolatilityPct: 2 });
+  const sell = buildThreeWayDecision(asset("SELL3", { price: 40 }), [asset("SELL3", { price: 40 })], { score: 0, dailyVolatilityPct: 2 });
+  assert.equal(buy.state, "buy");
+  assert.equal(buy.label, "COMPRAR");
+  assert.ok(buy.score >= 0 && buy.score <= 100);
+  assert.equal(sell.state, "sell");
+  assert.equal(sell.label, "VENDER");
+});
+
+test("nota de decisão bloqueia classificação quando a base é insuficiente", () => {
+  const sparse = asset("NODATA", { fundamentals: fundamentals({ eps: null, bookValuePerShare: null, ebitdaTTM: null }) });
+  const result = buildThreeWayDecision(sparse, [sparse]);
+  assert.equal(result.state, "unavailable");
+  assert.equal(result.score, null);
 });
 
 test("preço acima da faixa justa gera realização e não compra", () => {
