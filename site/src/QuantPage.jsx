@@ -21,6 +21,17 @@ function DataHealth({ health }) {
   return <section className="quant-health"><h2>Validade e fonte dos dados</h2><div>{Object.entries(health).map(([key, item]) => <article key={key}><span>{key === "price" ? "Cotação" : key === "fundamentals" ? "Fundamentos" : "Histórico"}</span><b className={item.freshness.tone}>{item.freshness.label}</b><small>{item.source ?? "Dado indisponível"} • {item.referenceDate ?? "data indisponível"}</small><em>confiança {item.confidence}/100</em></article>)}</div></section>;
 }
 
+function QuantReading({ analysis }) {
+  const items = [];
+  const current = analysis.levels.current, fair = analysis.levels.fair, ma50 = analysis.technical.ma50, volatility = analysis.risk.volatility60Pct ?? analysis.risk.volatility20Pct;
+  if (current !== null && fair !== null) items.push(current < fair ? `Negocia ${number((fair / current - 1) * 100)}% abaixo do valor justo consensual.` : `Negocia ${number((current / fair - 1) * 100)}% acima do valor justo consensual.`);
+  if (current !== null && ma50 !== null) items.push(`Preço ${current >= ma50 ? "acima" : "abaixo"} da média móvel de 50 períodos.`);
+  if (volatility !== null) items.push(`Volatilidade de ${pct(volatility)}; limite configurado do perfil: ${pct(analysis.profile.limits.volatilityPct)}.`);
+  if (analysis.levels.riskReward !== null) items.push(`Relação risco/retorno de ${number(analysis.levels.riskReward)}, ${analysis.levels.riskReward >= analysis.profile.limits.minimumRiskReward ? "dentro" : "abaixo"} do mínimo configurado.`);
+  items.push(`Cobertura ${analysis.coverage}% e confiança ${analysis.confidence}/100; ausências não foram convertidas em zero.`);
+  return <section className="quant-reading"><div><span>LEITURA QUANT</span><h2>O que os blocos indicam em conjunto</h2><p>Resumo determinístico; abra a auditoria para verificar cada entrada.</p></div><ul>{items.map((item)=><li key={item}>{item}</li>)}</ul></section>;
+}
+
 function ValuationBlock({ analysis }) {
   const { valuation, levels } = analysis;
   return <section className="quant-section"><div className="quant-section-head"><div><span>VALUATION MULTIMODELO</span><h2>Valor justo consensual</h2></div><strong>{money(valuation.weighted)}</strong></div>
@@ -63,12 +74,13 @@ function PortfolioBook({ assets, anomalies, profile }) {
   </section>;
 }
 
-export default function QuantPage({ assets, anomalies, onBack, onOpen }) {
+export default function QuantPage({ assets, anomalies, initialTicker, onBack, onOpen }) {
   const [profileId, setProfileId] = useState(() => localStorage.getItem("b3-score-quant-profile-v1") || DEFAULT_QUANT_PROFILE);
   const [overrides, setOverrides] = useState({ limits: {} });
-  const [ticker, setTicker] = useState(() => assets.find((asset) => asset.ticker === "BBSE3")?.ticker ?? assets.find((asset) => asset.fundamentals || asset.fund)?.ticker ?? "");
+  const [ticker, setTicker] = useState(() => initialTicker ?? assets.find((asset) => asset.ticker === "BBSE3")?.ticker ?? assets.find((asset) => asset.fundamentals || asset.fund)?.ticker ?? "");
   useEffect(() => { localStorage.setItem("b3-score-quant-profile-v1", profileId); }, [profileId]);
   useEffect(() => { if (!ticker && assets.length) setTicker(assets.find((asset) => asset.fundamentals || asset.fund)?.ticker ?? assets[0].ticker); }, [assets, ticker]);
+  useEffect(() => { if (initialTicker && assets.some((asset) => asset.ticker === initialTicker)) setTicker(initialTicker); }, [assets, initialTicker]);
   const profile = useMemo(() => profileConfig(profileId, overrides), [profileId, overrides]);
   const asset = assets.find((item) => item.ticker === ticker) ?? null;
   const analysis = useMemo(() => asset ? buildQuantAnalysis(asset, assets, anomalies?.assets?.[ticker], profile) : null, [asset, assets, anomalies, ticker, profile]);
@@ -81,6 +93,7 @@ export default function QuantPage({ assets, anomalies, onBack, onOpen }) {
     {!analysis ? <div className="quant-empty">Dado indisponível. Selecione um ativo válido.</div> : <>
       <DataHealth health={analysis.dataHealth} />
       <section className="quant-score"><div className="quant-score-main"><span>B3 SCORE QUANTITATIVO</span><strong>{analysis.score ?? "N/D"}<small>/100</small></strong><b>{analysis.classification}</b><em>Confiança {analysis.confidence}/100 • cobertura {analysis.coverage}%</em></div><div className="quant-components">{Object.entries(analysis.components).map(([key, component]) => <article key={key} className={component.value === null ? "missing" : ""}><span>{LABELS[key]} <small>peso {analysis.profile.weights[key]}%</small></span><b>{component.value ?? "N/D"}</b><i><em style={{ width: `${component.value ?? 0}%` }} /></i></article>)}</div></section>
+      <QuantReading analysis={analysis} />
       <section className="trace-list"><h2>Auditoria do Score</h2>{Object.entries(analysis.components).map(([key, component]) => <Trace key={key} title={LABELS[key]} result={component} />)}</section>
       <ValuationBlock analysis={analysis} />
       <section className="quant-levels"><article><span>Preço atual</span><b>{money(analysis.levels.current)}</b><small>B3 em {asset.date}</small></article><article><span>Valor justo</span><b>{money(analysis.levels.fair)}</b><small>consenso dos modelos válidos</small></article><article><span>Entrada</span><b>{money(analysis.levels.entry)}</b><small>margem explícita de {analysis.levels.safetyMarginPct}%</small></article><article><span>Saída/alvo</span><b>{money(analysis.levels.exit)}</b><small>referência de valuation, não ordem</small></article><article><span>Saída defensiva</span><b>{money(analysis.levels.stop)}</b><small>mínima recente versus limite do perfil</small></article><article><span>Assimetria R:R</span><b>{number(analysis.levels.riskReward)}</b><small>upside {pct(analysis.levels.upsidePct)} / downside {pct(analysis.levels.downsidePct)}</small></article></section>

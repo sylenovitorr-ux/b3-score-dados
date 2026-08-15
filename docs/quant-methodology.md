@@ -37,6 +37,12 @@ Modelos implementados quando adequados:
 
 Fluxo de dividendos e múltiplos históricos aparecem como indisponíveis até existir histórico suficiente. O consenso mostra média simples, ponderada e pesos efetivos apenas dos modelos válidos.
 
+### Travas de consistência e sensibilidade
+
+O motor preserva o valor justo bruto, mas impede que distâncias extremas virem sinal positivo automaticamente. A sensibilidade combina distância entre preço e justo, número e dispersão das âncoras, confiança e cobertura fundamental. Potencial acima de 200% recebe teto 49; acima de 100% recebe teto 59 ou 69 conforme os testes de sustentação. O usuário vê o teto, os motivos e os resultados intermediários.
+
+Uma âncora por ação superior a dez vezes a cotação falha no teste dimensional e não entra no ranking. Essa regra captura principalmente quantidades de ações publicadas em milhares sem escala explícita. Na geração seguinte, a quantidade só é multiplicada por mil quando VPA/preço supera 50 ou |LPA|/preço supera 20; o multiplicador e os gatilhos ficam em `audit.capitalScale`. Sem cotação, nenhuma correção é estimada.
+
 ## Risco e momentum
 
 - volatilidade: desvio-padrão amostral dos retornos diários × `√252`;
@@ -88,7 +94,7 @@ O retorno posterior a eventos é calculado somente quando existem 1, 5 ou 20 pre
 
 O motor de opções usa a versão `2.0.0`. A cadeia diária é extraída do COTAHIST oficial da B3. O arquivo fornece série, tipo, vencimento, strike, último prêmio, negócios, quantidade e volume financeiro no fechamento D-1. O spot vem do mesmo pregão e a taxa de referência vem da série Selic 1178 do Banco Central.
 
-Bid, ask e open interest não existem no COTAHIST e permanecem `null`. Contratos cujo ativo-objeto não possa ser vinculado de maneira única por nome e raiz são excluídos. O modo manual permanece disponível e é identificado separadamente.
+Bid, ask e open interest não existem no COTAHIST e permanecem `null`. O laboratório permite anexar uma fotografia CSV identificada por fonte e data, oferece um modelo vazio para download e rejeita book cruzado, OI inválido ou fotografia defasada. Contratos cujo ativo-objeto não possa ser vinculado de maneira única por nome e raiz são excluídos. O modo manual permanece disponível e é identificado separadamente.
 
 ### Cálculos do contrato
 

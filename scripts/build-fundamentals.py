@@ -31,6 +31,7 @@ from accounting_engine import (
     select_statement_scope,
 )
 from dividend_engine import calculate_ticker_dividends
+from capital_quality import normalize_capital_scale
 
 ROOT = Path(__file__).resolve().parents[1]
 CVM = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/cvm-data")
@@ -707,12 +708,11 @@ for cnpj, company_tickers in tickers_by_company.items():
     preferred_price = (preferred_prices or [proxy_price])[0]
     market_cap = None
     market_cap_estimated = False
+    capital_scale_audit = {"multiplier": 1, "reasons": [], "state": "unchanged"}
     if cap["total"] > 0 and proxy_price:
-        # Some issuers fill the CVM share-composition table in thousands even
-        # though the field has no scale column. Detect that only when the
-        # implied book value is implausibly large compared with the quote.
-        while equity and ((equity / cap["total"]) / proxy_price) > 50:
-            cap = {key: value * 1000 for key, value in cap.items()}
+        # CVM does not expose a scale column for this share-composition field.
+        # Adjust only on strong evidence and preserve the rule in the audit.
+        cap, capital_scale_audit = normalize_capital_scale(cap, equity, net_income, proxy_price)
         market_cap = cap["ordinary"] * ordinary_price + cap["preferred"] * preferred_price
         market_cap_estimated = (cap["ordinary"] > 0 and not ordinary_prices) or (cap["preferred"] > 0 and not preferred_prices)
 
@@ -919,6 +919,7 @@ for cnpj, company_tickers in tickers_by_company.items():
                 "revenue": revenue_growth_analysis["state"],
                 "profit": profit_growth_analysis["state"],
             },
+            "capitalScale": capital_scale_audit,
         },
         "scoreDetails": score_details,
         "metricStates": metric_states,

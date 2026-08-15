@@ -33,3 +33,13 @@ jobs:
       - name: Build GitHub Pages
         working-directory: site
         run: npm run build
+      - name: Auditar artefato, dados e orçamento de bundle
+        working-directory: site
+        run: npm run audit:dist
+      - name: Guardar prévia revisável (sem publicar)
+        uses: actions/upload-artifact@v4
+        with:
+          name: b3-score-preview-${{ github.sha }}
+          path: site/dist
+          retention-days: 14
+          if-no-files-found: error

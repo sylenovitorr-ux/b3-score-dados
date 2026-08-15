@@ -1,15 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { analyzeOptionContract, strategyPayoffAtExpiration } from "./quant/options-engine";
 import { formatMoney, formatNumber } from "./formatters";
+import { importOptionMarket, marketSnapshotMap, snapshotAge } from "./option-market-import.js";
 
 const STORAGE_KEY = "b3-score-option-contracts-v1";
+const MARKET_STORAGE_KEY = "b3-score-option-market-v1";
+const MARKET_TEMPLATE = "ticker;bid;ask;openInterest;referenceDate;source\n";
 const STRATEGIES = { "long-call": "Call comprada", "long-put": "Put comprada", "covered-call": "Call coberta", "protective-put": "Put protetiva", "bull-call": "Bull Call Spread", "bear-put": "Bear Put Spread", collar: "Collar" };
+const OBJECTIVES = { up: { label: "Alta", strategies: ["long-call", "bull-call"] }, down: { label: "Baixa", strategies: ["long-put", "bear-put"] }, income: { label: "Lateralização / renda", strategies: ["covered-call"] }, protection: { label: "Proteção", strategies: ["protective-put", "collar"] } };
 const COMPONENTS = { liquidity: "Liquidez", priceVolatility: "Preço e volatilidade", strike: "Strike", time: "Tempo", riskReturn: "Risco/retorno" };
 const initialForm = { contractTicker: "", type: "call", strike: "", premium: "", expiration: "", dte: "", rate: "", volatility: "", dividendYield: "", bid: "", ask: "", volume: "", openInterest: "", strategy: "long-call", quantity: "100", width: "", secondPremium: "", scenarioPct: "10" };
 const initialFilters = { type: "all", moneyness: "all", dteMin: "", dteMax: "", volumeMin: "", openInterestMin: "", spreadMax: "", deltaMin: "", deltaMax: "", ivMin: "", ivMax: "", scoreMin: "", objective: "all", sort: "score" };
 const num = (value) => value === "" || value === null || value === undefined ? null : Number.isFinite(Number(value)) ? Number(value) : null;
 const pct = (value, digits = 2) => value === null || value === undefined || !Number.isFinite(value) ? "Dado indisponível" : `${formatNumber(value, digits)}%`;
 const localContracts = () => { try { const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); return Array.isArray(value) ? value : []; } catch { return []; } };
+const localMarket = () => { try { const value = JSON.parse(localStorage.getItem(MARKET_STORAGE_KEY) ?? "[]"); return Array.isArray(value) ? value : []; } catch { return []; } };
 const assetScores = (asset) => asset?.fund?.scores ?? asset?.fundamentals?.scores ?? null;
 
 function PayoffChart({ result, strike }) {
@@ -31,7 +36,10 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
   const [ticker, setTicker] = useState(stockAssets.find((item) => item.ticker === "BBSE3")?.ticker ?? stockAssets[0]?.ticker ?? "");
   const [form, setForm] = useState(initialForm);
   const [officialId, setOfficialId] = useState("");
+  const [objective, setObjective] = useState("");
   const [contracts, setContracts] = useState(localContracts);
+  const [marketRows, setMarketRows] = useState(localMarket);
+  const [importReport, setImportReport] = useState(null);
   const [filters, setFilters] = useState(initialFilters);
   useEffect(() => {
     if (!stockAssets.length || stockAssets.some((item) => item.ticker === ticker)) return;
@@ -41,13 +49,22 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
   const historicalVolatilityPct = anomalies?.assets?.[ticker]?.annualizedVolatilityPct ?? null;
   const officialContracts = useMemo(() => (optionChain?.contracts ?? []).filter((item) => item.underlying === ticker), [optionChain, ticker]);
   const selectedOfficial = officialContracts.find((item) => item.ticker === officialId) ?? null;
+  const marketMap = useMemo(() => marketSnapshotMap(marketRows), [marketRows]);
+  const marketSummary = useMemo(() => {
+    if (!marketRows.length) return null;
+    const latestDate = marketRows.map((row) => row.referenceDate).filter(Boolean).sort().at(-1) ?? null;
+    const sources = [...new Set(marketRows.map((row) => row.source).filter(Boolean))];
+    return { latestDate, freshness: snapshotAge(latestDate), sources };
+  }, [marketRows]);
+  const selectedSnapshot = marketMap[selectedOfficial?.ticker ?? form.contractTicker.trim().toUpperCase()] ?? null;
+  const snapshotFreshness = snapshotAge(selectedSnapshot?.referenceDate);
   const contract = useMemo(() => ({
     contractTicker: form.contractTicker.trim().toUpperCase(), underlyingTicker: ticker, type: form.type, spot: asset?.price ?? null,
     strike: num(form.strike), premium: num(form.premium), expiration: form.expiration || null, dte: num(form.dte), rate: num(form.rate) === null ? null : num(form.rate) / 100,
     volatility: num(form.volatility) === null ? null : num(form.volatility) / 100, dividendYield: num(form.dividendYield) === null ? 0 : num(form.dividendYield) / 100,
     bid: num(form.bid), ask: num(form.ask), volume: num(form.volume), openInterest: num(form.openInterest), strategy: form.strategy, quantity: num(form.quantity), width: num(form.width), secondPremium: num(form.secondPremium),
-    source: selectedOfficial ? "B3 COTAHIST — fechamento diário" : "Informado manualmente pelo usuário", updatedAt: selectedOfficial ? optionChain?.quoteDate : null,
-  }), [form, ticker, asset, selectedOfficial, optionChain]);
+    source: selectedSnapshot ? `${selectedSnapshot.source} — fotografia importada; B3 COTAHIST — cadastro do contrato` : selectedOfficial ? "B3 COTAHIST — fechamento diário" : "Informado manualmente pelo usuário", updatedAt: selectedSnapshot?.referenceDate ?? (selectedOfficial ? optionChain?.quoteDate : null),
+  }), [form, ticker, asset, selectedOfficial, selectedSnapshot, optionChain]);
   const analysis = useMemo(() => analyzeOptionContract(contract, { historicalVolatilityPct, spotSource: "B3 COTAHIST", spotReferenceDate: asset?.date }), [contract, historicalVolatilityPct, asset]);
   const score = assetScores(asset);
   const set = (key, value) => { setOfficialId(""); setForm((current) => ({ ...current, [key]: value })); };
@@ -56,7 +73,8 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
     setOfficialId(value);
     const row = officialContracts.find((item) => item.ticker === value);
     if (!row) return;
-    setForm((current) => ({ ...current, contractTicker: row.ticker, type: row.type, strike: String(row.strike), premium: String(row.premium), expiration: row.expiration, dte: "", rate: optionChain?.referenceRate?.valuePct === null || optionChain?.referenceRate?.valuePct === undefined ? "" : String(optionChain.referenceRate.valuePct), volatility: historicalVolatilityPct === null ? "" : String(historicalVolatilityPct), bid: "", ask: "", volume: row.volume === null ? "" : String(row.volume), openInterest: "", strategy: row.type === "put" ? "long-put" : "long-call" }));
+    const snapshot = marketMap[row.ticker];
+    setForm((current) => ({ ...current, contractTicker: row.ticker, type: row.type, strike: String(row.strike), premium: String(row.premium), expiration: row.expiration, dte: "", rate: optionChain?.referenceRate?.valuePct === null || optionChain?.referenceRate?.valuePct === undefined ? "" : String(optionChain.referenceRate.valuePct), volatility: historicalVolatilityPct === null ? "" : String(historicalVolatilityPct), bid: snapshot?.bid === null || snapshot?.bid === undefined ? "" : String(snapshot.bid), ask: snapshot?.ask === null || snapshot?.ask === undefined ? "" : String(snapshot.ask), volume: row.volume === null ? "" : String(row.volume), openInterest: snapshot?.openInterest === null || snapshot?.openInterest === undefined ? "" : String(snapshot.openInterest), strategy: row.type === "put" ? "long-put" : "long-call" }));
   };
   useEffect(() => {
     if (officialId || form.contractTicker || !officialContracts.length || !(asset?.price > 0)) return;
@@ -93,11 +111,30 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
   const scenarioPrice = analysis.contract.spot && num(form.scenarioPct) !== null ? analysis.contract.spot * (1 + num(form.scenarioPct) / 100) : null;
   const scenarioPayoff = scenarioPrice === null ? null : strategyPayoffAtExpiration(form.strategy, scenarioPrice, analysis.contract);
   const scenarioReturn = scenarioPayoff !== null && analysis.payoff.capitalRequired > 0 ? scenarioPayoff / analysis.payoff.capitalRequired * 100 : null;
-  const contractIndicationReady = Boolean(selectedOfficial && analysis.model.available && analysis.implied.available && analysis.liquidity.metrics.validBook && analysis.liquidity.metrics.openInterest !== null);
+  const contractIndicationReady = Boolean(selectedOfficial && snapshotFreshness.status === "ATUALIZADO" && analysis.model.available && analysis.implied.available && analysis.liquidity.metrics.validBook && analysis.liquidity.metrics.openInterest !== null);
+  const compatibleStrategies = objective ? OBJECTIVES[objective].strategies : Object.keys(STRATEGIES);
+  const chooseObjective = (next) => { setObjective(next); setForm((current) => ({ ...current, strategy: OBJECTIVES[next].strategies[0] })); };
+  const loadMarketFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const report = importOptionMarket(String(reader.result ?? ""));
+      setImportReport(report);
+      if (!report.rows.length) return;
+      const merged = [...marketRows.filter((old) => !report.rows.some((row) => row.ticker === old.ticker)), ...report.rows];
+      setMarketRows(merged);
+      localStorage.setItem(MARKET_STORAGE_KEY, JSON.stringify(merged));
+      const snapshot = marketSnapshotMap(report.rows)[selectedOfficial?.ticker];
+      if (snapshot) setForm((current) => ({ ...current, bid: snapshot.bid ?? "", ask: snapshot.ask ?? "", openInterest: snapshot.openInterest ?? "" }));
+    };
+    reader.readAsText(file, "utf-8");
+  };
 
   return <section className="options-lab">
     <header className="options-lab-head"><div><span>LABORATÓRIO DE CONTRATOS</span><h2>Opções com cálculo auditável</h2><p>Selecione uma série oficial do fechamento B3 ou cadastre um contrato manual. IV, Greeks, Option Score e payoff são calculados localmente e separados do score fundamentalista do ativo.</p></div><strong>ESTRATÉGIA PARA ESTUDO</strong></header>
-    <div className="option-source-warning official-chain"><b>{optionChain?.contracts?.length ? `Cadeia B3 carregada • ${optionChain.contracts.length} séries` : "Cadeia B3 aguardando atualização"}</b><span>{optionChain?.contracts?.length ? `Fechamento de ${optionChain.quoteDate}. Série, vencimento, strike, último prêmio e volume são oficiais. Bid/ask e open interest permanecem N/D porque não existem no COTAHIST.` : "O modo manual continua disponível. Nenhum contrato será fabricado enquanto o arquivo oficial não estiver disponível."}</span></div>
+    <section className="option-objectives"><div><span>PASSO 1</span><h3>Qual é o objetivo do estudo?</h3><p>A escolha apenas organiza estratégias compatíveis; não prevê a direção do mercado.</p></div><div>{Object.entries(OBJECTIVES).map(([id,item])=><button type="button" className={objective===id?"active":""} onClick={()=>chooseObjective(id)} key={id}>{item.label}<small>{item.strategies.map((key)=>STRATEGIES[key]).join(" • ")}</small></button>)}</div></section>
+    <div className="option-source-warning official-chain"><b>{optionChain?.contracts?.length ? `Cadeia B3 carregada • ${optionChain.contracts.length} séries` : "Cadeia B3 aguardando atualização"}</b><span>{optionChain?.contracts?.length ? `Fechamento de ${optionChain.quoteDate}. Série, vencimento, strike, último prêmio e volume são oficiais. Bid/ask e open interest podem ser anexados por fotografia CSV auditável.` : "O modo manual continua disponível. Nenhum contrato será fabricado enquanto o arquivo oficial não estiver disponível."}</span></div>
+    <details className="option-market-import"><summary>Importar bid, ask e open interest <i>⌄</i></summary><div><div><b>Fotografia do mercado</b><p>Exporte ou monte um CSV com <code>ticker;bid;ask;openInterest;referenceDate;source</code>. O arquivo fica apenas neste dispositivo e nunca substitui os dados oficiais do contrato.</p></div><div className="option-import-actions"><a href={`data:text/csv;charset=utf-8,${encodeURIComponent(MARKET_TEMPLATE)}`} download="modelo-mercado-opcoes.csv">Baixar modelo CSV</a><label className="option-file-button">Selecionar CSV<input type="file" accept=".csv,text/csv,text/plain" onChange={(event) => loadMarketFile(event.target.files?.[0])}/></label></div>{importReport && <p className={importReport.errors.length ? "import-errors" : "import-success"}>{importReport.rows.length} linhas válidas. {importReport.errors.length ? `${importReport.errors.length} rejeitadas: ${importReport.errors.slice(0, 2).join(" ")}` : "Validação concluída."}</p>}{marketSummary ? <small><b>{marketRows.length}</b> contratos armazenados • fotografia mais recente {marketSummary.latestDate} • <b>{marketSummary.freshness.status}</b> • fonte(s): {marketSummary.sources.join(", ")}</small> : <small>Nenhuma fotografia importada. Bid, ask e open interest permanecem como Dado indisponível.</small>}</div></details>
     <div className="options-lab-grid"><aside className="option-form">
       <label>Ativo-objeto<select value={ticker} onChange={(event) => selectUnderlying(event.target.value)}>{stockAssets.map((item) => <option value={item.ticker} key={item.ticker}>{item.ticker} • {formatMoney(item.price)}</option>)}</select></label>
       <label>Série oficial B3<select value={officialId} onChange={(event) => selectOfficial(event.target.value)}><option value="">{officialContracts.length ? `Selecione entre ${officialContracts.length} séries` : "Nenhuma série vinculada"}</option>{officialContracts.map((item) => <option value={item.ticker} key={item.ticker}>{item.ticker} • {item.type.toUpperCase()} • K {formatMoney(item.strike)} • {item.expiration} • {formatMoney(item.premium)}</option>)}</select></label>
@@ -108,14 +145,14 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
     </aside>
     <div className="option-results">
       <div className="option-score-panels"><article className="option-score-panel primary"><span>OPTION SCORE</span><strong>{analysis.optionScore.score ?? "—"}<small>/100</small></strong><b>{analysis.optionScore.score === null ? "Dados insuficientes" : `Cobertura ${analysis.optionScore.coverage}%`}</b><small>Qualidade matemática parcial; não é indicação de contrato.</small></article><article className="option-score-panel"><span>SCORE DO ATIVO</span><strong>{score?.overall ?? "—"}<small>/100</small></strong><b>Confiança {score?.confidence ?? "—"}%</b><small>Fundamentos do ativo-objeto. Exibido apenas como contexto.</small></article><article className={`option-score-panel liquidity-${analysis.liquidity.tone}`}><span>LIQUIDEZ</span><strong>{analysis.liquidity.label}</strong><b>{analysis.liquidity.score === null ? "Sem score" : `${analysis.liquidity.score}/100`}</b><small>{analysis.liquidity.reason}</small></article></div>
-      <div className={`option-contract-readiness ${contractIndicationReady ? "ready" : "blocked"}`} style={{ display: "grid", gap: 5, margin: "12px 0", padding: "12px 14px", border: `1px solid ${contractIndicationReady ? "#8ec5a6" : "#e4c8a0"}`, borderLeft: `5px solid ${contractIndicationReady ? "#087a45" : "#b06b08"}`, borderRadius: 10, background: contractIndicationReady ? "#f3fbf6" : "#fffaf1", color: contractIndicationReady ? "#174c32" : "#633e08" }}><b>{contractIndicationReady ? "Contrato apto para comparação matemática" : "Indicação de contrato bloqueada"}</b><span style={{ fontSize: 12, lineHeight: 1.55 }}>{contractIndicationReady ? "Preço, modelo, IV, book e open interest estão disponíveis para esta fotografia de mercado." : "IV, Delta, Theta e preço teórico podem ser calculados, mas bid/ask e open interest não existem no COTAHIST. Confira esses dados na corretora; o app não transforma informação incompleta em indicação."}</span></div>
+      <div className={`option-contract-readiness ${contractIndicationReady ? "ready" : "blocked"}`} style={{ display: "grid", gap: 5, margin: "12px 0", padding: "12px 14px", border: `1px solid ${contractIndicationReady ? "#8ec5a6" : "#e4c8a0"}`, borderLeft: `5px solid ${contractIndicationReady ? "#087a45" : "#b06b08"}`, borderRadius: 10, background: contractIndicationReady ? "#f3fbf6" : "#fffaf1", color: contractIndicationReady ? "#174c32" : "#633e08" }}><b>{contractIndicationReady ? "Contrato apto para comparação matemática" : "Indicação de contrato bloqueada"}</b><span style={{ fontSize: 12, lineHeight: 1.55 }}>{contractIndicationReady ? `Preço, modelo, IV, book e open interest disponíveis. Fotografia ${snapshotFreshness.status.toLowerCase()} de ${selectedSnapshot?.referenceDate}, fonte ${selectedSnapshot?.source}.` : "IV, Delta, Theta e preço teórico podem ser calculados, mas o contrato só será liberado após bid/ask válidos e open interest com fonte e data. O app não transforma informação incompleta em indicação."}</span></div>
       <div className="greeks-grid"><Metric label="Spot B3" value={formatMoney(asset?.price)} note={asset?.date ?? "Data indisponível"}/><Metric label="DTE" value={analysis.dte.available ? analysis.dte.value : "N/D"} note={analysis.dte.reason ?? analysis.dte.expiration}/><Metric label="Moneyness" value={analysis.decomposition.available ? analysis.decomposition.moneyness : "N/D"} note={analysis.decomposition.available ? `strike ${pct(analysis.decomposition.distancePct)}` : analysis.decomposition.reason}/><Metric label="Preço teórico" value={analysis.model.available ? formatMoney(analysis.model.price) : "N/D"} note="Black-Scholes local"/><Metric label="IV estimada" value={analysis.implied.available ? pct(analysis.implied.volatility * 100) : "N/D"} note={analysis.implied.available ? analysis.implied.method : analysis.implied.reason}/><Metric label="Spread" value={analysis.liquidity.metrics.spreadPct === null ? "N/D" : pct(analysis.liquidity.metrics.spreadPct)} note={analysis.liquidity.metrics.spread === null ? "Bid/ask necessários" : formatMoney(analysis.liquidity.metrics.spread)}/><Metric label="Intrínseco" value={analysis.decomposition.available ? formatMoney(analysis.decomposition.intrinsic) : "N/D"}/><Metric label="Extrínseco" value={analysis.decomposition.available ? formatMoney(analysis.decomposition.extrinsic) : "N/D"}/><Metric label="Break-even" value={analysis.decomposition.available ? formatMoney(analysis.decomposition.breakEven) : "N/D"}/></div>
       <div className="greeks-grid compact">{[["Delta", analysis.model.delta], ["Gamma", analysis.model.gamma], ["Theta/dia", analysis.model.theta], ["Vega/1 p.p.", analysis.model.vega], ["Rho/1 p.p.", analysis.model.rho], ["d1", analysis.model.d1], ["d2", analysis.model.d2]].map(([label, value]) => <Metric key={label} label={label} value={analysis.model.available ? formatNumber(value, 6) : "N/D"}/>)}</div>
       <details className="quant-trace"><summary><span>Por que esta nota?</span><b>componentes, parâmetros e limitações</b><i>⌄</i></summary><div><div className="option-score-components">{Object.values(analysis.optionScore.components).map((item) => <article className={item.available ? "" : "missing"} key={item.key}><span>{COMPONENTS[item.key]}</span><b>{item.available ? `${item.score}/${item.max}` : "N/D"}</b><i><em style={{ width: `${item.available ? item.score / item.max * 100 : 0}%` }} /></i><small>{item.explanation}</small></article>)}</div><p><b>Leitura:</b> {analysis.optionScore.reason}</p><p><b>Fonte do contrato:</b> {analysis.metadata.contractSource}. <b>Spot:</b> {analysis.metadata.spotSource}, referência {analysis.metadata.spotReferenceDate ?? "indisponível"}. <b>Cálculos:</b> {analysis.metadata.calculations}, modelo {analysis.metadata.modelVersion}.</p><p><b>Limitações:</b> Option Score não prevê retorno, não substitui a análise do ativo e não é calculado com cobertura inferior a 70%.</p></div></details>
     </div></div>
 
-    <section className="option-liquidity"><h3>Mercado e liquidez do contrato</h3><div>{field("bid", "Bid (R$)")}{field("ask", "Ask (R$)")}{field("volume", "Volume (quantidade)")}{field("openInterest", "Open interest")}</div>{analysis.liquidity.alert && <strong>{analysis.liquidity.alert}</strong>}<small>{analysis.liquidity.formula} No modo automático, volume vem da B3; bid/ask e OI continuam indisponíveis.</small></section>
-    <section className="strategy-builder"><div className="strategy-controls"><label>Estratégia<select value={form.strategy} onChange={(event) => set("strategy", event.target.value)}>{Object.entries(STRATEGIES).map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>{field("quantity", "Quantidade", { min: "1" })}{["bull-call", "bear-put", "collar"].includes(form.strategy) && <>{field("width", "Distância entre strikes")}{field("secondPremium", "Prêmio da 2ª perna")}</>}</div>
+    <section className="option-liquidity"><h3>Mercado e liquidez do contrato</h3><div>{field("bid", "Bid (R$)")}{field("ask", "Ask (R$)")}{field("volume", "Volume (quantidade)")}{field("openInterest", "Open interest")}</div>{analysis.liquidity.alert && <strong>{analysis.liquidity.alert}</strong>}<small>{analysis.liquidity.formula} Volume vem do fechamento B3; bid/ask e OI podem vir de fotografia importada, sempre com fonte e data visíveis.</small></section>
+    <section className="strategy-builder"><div className="strategy-controls"><label>Estratégia<select value={form.strategy} onChange={(event) => set("strategy", event.target.value)}>{compatibleStrategies.map((key) => <option value={key} key={key}>{STRATEGIES[key]}</option>)}</select></label>{field("quantity", "Quantidade", { min: "1" })}{["bull-call", "bear-put", "collar"].includes(form.strategy) && <>{field("width", "Distância entre strikes")}{field("secondPremium", "Prêmio da 2ª perna")}</>}</div>
       {analysis.payoff.available ? <><div className="payoff-summary"><Metric label="Capital requerido" value={formatMoney(analysis.payoff.capitalRequired)}/><Metric label="Lucro máximo" value={analysis.payoff.profitUnlimited ? "Ilimitado" : formatMoney(analysis.payoff.maxProfit)}/><Metric label="Prejuízo máximo" value={formatMoney(analysis.payoff.maxLoss)}/><Metric label="Break-even" value={formatMoney(analysis.payoff.breakEven)}/><Metric label="Risco/retorno" value={formatNumber(analysis.payoff.riskReward, 2)}/></div><PayoffChart result={analysis.payoff} strike={contract.strike}/><div className="scenario-simulator"><div><h3>Simulador no vencimento</h3><p>Altere o cenário do ativo-objeto. O cálculo usa o payoff matemático da estratégia selecionada.</p></div>{field("scenarioPct", "Variação do ativo (%)", { min: "-100" })}<Metric label="Preço no cenário" value={formatMoney(scenarioPrice)}/><Metric label="P&L da posição" value={formatMoney(scenarioPayoff)} tone={scenarioPayoff >= 0 ? "positive" : "negative"}/><Metric label="Retorno sobre capital" value={pct(scenarioReturn)} tone={scenarioReturn >= 0 ? "positive" : "negative"}/></div><p className="quant-note">{analysis.payoff.formula} {analysis.payoff.limitation}</p></> : <p className="quant-empty">{analysis.payoff.reason}</p>}
     </section>
 
