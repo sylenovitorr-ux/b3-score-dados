@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { buildQuantAnalysis } from "./quant/quant-engine.js";
 import { detectMovement, explainPrice, marketContextScore, normalizeEvents, scenarioBands } from "./quant/context-engine.js";
 import FinancialChart from "./FinancialChart.jsx";
+import FundamentalReport from "./FundamentalReport.jsx";
 
 const money = (value) => value == null ? "Dado indisponível" : value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const number = (value, digits = 2) => value == null ? "Dado indisponível" : value.toLocaleString("pt-BR", { maximumFractionDigits: digits });
@@ -100,5 +101,6 @@ export default function AssetIntelligencePanel({ asset, assets, anomaly, radar, 
 
     <details className="evidence-panel" id="evidencias-ativo"><summary>Ver evidências ({events.length}) <i>⌄</i></summary><div>{events.length ? events.map((event, index) => <article key={`${event.date}-${index}`}><header><span>{EVENT_LABELS[event.category] ?? "E"}</span><div><b>{event.title}</b><small>{date(event.date)} • {event.source ?? "Fonte indisponível"} • relevância {Math.round(event.relevance)}/100</small></div><em className={`sentiment-${event.sentiment}`}>{event.sentiment}</em></header><p>{event.causality}</p><dl><div><dt>Relação</dt><dd>{event.relation}</dd></div><div><dt>Após 1 pregão</dt><dd>{pct(event.returnAfter1Pct)}</dd></div><div><dt>Após 5 pregões</dt><dd>{pct(event.returnAfter5Pct)}</dd></div><div><dt>Após 20 pregões</dt><dd>{pct(event.returnAfter20Pct)}</dd></div></dl>{event.url ? <a href={event.url} target="_blank" rel="noreferrer">Abrir evidência ↗</a> : <small>URL indisponível para esta evidência calculada.</small>}</article>) : <p className="intelligence-empty">Dado indisponível. Nenhum evento oficial ou notícia relevante foi vinculado ao ativo.</p>}</div></details>
     <p className="intelligence-method"><b>Como interpretar:</b> o painel separa fatos, cálculos, contexto e cenários. Notícias de baixa relevância não alteram a leitura. A decisão permanece com o usuário.</p>
+    <FundamentalReport asset={asset} assets={assets} anomaly={anomaly} />
   </section>;
 }
