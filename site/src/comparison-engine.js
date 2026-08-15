@@ -27,3 +27,14 @@ export function comparisonMetrics(asset, anomaly) {
     dividendYield: finite(f.dividendYield ?? f.dy12), volume: finite(asset?.volume), volatility: finite(anomaly?.annualizedVolatilityPct), drawdown: finite(anomaly?.drawdownPct), momentum20: finite(anomaly?.return20Pct),
   };
 }
+
+// Usa exclusivamente pregões que existam nas duas séries: nenhuma lacuna é preenchida.
+export function synchronizedBenchmarkReturn(assetSeries = [], benchmarkSeries = []) {
+  const assetByDate = new Map(assetSeries.filter((row) => finite(row?.close) > 0 && row?.date).map((row) => [row.date, Number(row.close)]));
+  const rows = benchmarkSeries.filter((row) => finite(row?.base100) > 0 && assetByDate.has(row?.date)).map((row) => ({ date: row.date, asset: assetByDate.get(row.date), benchmark: Number(row.base100) }));
+  if (rows.length < 2) return { available: false, sessions: rows.length, startDate: null, endDate: null, assetReturnPct: null, benchmarkReturnPct: null, relativeReturnPct: null };
+  const first = rows[0], last = rows.at(-1);
+  const assetReturnPct = (last.asset / first.asset - 1) * 100;
+  const benchmarkReturnPct = (last.benchmark / first.benchmark - 1) * 100;
+  return { available: true, sessions: rows.length, startDate: first.date, endDate: last.date, assetReturnPct, benchmarkReturnPct, relativeReturnPct: assetReturnPct - benchmarkReturnPct };
+}
