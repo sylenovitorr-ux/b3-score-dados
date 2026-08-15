@@ -73,6 +73,34 @@ function RelativePerformance({ assetSeries = [], benchmarks }) {
   return <div className="relative-performance"><header><b>Janela comum</b><span>{date(startDate)} a {date(endDate)} • sem preencher dias ausentes</span></header><div>{results.map((row) => <article key={row.id}><span>{row.id}</span><b>{pct(row.value)}</b><small>{row.source}</small><em>ref. {date(row.referenceDate)}</em></article>)}</div><p>Retorno = valor final ÷ valor inicial − 1. CDI é composto pelas taxas diárias SGS 12; índices usam fechamento B3.</p></div>;
 }
 
+function DecisionSummary({ asset, analysis, justification, context, events, movement }) {
+  const fundamentals = asset.kind === "fii" ? asset.fund ?? {} : asset.fundamentals ?? {};
+  const score = fundamentals.scores?.overall ?? null;
+  const discount = justification.gapPct == null ? null : -justification.gapPct;
+  const confidence = analysis.confidence ?? null;
+  const risk = analysis.components?.risk?.value ?? null;
+  const valuation = analysis.components?.valuation?.value ?? null;
+  const favorable = [];
+  const cautions = [];
+  if (discount != null && discount >= 15) favorable.push(`preço ${pct(discount)} abaixo do consenso dos modelos válidos`);
+  if (score != null && score >= 65) favorable.push(`score fundamental de ${Math.round(score)}/100`);
+  if (valuation != null && valuation >= 60) favorable.push(`valuation de ${Math.round(valuation)}/100`);
+  if (risk != null && risk >= 60) favorable.push(`risco quantitativo dentro da faixa mais favorável (${Math.round(risk)}/100)`);
+  if (discount != null && discount < 0) cautions.push(`preço ${pct(-discount)} acima do consenso dos modelos válidos`);
+  if (score != null && score < 50) cautions.push(`fundamentos ainda frágeis (${Math.round(score)}/100)`);
+  if (risk != null && risk < 50) cautions.push(`risco quantitativo elevado na janela observada (${Math.round(risk)}/100)`);
+  if (movement.relevant) cautions.push("movimento recente estatisticamente relevante; não confundir volatilidade com oportunidade");
+  if (confidence != null && confidence < 60) cautions.push(`confiança dos dados limitada (${Math.round(confidence)}/100)`);
+  if (justification.fairValue == null) cautions.push("sem consenso de valor justo calculável");
+  const companyEvents = events.filter((event) => event.relation === "empresa" && event.relevance >= 35).slice(0, 2);
+  const externalEvents = events.filter((event) => ["setor", "macroeconomia"].includes(event.relation) && event.relevance >= 35).slice(0, 2);
+  const studyState = confidence != null && confidence < 50 ? "Dados insuficientes para formar uma leitura de aquisição"
+    : favorable.length >= 3 && cautions.length <= 1 ? "Faixa para estudo aprofundado"
+      : cautions.length >= 3 ? "Priorizar investigação antes de alocar"
+        : "Acompanhar antes de considerar uma posição";
+  return <section className="decision-summary"><header><div><span className="eyebrow">SÍNTESE FINAL PARA ESTUDO</span><h3>{studyState}</h3><p>Esta leitura organiza evidências para decidir se vale aprofundar a análise. Não é recomendação de compra, venda ou garantia de retorno.</p></div><b>{confidence == null ? "Confiança N/D" : `Confiança ${Math.round(confidence)}/100`}</b></header><div className="decision-summary-grid"><article><h4>Por que considerar</h4>{favorable.length ? <ul>{favorable.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Nenhum fator favorável suficientemente verificável foi identificado no conjunto atual.</p>}</article><article><h4>Por que não agir agora</h4>{cautions.length ? <ul>{cautions.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Nenhuma ressalva quantitativa relevante foi identificada; isso não elimina riscos não observados.</p>}</article></div><div className="decision-context"><article><span>CONTEXTO LOCAL — EMPRESA</span>{companyEvents.length ? companyEvents.map((event) => <p key={`${event.date}-${event.title}`}>{event.title} <small>({event.sentiment}; {event.source ?? "fonte indisponível"}; {date(event.date)})</small></p>) : <p>Sem evento corporativo relevante vinculado no conjunto atual.</p>}</article><article><span>CONTEXTO GLOBAL E SETORIAL</span>{externalEvents.length ? externalEvents.map((event) => <p key={`${event.date}-${event.title}`}>{event.title} <small>({event.sentiment}; {event.source ?? "fonte indisponível"}; {date(event.date)})</small></p>) : <p>Sem evento macroeconômico ou setorial relevante vinculado no conjunto atual.</p>}</article></div><footer><b>Por que o preço está nesse nível:</b> {justification.explanation} <span>Preço de referência: {money(justification.currentPrice)} em {date(asset.date)}. Valor justo consensual: {money(justification.fairValue)}. A divergência descreve uma hipótese quantitativa, não a causa comprovada do preço.</span></footer></section>;
+}
+
 export default function AssetIntelligencePanel({ asset, assets, anomaly, radar, benchmarks }) {
   const analysis = useMemo(() => buildQuantAnalysis(asset, assets, anomaly), [asset, assets, anomaly]);
   const radarRow = useMemo(() => [...(radar?.strength ?? []), ...(radar?.pressure ?? [])].find((row) => row.ticker === asset.ticker) ?? null, [radar, asset.ticker]);
@@ -102,5 +130,6 @@ export default function AssetIntelligencePanel({ asset, assets, anomaly, radar, 
     <details className="evidence-panel" id="evidencias-ativo"><summary>Ver evidências ({events.length}) <i>⌄</i></summary><div>{events.length ? events.map((event, index) => <article key={`${event.date}-${index}`}><header><span>{EVENT_LABELS[event.category] ?? "E"}</span><div><b>{event.title}</b><small>{date(event.date)} • {event.source ?? "Fonte indisponível"} • relevância {Math.round(event.relevance)}/100</small></div><em className={`sentiment-${event.sentiment}`}>{event.sentiment}</em></header><p>{event.causality}</p><dl><div><dt>Relação</dt><dd>{event.relation}</dd></div><div><dt>Após 1 pregão</dt><dd>{pct(event.returnAfter1Pct)}</dd></div><div><dt>Após 5 pregões</dt><dd>{pct(event.returnAfter5Pct)}</dd></div><div><dt>Após 20 pregões</dt><dd>{pct(event.returnAfter20Pct)}</dd></div></dl>{event.url ? <a href={event.url} target="_blank" rel="noreferrer">Abrir evidência ↗</a> : <small>URL indisponível para esta evidência calculada.</small>}</article>) : <p className="intelligence-empty">Dado indisponível. Nenhum evento oficial ou notícia relevante foi vinculado ao ativo.</p>}</div></details>
     <p className="intelligence-method"><b>Como interpretar:</b> o painel separa fatos, cálculos, contexto e cenários. Notícias de baixa relevância não alteram a leitura. A decisão permanece com o usuário.</p>
     <FundamentalReport asset={asset} assets={assets} anomaly={anomaly} />
+    <DecisionSummary asset={asset} analysis={analysis} justification={justification} context={context} events={events} movement={movement} />
   </section>;
 }
