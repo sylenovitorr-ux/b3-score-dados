@@ -9,6 +9,7 @@ import ComparisonPage from "./ComparisonPage";
 import SimulatorPage from "./SimulatorPage";
 import MethodologyPage from "./MethodologyPage";
 import PortfolioManager from "./PortfolioManager";
+import SwingPage from "./SwingPage";
 import { parseRoute, PRIMARY_NAV, routeHash } from "./navigation";
 import "./v2.css";
 import "./v2-extra-1.css";
@@ -57,6 +58,7 @@ function buildScoreDetails(f, scores) {
     dividends: ["dividend yield", "regularidade e payout"]
   };
   const rationale = {
+
     price: "Compara o pre\xE7o da empresa com lucro, patrim\xF4nio e resultado operacional.",
     quality: "Mede rentabilidade, efici\xEAncia e evolu\xE7\xE3o dos resultados publicados.",
     debt: f.financialCompany ? "N\xE3o aplic\xE1vel a bancos: dep\xF3sitos e capta\xE7\xE3o fazem parte da opera\xE7\xE3o." : "Avalia alavancagem e capacidade de cumprir compromissos de curto prazo.",
@@ -98,7 +100,6 @@ function upgradeFundamentals(f) {
     ebitMargin: f.ebitMargin,
     netMargin: f.netMargin,
     netDebtEbit: f.netDebtEbit,
-
     netDebtEbitda: f.netDebtEbitda,
     currentRatio: f.currentRatio,
     revenueGrowth: f.revenueGrowth,
@@ -118,6 +119,7 @@ function upgradeFundamentals(f) {
   const estimation = f.marketCapEstimated ? 85 : 100;
   const confidence = Math.round(coverage * 0.55 + freshness * 0.2 + linkage * 0.1 + 10 + estimation * 0.05);
   const metricStates = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, nonApplicable.has(key) ? "not_applicable" : value === null || value === void 0 ? "not_found" : f.marketCapEstimated && ["pe", "pb", "evEbit", "eps"].includes(key) ? "estimated" : freshness < 55 ? "stale" : "available"]));
+
   return { ...f, metricStates, confidenceDetails: { coverage, freshness, linkage, consolidation: 100, estimation, available, applicable: applicable.length }, scores: { ...upgradedScores, confidence }, scoreDetails };
 }
 function normalize(raw) {
@@ -178,6 +180,7 @@ const PROFILE_OPTIONS = {
     conservative: "Conservador",
     moderate: "Moderado",
     bold: "Arrojado"
+
   }
 };
 const DECISION_META = {
@@ -199,7 +202,6 @@ function peerComparison(asset, assets) {
   const isFii = asset.kind === "fii";
   const group = isFii ? asset.fund?.segment : asset.fundamentals?.sector;
   if (!group) return null;
-
   const peers = assets.filter((item) => item.ticker !== asset.ticker && (isFii ? item.kind === "fii" && item.fund?.segment === group : item.kind !== "fii" && item.fundamentals?.sector === group));
   if (peers.length < 2) return null;
   if (isFii) {
@@ -239,6 +241,7 @@ function decisionPillars(asset) {
   return [
     { key: "quality", label: "Qualidade", value: scores.quality },
     { key: "price", label: "Preço", value: scores.price },
+
     { key: "safety", label: "Segurança", value: scores.debt },
     { key: "growth", label: "Crescimento", value: scores.growth },
     { key: "income", label: "Proventos", value: scores.dividends }
@@ -299,8 +302,8 @@ function buildDecision(asset, profile = DEFAULT_INVESTOR_PROFILE, assets = []) {
   else if (fitScore >= 70 && confidence >= 65 && margin !== null && margin >= 10 && !risks.some((risk) => risk.includes("prejuízo"))) status = "candidate";
   const peer = peerComparison(asset, assets);
   const monitor = isFii ? ["recorrência dos rendimentos", "vacância, inadimplência e passivos", "próximo informe mensal/trimestral"] : ["próximo resultado trimestral", "evolução das margens e do lucro", "dívida e geração de caixa"];
-  const invalidators = isFii ? ["queda recorrente dos rendimentos", "alta relevante de vacância ou inadimplência", "aumento de passivos sem melhora da renda"] : ["dois resultados seguidos com piora operacional", "dívida superar a capacidade de geração de caixa", "lucro ou margem deteriorarem sem sinal de recuperação"];
 
+  const invalidators = isFii ? ["queda recorrente dos rendimentos", "alta relevante de vacância ou inadimplência", "aumento de passivos sem melhora da renda"] : ["dois resultados seguidos com piora operacional", "dívida superar a capacidade de geração de caixa", "lucro ou margem deteriorarem sem sinal de recuperação"];
   return {
     status,
     meta: DECISION_META[status],
@@ -360,6 +363,7 @@ function PortfolioSimulator({ assets, asOf }) {
   const simulation = useMemo(() => {
     const weights = selectedAssets.map((asset) => strategy === "score" ? Math.max(20, assetScore(asset)) : 1);
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
     const rows = selectedAssets.map((asset, index) => {
       const target = totalWeight ? capital * weights[index] / totalWeight : 0;
       const quantity = Math.floor(target / (asset.price ?? Infinity));
@@ -401,7 +405,6 @@ function PortfolioSimulator({ assets, asOf }) {
     }
     const cashProceeds = reinvestProceeds ? 0 : proceeds;
     const appreciation = Math.max(0, investedBalance - contributed - reinvested);
-
     const tax = simulateSale ? appreciation * projectionBasis.taxRate / 100 : 0;
     const costs = simulateSale ? investedBalance * Math.max(0, costRate) / 100 : 0;
     return { investedBalance, appreciation, proceeds, tax, costs, net: investedBalance + cashProceeds - tax - costs };
@@ -421,6 +424,7 @@ function PortfolioSimulator({ assets, asOf }) {
       <div className="projection-settings">
         <label className="switch-setting"><input type="checkbox" checked={reinvestProceeds} onChange={(event) => setReinvestProceeds(event.target.checked)} /><span><b>Reinvestir proventos</b><small>Usa os recebimentos para comprar mais ativos.</small></span></label>
         <label className="switch-setting"><input type="checkbox" checked={simulateSale} onChange={(event) => setSimulateSale(event.target.checked)} /><span><b>Simular venda no final</b><small>Aplica IR e custos somente sobre a venda hipotética.</small></span></label>
+
         <label className="cost-setting"><span>Custos estimados na venda</span><div><input type="number" min="0" max="5" step=".01" value={costRate} onChange={(event) => setCostRate(Math.max(0, Math.min(5, Number(event.target.value))))} /><b>%</b></div></label>
       </div>
       <div className="projection-status"><span>DY estimado da carteira <b>{projectionBasis.dividendYield === null ? "N/D" : percent(projectionBasis.dividendYield, false)}</b></span><span>Cobertura do DY <b>{number(projectionBasis.yieldCoverage, 0)}%</b></span><span>IR simplificado na venda <b>{number(projectionBasis.taxRate, 1)}%</b></span></div>
@@ -481,6 +485,7 @@ function InvestorProfile({ profile, onChange }) {
   return <section className="investor-profile" id="perfil-investidor">
     <div className="profile-heading"><div><span className="eyebrow">SEU RADAR</span><h2>Defina como você investe</h2><p>O perfil muda os pesos da análise, mas nunca apaga riscos nem transforma a nota em recomendação.</p></div><span className="profile-saved">✓ salvo neste aparelho</span></div>
     <div className="profile-controls">
+
       <label><span>Objetivo</span><select value={profile.objective} onChange={(event) => update("objective", event.target.value)}>{Object.entries(PROFILE_OPTIONS.objective).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label><span>Prazo</span><select value={profile.horizon} onChange={(event) => update("horizon", event.target.value)}>{Object.entries(PROFILE_OPTIONS.horizon).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label><span>Tolerância ao risco</span><select value={profile.risk} onChange={(event) => update("risk", event.target.value)}>{Object.entries(PROFILE_OPTIONS.risk).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -502,7 +507,6 @@ function DecisionRadar({ asset, profile, assets }) {
       <article className="negative"><b>Riscos e contrapontos</b>{[...decision.blockers, ...decision.risks].length ? [...decision.blockers, ...decision.risks].map((item) => <span key={item}>! {item}</span>) : <span>Nenhum alerta forte nos dados disponíveis.</span>}</article>
       <article><b>O que acompanhar</b>{decision.monitor.map((item) => <span key={item}>→ {item}</span>)}</article>
       <article><b>O que invalidaria a tese</b>{decision.invalidators.map((item) => <span key={item}>× {item}</span>)}</article>
-
     </div>
     {decision.peer && decision.peer.rows.length > 0 && <div className="peer-comparison"><div><b>Comparação com pares</b><span>{decision.peer.group} • {decision.peer.count} ativos com dados comparáveis</span></div><div className="peer-table"><span>Indicador</span><span>{asset.ticker}</span><span>Mediana do grupo</span>{decision.peer.rows.map((row) => <><b key={`${row.label}-label`}>{row.label}</b><strong key={`${row.label}-asset`}>{row.format(row.asset)}</strong><em key={`${row.label}-peer`}>{row.format(row.peer)}</em></>)}</div></div>}
     <div className="decision-fit"><b>Encaixe na carteira</b><span>Limites definidos: até {profile.maxAsset}% por ativo e {profile.maxSector}% por setor. O app ainda não conhece suas posições reais; confirme a concentração no simulador antes de comprar.</span></div>
@@ -542,6 +546,7 @@ function stockEvidence(f) {
   }
   if (f.revenueGrowth !== null) (f.revenueGrowth >= 5 ? strengths : f.revenueGrowth < 0 ? risks : []).push(`receita em ${percent(f.revenueGrowth)}`);
   const parts = [];
+
   if (strengths.length) parts.push(`Pontos favor\xE1veis: ${strengths.slice(0, 2).join(" e ")}`);
   if (risks.length) parts.push(`Pontos de aten\xE7\xE3o: ${risks.slice(0, 2).join(" e ")}`);
   return parts.join(". ") || "Os demais indicadores dispon\xEDveis n\xE3o formam um sinal forte de confirma\xE7\xE3o ou alerta.";
@@ -602,8 +607,8 @@ function interpretMetric(label, context, kind) {
     if (value === null || value <= 0) return assessment("na", "N\xE3o avali\xE1vel", "Compara o valor de mercado com o patrim\xF4nio l\xEDquido.", "Patrim\xF4nio negativo invalida a leitura tradicional.", "Ativos cont\xE1beis podem n\xE3o refletir valor econ\xF4mico ou qualidade.", evidence);
     const tone = value <= 1 ? "excellent" : value <= 2 ? "good" : value <= 3 ? "neutral" : value <= 5 ? "attention" : "bad";
     return assessment(tone, tone === "excellent" ? "Excelente" : tone === "good" ? "Bom" : tone === "neutral" ? "Neutro" : tone === "attention" ? "Aten\xE7\xE3o" : "Ruim", "Indica quanto o mercado paga por R$ 1 de patrim\xF4nio l\xEDquido.", "Perto ou abaixo de 1 pode indicar desconto; empresas muito rent\xE1veis justificam m\xFAltiplos maiores.", "Patrim\xF4nio barato n\xE3o significa neg\xF3cio lucrativo.", `P/VP de ${number(value)} e ROE de ${percent(f.roe, false)}. ${evidence}`);
-  }
 
+  }
   if (label === "EV/EBIT") {
     const value = f.evEbit;
     if (value === null || value <= 0) return assessment("na", "N\xE3o avali\xE1vel", "Relaciona o valor da opera\xE7\xE3o ao resultado operacional.", "EBIT negativo impede a leitura convencional.", "Compare somente neg\xF3cios com estrutura operacional semelhante.", evidence);
@@ -663,6 +668,7 @@ function interpretMetric(label, context, kind) {
   }
   if (label === "Lucro l\xEDquido 12m" || label === "EBITDA 12m") {
     const value = label === "Lucro l\xEDquido 12m" ? f.netIncomeTTM : f.ebitdaTTM ?? null;
+
     if (value === null) return assessment("na", "N\xE3o avali\xE1vel", "Resultado acumulado dos \xFAltimos 12 meses.", "A conta n\xE3o foi identificada com seguran\xE7a.", "O tamanho absoluto deve ser comparado com receita, capital e hist\xF3rico.", evidence);
     return assessment(value > 0 ? "good" : "bad", value > 0 ? "Positivo" : "Negativo", `Mostra o ${label === "Lucro l\xEDquido 12m" ? "resultado final" : "resultado operacional antes de juros, impostos, deprecia\xE7\xE3o e amortiza\xE7\xE3o"}.`, "O sinal \xE9 importante, mas margens e evolu\xE7\xE3o explicam melhor a qualidade.", "Resultado positivo pode conter itens n\xE3o recorrentes.", `${label} de ${compactMoney(value)}. ${evidence}`);
   }
@@ -704,7 +710,6 @@ function MetricExplorer({ metrics, kind, context }) {
     { title: "Liquidez e p\xFAblico", subtitle: "Negocia\xE7\xE3o e base de investidores", labels: ["Liquidez di\xE1ria", "Cotistas"] }
   ];
   const stateLabel = (metric) => metric.state === "estimated" ? "Estimado" : metric.state === "stale" ? "Antigo" : metric.state === "not_applicable" ? "N\xE3o aplic\xE1vel" : metric.state === "not_found" ? "N\xE3o encontrado" : metric.state === "official" ? "Oficial" : "Calculado";
-
   return <section className="detail-section metric-explorer" id="indicadores-ativo">
     <div className="section-heading"><h3>Indicadores e fórmulas</h3><span>{valid.length} valores calculados</span></div>
     <p className="section-intro">Cada indicador recebe uma leitura educativa baseada no próprio valor e nos demais dados disponíveis. Toque para entender, analisar e auditar o cálculo.</p>
@@ -724,6 +729,7 @@ function AccountingAudit({ fundamentals: f }) {
   if (!audit) return null;
   const ttmEntries = Object.entries(audit.ttm ?? {});
   const validated = ttmEntries.filter(([, item]) => item.state === "validated_ttm").length;
+
   const reconciliation = audit.balanceReconciliation;
   const growthLabel = (state) => ({
     turnaround: "Preju\xEDzo \u2192 lucro",
@@ -784,6 +790,7 @@ function CompanyAndStatements({ fundamentals: f }) {
     ["Valor de mercado", compactMoney(f.marketCap)],
     ["Valor da firma", f.financialCompany ? "N/A banco" : compactMoney(f.enterpriseValue ?? null)],
     ["Total de pap\xE9is", compactNumber(f.sharesOutstanding)],
+
     ["Free float", f.freeFloat === null || f.freeFloat === void 0 ? "N/D" : percent(f.freeFloat, false)]
   ].filter(([, value]) => value !== "\u2014");
   const history = f.history ?? [];
@@ -805,7 +812,6 @@ function CompanyAndStatements({ fundamentals: f }) {
         ["Resultado financeiro", "financialResult", "money"],
         ["Impostos", "taxes", "money"],
         ["Lucro l\xEDquido", "netIncome", "money"],
-
         ["Lucro da controladora", "controllerIncome", "money"],
         ["N\xE3o controladores", "nonControllerIncome", "money"],
         ["ROE", "roe", "percent"],
@@ -845,6 +851,7 @@ function CompanyAndStatements({ fundamentals: f }) {
         ["Passivo circulante", "currentLiabilities", "money"],
         ["Passivo n\xE3o circulante", "nonCurrentLiabilities", "money"],
         ["Patrim\xF4nio l\xEDquido", "equity", "money"],
+
         ["Capital social", "shareCapital", "money"],
         ["Reservas de capital", "capitalReserves", "money"],
         ["Reservas de lucros", "profitReserves", "money"],
@@ -905,8 +912,8 @@ function StockScorePillars({ fundamentals: f }) {
     return <details className={scoreTone(detail.score)} key={category.key}>
       <summary><span>{category.label}<small>{detail.score === null ? f.financialCompany && category.key === "debt" ? "N\xE3o aplic\xE1vel" : "Dados insuficientes" : `${detail.effectiveWeight}% do score`}</small></span><strong>{detail.score ?? "N/D"}</strong></summary>
       <div><p>{detail.rationale}</p><b>Indicadores considerados</b><span>{detail.inputs.join(" \u2022 ") || "Nenhum indicador aplic\xE1vel"}</span><small>Peso-base: {detail.weight}%{detail.score !== null ? ` \u2022 peso efetivo ap\xF3s renormaliza\xE7\xE3o: ${detail.effectiveWeight}%` : ""}</small></div>
-    </details>;
 
+    </details>;
   })}</div>;
 }
 function ConfidenceBreakdown({ fundamentals: f }) {
@@ -966,6 +973,7 @@ function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anom
     const value = f.scores[category.key];
     return <article className={scoreTone(value)} key={category.key}><span>{category.label}</span><strong>{value}</strong><small>{category.description}</small></article>;
   })}</div><ScoreWhy scores={f.scores} categories={fiiCategoryMeta} />
+
 	    <DecisionRadar asset={asset} profile={profile} assets={assets} />
 	    <MarketOverview asset={asset} />
 	    <AssetIntelligencePanel asset={asset} assets={assets} anomaly={anomaly} radar={radar} benchmarks={benchmarks} />
@@ -1007,7 +1015,6 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly
     inputs,
     state: metricState(key),
     period: f?.periodLabel
-
   });
   const metrics = f ? [
     audited("P/L", number(f.pe), "Valor de mercado \xF7 lucro l\xEDquido 12m", `CVM ${shortDate(f.referenceDate)} + B3 ${shortDate(asset.date)}`, "pe", [{ label: "Valor de mercado", value: compactMoney(f.marketCap) }, { label: "Lucro l\xEDquido 12m", value: compactMoney(f.netIncomeTTM) }]),
@@ -1027,6 +1034,7 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly
     audited("Dividend yield 12m", percent(f.dividendYield, false), "Proventos por a\xE7\xE3o dos \xFAltimos 12 meses \xF7 cota\xE7\xE3o atual", `B3 at\xE9 ${shortDate(f.dividendSourceDate ?? void 0)}`, "dividendYield", [{ label: "Proventos por a\xE7\xE3o 12m", value: money(f.dividendsPerShare12m ?? null) }, { label: "Cota\xE7\xE3o", value: money(asset.price) }]),
     audited("Proventos por a\xE7\xE3o 12m", money(f.dividendsPerShare12m ?? null), "Soma dos proventos em dinheiro aplic\xE1veis \xE0 classe do ativo", `B3 at\xE9 ${shortDate(f.dividendSourceDate ?? void 0)}`, "dividendYield", [{ label: "Eventos dispon\xEDveis", value: number(f.dividendEvents?.length ?? 0, 0) }]),
     audited("Regularidade 24m", percent(f.dividendRegularity ?? null, false), "Meses com pelo menos um provento \xF7 24 meses", "Eventos oficiais B3", "dividendRegularity", [{ label: "Meses com provento", value: `${f.dividendMonths24m ?? 0} de 24` }]),
+
     audited("Payout", percent(f.payout ?? null, false), "Proventos por a\xE7\xE3o 12m \xF7 lucro por a\xE7\xE3o 12m", "B3 + CVM", "payout", [{ label: "Proventos por a\xE7\xE3o", value: money(f.dividendsPerShare12m ?? null) }, { label: "LPA", value: money(f.eps) }], "Estimativa por classe; diferen\xE7as entre ON, PN e units s\xE3o preservadas."),
     audited("LPA", money(f.eps), "Lucro l\xEDquido 12m \xF7 a\xE7\xF5es em circula\xE7\xE3o", f.periodLabel, "eps", [{ label: "Lucro l\xEDquido", value: compactMoney(f.netIncomeTTM) }, { label: "A\xE7\xF5es", value: compactNumber(f.sharesOutstanding) }]),
     audited("VPA", money(f.bookValuePerShare), "Patrim\xF4nio l\xEDquido \xF7 a\xE7\xF5es em circula\xE7\xE3o", `posi\xE7\xE3o em ${shortDate(f.referenceDate)}`, "bookValuePerShare", [{ label: "Patrim\xF4nio l\xEDquido", value: compactMoney(f.equity) }, { label: "A\xE7\xF5es", value: compactNumber(f.sharesOutstanding) }]),
@@ -1087,6 +1095,7 @@ function PotentialChart({ rows }) {
 function RadarCard({ row, direction, onOpen }) {
   const strength = direction === "strength";
   return <article className={`daily-radar-card ${direction}`}><div className="daily-card-head"><div><span className="asset-kind">{strength ? "SINAL DE FORÇA" : "SINAL DE PRESSÃO"}</span><h3>{row.ticker}</h3><small>{row.name}</small></div><div className="daily-score"><b>{row.score}</b><span>/100</span></div></div>
+
     <div className="mini-score-chart" aria-label={`Composição do score de ${row.ticker}`}><span style={{ width: `${row.fundamentalScore}%` }}>F</span><span style={{ width: `${row.technicalScore}%` }}>T</span><span style={{ width: `${row.newsScore}%` }}>N</span></div>
     <div className="daily-score-labels"><span>Fund. <b>{row.fundamentalScore}</b></span><span>Técnico <b>{row.technicalScore}</b></span><span>Notícias <b>{row.newsScore}</b></span></div>
     <dl className="daily-levels"><div><dt>Preço atual</dt><dd>{money(row.price)}</dd></div><div><dt>{strength ? "Faixa de entrada" : "Zona de reavaliação"}</dt><dd>{money(row.entryLow)} – {money(row.entryHigh)}</dd></div><div><dt>{strength ? "Alvo-base" : "Alvo de pressão"}</dt><dd>{money(row.target)} <small>{percent(row.potentialPct)}</small></dd></div><div><dt>Saída defensiva</dt><dd>{money(row.defensiveExit)}</dd></div></dl>
@@ -1108,7 +1117,6 @@ function DailyRadarPage({ radar, onBack, onOpen }) {
     <section className="radar-method"><h2>Como interpretar</h2><p>{radar.methodology} Os cenários são limitados a +40% e −35% por rodada para impedir que um indicador extremo domine a tela. Fontes: {radar.sources.join(", ")}.</p><strong>Ferramenta educacional. Não constitui recomendação, oferta ou garantia de resultado.</strong></section>
   </div>;
 }
-
 function PriceSparkline({ series = [], ticker }) {
   const values = series.map((row) => row.close).filter(Number.isFinite);
   if (values.length < 2) return <span className="spark-empty">histórico indisponível</span>;
@@ -1148,6 +1156,7 @@ function OptionsPage({ assets, anomalies, optionChain, onBack, onOpen }) {
     return { asset, anomaly, signal, eligibility, study };
   }).filter((row) => row.asset.ticker.includes(query.trim().toUpperCase()) || row.asset.name?.toUpperCase().includes(query.trim().toUpperCase())).filter((row) => reading === "all" || row.signal.code === reading).sort((a, b) => b.eligibility - a.eligibility), [assets, anomalies, query, reading]);
   return <div className="options-page"><div className="daily-radar-top"><button className="back-btn" onClick={onBack}>← Visão geral</button><span>Camada educacional • sem lançamento descoberto</span></div>
+
     <section className="options-hero"><div><span className="eyebrow">OPÇÕES • DADOS OFICIAIS D-1</span><h1>Analise o ativo.<br /><em>Depois o contrato.</em></h1><p>O app combina valuation e risco do ativo-base com séries do fechamento B3. Cada contrato mantém fonte, data, premissas e cálculos visíveis.</p></div><div className="options-risk-box"><b>RISCO MÁXIMO VISÍVEL</b><strong>100%</strong><span>do prêmio em uma opção comprada</span><small>Venda descoberta pode gerar perdas muito superiores. O app não sugere essa operação.</small></div></section>
     <section className="options-boundary"><article><b>Automático pelo fechamento oficial</b><p>Série, CALL/PUT, vencimento, strike, último prêmio, negócios, volume, IV, Delta, Theta e preço teórico quando as entradas do modelo estiverem disponíveis.</p></article><article><b>O que ainda permanece N/D</b><p>Bid/ask e open interest não existem no COTAHIST. Esses campos continuam vazios até uma fonte oficial específica ser integrada.</p></article></section>
     <section className="options-controls"><label>Ativo-base<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="PETR4" /></label><label>Leitura<select value={reading} onChange={(event) => setReading(event.target.value)}><option value="all">Todas</option><option value="buy">Boa faixa para comprar</option><option value="hold">Boa para manter</option><option value="realize">Faixa de realização</option><option value="wait">Aguardar</option></select></label></section>
@@ -1208,8 +1217,8 @@ function Home() {
         localStorage.removeItem(CACHE_KEY);
       }
     }
-    try {
 
+    try {
       const [stockResponse, fiiResponse, radarResponse, anomalyResponse] = await Promise.all([
         fetch(REMOTE_STOCK_URL, { cache: "no-store" }),
         fetch(REMOTE_FII_URL, { cache: "no-store" }),
@@ -1269,6 +1278,7 @@ function Home() {
       if (!isStandalone && !platformChoice) setShowPlatformChooser(true);
       setFavorites(new Set(saved));
       setInvestorProfile(savedProfile);
+
       setProfileReady(true);
       void load();
     });
@@ -1310,7 +1320,6 @@ function Home() {
     const closeOnEscape = (event) => event.key === "Escape" && setSelected(null);
     window.addEventListener("keydown", closeOnEscape);
     return () => {
-
       document.body.classList.remove("modal-open");
       window.removeEventListener("keydown", closeOnEscape);
     };
@@ -1330,6 +1339,7 @@ function Home() {
     if (filter === "candidates") result = result.filter((a) => buildDecision(a, investorProfile).status === "candidate");
     if (["buy", "hold", "sell"].includes(filter)) result = result.filter((a) => {
       const signal = buildActionSignal(a, assets, anomalies?.assets?.[a.ticker]);
+
       if (filter === "sell") return signal.code === "realize" || signal.code === "reduce";
       return signal.code === filter;
     });
@@ -1389,7 +1399,8 @@ function Home() {
       <p className="platform-footnote">Você pode abrir esta escolha novamente pelo botão “Web / instalar” no topo.</p>
     </section></div>}
     <header className="site-header v2-header"><div className="header-inner"><button className="brand v2-brand-button" onClick={() => openPage("home")}><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>CENTRAL DE ANÁLISE</small></span></button><nav className="v2-nav" aria-label="Navegação principal">{PRIMARY_NAV.map(([id,label])=><button key={id} className={page===id?"active":""} aria-current={page===id?"page":undefined} onClick={()=>openPage(id)}>{label}</button>)}</nav><div className="v2-header-tools"><button className="theme-btn" type="button" aria-pressed={theme === "dark"} aria-label={`Ativar tema ${theme === "dark" ? "claro" : "escuro"}`} onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}>{theme === "dark" ? "☀" : "☾"}</button><button className="install-btn" onClick={()=>{setShowAndroidGuide(true);setShowPlatformChooser(true)}}>▣ <span>Instalar</span></button><button className={`refresh-btn ${loading?"loading":""}`} disabled={loading} aria-label={loading?"Atualizando dados":"Atualizar dados"} onClick={()=>load(true)}>↻</button></div></div></header>
-    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunities" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "integrity" ? <IntegrityPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "options" ? <OptionsPage assets={assets} anomalies={anomalies} optionChain={optionChain} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "quant" ? <QuantPage assets={assets} anomalies={anomalies} initialTicker={route.ticker} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "compare" ? <ComparisonPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "simulator" ? <SimulatorPage assets={assets} onBack={() => openPage("home")} onOptions={() => openPage("options")} portfolio={<PortfolioSimulator assets={assets} asOf={asOf} />} /> : page === "portfolio" ? <div className="v2-page"><header className="v2-page-head"><button onClick={() => openPage("home")}>← Início</button><div><span>CARTEIRAS</span><h1>Carteiras e desempenho</h1><p>Estratégias separadas, comparação e histórico local.</p></div></header><PortfolioManager assets={assets} asOf={asOf} /></div> : page === "methodology" ? <MethodologyPage onBack={() => openPage("home")} onNavigate={openPage} /> : page === "asset" ? <div className="v2-route-state">{loading ? "Carregando análise…" : selected ? "" : `Ativo ${route.ticker ?? ""} não encontrado.`}</div> : page === "home" ? <HomeHub assets={assets} market={market} statusText={statusText} asOf={asOf} loading={loading} onNavigate={openPage} onOpenAsset={openRadarAsset} /> : page === "analyze" ? <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Pesquisar e analisar.<br /><em>Sem atalhos.</em></h1><p>Filtre ações e fundos imobiliários e abra a análise completa com fórmula, período e fonte.</p></div><div className="market-card" aria-live="polite"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{loading && !assets.length ? "—" : assets.length}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100: 0}%` }} /></div><div className="market-stats"><span>{loading && !assets.length ? "—" : market.stocks} ações/units</span><span>{loading && !assets.length ? "—" : market.fiis} FIIs</span><span>{loading && !assets.length ? "—" : market.covered} com CVM</span></div></div></section>
+    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunities" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "swing" ? <SwingPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "integrity" ? <IntegrityPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "options" ? <OptionsPage assets={assets} anomalies={anomalies} optionChain={optionChain} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "quant" ? <QuantPage assets={assets} anomalies={anomalies} initialTicker={route.ticker} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "compare" ? <ComparisonPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "simulator" ? <SimulatorPage assets={assets} onBack={() => openPage("home")} onOptions={() => openPage("options")} portfolio={<PortfolioSimulator assets={assets} asOf={asOf} />} /> : page === "portfolio" ? <div className="v2-page"><header className="v2-page-head"><button onClick={() => openPage("home")}>← Início</button><div><span>CARTEIRAS</span><h1>Carteiras e desempenho</h1><p>Estratégias separadas, comparação e histórico local.</p></div></header><PortfolioManager assets={assets} asOf={asOf} /></div> : page === "methodology" ? <MethodologyPage onBack={() => openPage("home")} onNavigate={openPage} /> : page === "asset" ? <div className="v2-route-state">{loading ? "Carregando análise…" : selected ? "" : `Ativo ${route.ticker ?? ""} não encontrado.`}</div> : page === "home" ? <HomeHub assets={assets} market={market} statusText={statusText} asOf={asOf} loading={loading} onNavigate={openPage} onOpenAsset={openRadarAsset} /> : page === "analyze" ? <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Pesquisar e analisar.<br /><em>Sem atalhos.</em></h1><p>Filtre ações e fundos imobiliários e abra a análise completa com fórmula, período e fonte.</p></div><div className="market-card" aria-live="polite"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{loading && !assets.length ? "—" : assets.length}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100: 0}%` }} /></div><div className="market-stats"><span>{loading && !assets.length ? "—" : market.stocks} ações/units</span><span>{loading && !assets.length ? "—" : market.fiis} FIIs</span><span>{loading && !assets.length ? "—" : market.covered} com CVM</span></div></div></section>
+
       <section className="trust-row"><article><b>B3 D-1</b><span>último fechamento oficial disponível</span></article><article><b>CVM</b><span>DFP/ITR e informes de FIIs</span></article><article><b>0 invenção</b><span>só aparece valor calculável</span></article><article><b>Score correto</b><span>empresas e FIIs usam critérios diferentes</span></article></section>
       <InvestorProfile profile={investorProfile} onChange={setInvestorProfile} />
       <AnalysisGuide />
@@ -1411,7 +1422,6 @@ function Home() {
       <section className="how-section"><div><span className="eyebrow">MÉTODO AUDITÁVEL</span><h2>Duas réguas.<br />Nenhum atalho.</h2><p>Empresas são avaliadas por preço, qualidade, dívida e dividendos. FIIs usam P/VP, renda, imóveis, risco e liquidez. O total considera somente os blocos disponíveis.</p></div><div className="how-grid">{[["01", "Empresas", "CVM + B3: valuation, rentabilidade, d\xEDvida e proventos"], ["02", "Fundos imobili\xE1rios", "Informes: P/VP, DY, patrim\xF4nio, passivos e vac\xE2ncia"], ["03", "Pre\xE7o oficial", "Fechamento B3 com a data real do preg\xE3o"], ["04", "Sem preenchimento", "Campo sem base segura \xE9 ocultado e sai da m\xE9dia"]].map(([id, title, text]) => <article key={id}><span>{id}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
       <section className="install-section" id="install-guide"><div className="phone-icon">↓</div><div><span className="eyebrow">WEB OU ANDROID</span><h2>Escolha como usar</h2><p>Continue na versão Web ou instale o PWA no Android. As duas versões compartilham os mesmos recursos e dados.</p></div><button onClick={() => {
     setShowAndroidGuide(false);
-
     setShowPlatformChooser(true);
   }}>Escolher versão</button></section>
       <footer><div className="brand"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></div><p>Ações: fechamento B3 de {shortDate(asOf.stockPriceAsOf ?? void 0)}. FIIs: fechamento B3 de {shortDate(asOf.fiiPriceAsOf ?? void 0)}. Informes CVM: referência mais recente em {shortDate(asOf.cvmFilesAsOf ?? void 0)}. “Consultar” busca novamente e mantém o último snapshot válido se uma fonte estiver indisponível.</p><p className="disclaimer">Ferramenta educacional. Não constitui análise profissional, oferta ou recomendação de compra ou venda.</p></footer></> : <div className="v2-empty"><b>Página não encontrada.</b><button onClick={() => openPage("home")}>Voltar ao início</button></div>}
@@ -1420,4 +1430,3 @@ function Home() {
 export {
   Home as default
 };
-
