@@ -129,6 +129,35 @@ export function buildActionSignal(asset, assets = [], anomaly = null) {
   return { code: "wait", label: "Aguardar", tone: "wait", holder: "Manter somente se a tese continuar válida", newcomer: "Não iniciar posição agora", reasons, plan, quality, confidence, anomalyScore };
 }
 
+// Camada de apresentação: reduz a leitura operacional a três estados sem
+// apagar os bloqueios e motivos detalhados do sinal original.
+export function buildThreeWayDecision(asset, assets = [], anomaly = null) {
+  const signal = buildActionSignal(asset, assets, anomaly);
+  if (signal.code === "unavailable") return {
+    state: "unavailable", label: "DADOS INSUFICIENTES", tone: "neutral", score: null, coverage: 0, signal,
+    inputs: [], formula: "Sem preço atual e valor justo verificável, não há base para gerar a nota de parâmetro.",
+  };
+  const valuation = finite(signal.plan?.potentialPct) === null ? null : bounded(50 + signal.plan.potentialPct * 1.5);
+  const integrity = bounded(100 - (finite(signal.anomalyScore) ?? 0));
+  const total = weightedAverage([
+    { key: "fundamentos", label: "Fundamentos", value: signal.quality, weight: 40 },
+    { key: "valuation", label: "Preço versus justo", value: valuation, weight: 25 },
+    { key: "confianca", label: "Confiança dos dados", value: signal.confidence, weight: 20 },
+    { key: "integridade", label: "Integridade do movimento", value: integrity, weight: 15 },
+  ]);
+  const state = signal.code === "buy" ? "buy" : ["reduce", "realize"].includes(signal.code) ? "sell" : "hold";
+  const copy = {
+    buy: { label: "COMPRAR", tone: "buy", explanation: "A faixa de preço, qualidade, confiança e risco passaram simultaneamente pelos filtros do modelo." },
+    hold: { label: "MANTER", tone: "hold", explanation: "O modelo não encontrou simultaneamente condições suficientes para compra nem motivo quantitativo para venda; acompanhe a tese e a faixa de preço." },
+    sell: { label: "VENDER", tone: "sell", explanation: "O preço está em faixa de realização ou os filtros identificaram deterioração que pede reavaliação antes de manter exposição." },
+  }[state];
+  return {
+    state, ...copy, score: total.score, coverage: Math.round(total.availableWeight), signal,
+    inputs: total.components,
+    formula: "Nota = Fundamentos (40%) + preço versus valor justo (25%) + confiança dos dados (20%) + integridade do movimento (15%). Pesos indisponíveis são retirados e os restantes são renormalizados.",
+  };
+}
+
 export function cashFlowScore(f) {
   const rows = (f.history ?? []).slice(0, 5).map((row) => row.cashFlow?.freeCashFlow).filter(Number.isFinite);
   if (!rows.length) return null;
