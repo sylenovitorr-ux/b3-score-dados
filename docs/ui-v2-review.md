@@ -71,7 +71,7 @@ Rotas preparadas:
 
 ## Próximos upgrades recomendados
 
-1. Sincronizar séries oficiais de benchmarks e alinhar calendários.
+1. Monitorar a disponibilidade dos endpoints oficiais e a defasagem de cada série.
 2. Extrair páginas legadas restantes de `App.jsx` sem reescrever motores.
 3. Avaliar Lightweight Charts em branch isolada com medição de bundle e acessibilidade.
 4. Adicionar testes de interface em viewport móvel e desktop no CI.
