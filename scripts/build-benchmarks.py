@@ -111,6 +111,17 @@ def compound_daily_percent(rows: list[dict]) -> list[dict]:
     return output
 
 
+def compound_annualized_rate(rows: list[dict]) -> list[dict]:
+    """Build a transparent Selic accumulation from the official annualized rate."""
+    level = 100.0
+    output = []
+    for row in rows:
+        value = float(row["value"])
+        level *= (1 + value / 100) ** (1 / 252)
+        output.append({**row, "base100": round(level, 6)})
+    return output
+
+
 def fetch_sgs(series_id: int, start: date, end: date) -> list[dict]:
     query = urllib.parse.urlencode({
         "formato": "json",
@@ -166,9 +177,19 @@ def build() -> dict:
         }
     except (OSError, ValueError, json.JSONDecodeError) as error:
         series["CDI"] = unavailable("CDI", "CDI acumulado", "Banco Central do Brasil — SGS 12", f"Falha de atualização: {type(error).__name__}.")
+    try:
+        selic_rows = compound_annualized_rate(fetch_sgs(1178, start, end))[-260:]
+        series["SELIC"] = {
+            "id": "SELIC", "name": "Selic acumulada", "status": "ATUALIZADO" if selic_rows else "INDISPONÍVEL",
+            "source": "Banco Central do Brasil — SGS 1178", "referenceDate": selic_rows[-1]["date"] if selic_rows else None,
+            "updatedAt": now.isoformat(), "normalization": "100 × produto((1 + Selic anual/100)^(1/252))", "series": selic_rows,
+            "limitation": "Acumulação teórica da taxa Selic anualizada; CDI é a taxa efetiva interbancária.",
+        }
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        series["SELIC"] = unavailable("SELIC", "Selic acumulada", "Banco Central do Brasil — SGS 1178", f"Falha de atualização: {type(error).__name__}.")
     return {
         "generatedAt": now.isoformat(), "modelVersion": "1.0.0", "series": series,
-        "methodology": "Índices: evolução diária oficial B3 normalizada pela primeira observação, com COTAHIST como fallback. CDI: composição das taxas diárias oficiais SGS 12.",
+        "methodology": "Índices: evolução diária oficial B3 normalizada pela primeira observação, com COTAHIST como fallback. CDI: composição das taxas diárias oficiais SGS 12. Selic: acumulação teórica da série anualizada SGS 1178 em base 252.",
     }
 
 
