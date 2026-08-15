@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { formatCompactMoney } from "./formatters";
 
 const GROUPS = [
-  ["Análises complementares", [["compare", "Comparador", "Ativos lado a lado e performance base 100", "⇄"], ["quant", "Central Quant", "Risco, momentum, estatística e auditoria", "∑"], ["integrity", "Integridade", "Movimentos atípicos para investigar, sem acusação", "◎"]]],
+  ["Análises complementares", [["swing", "Swing 3–6M", "Filtro separado de qualidade e timing", "↗"], ["compare", "Comparador", "Ativos lado a lado e performance base 100", "⇄"], ["quant", "Central Quant", "Risco, momentum, estatística e auditoria", "∑"], ["integrity", "Integridade", "Movimentos atípicos para investigar, sem acusação", "◎"]]],
   ["Planejamento e estudo", [["simulator", "Simuladores", "Risco, alvo, aportes e cenários", "▤"], ["options", "Opções", "Contratos, gregas, IV e payoff", "◉"], ["portfolio", "Carteira", "Posições, exposição e concentração", "▦"], ["methodology", "Metodologia", "Fontes, fórmulas, limitações e guia de uso", "ⓘ"]]],
 ];
 
