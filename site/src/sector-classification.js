@@ -15,7 +15,10 @@ const RULES = [
 
 export function classifySector(asset) {
   const f = asset?.fundamentals ?? asset?.fund ?? {};
-  const official = f.sector ?? f.segment;
+  // Em ações, "segment" no snapshot é segmento de listagem (Novo Mercado,
+  // Nível 2 etc.) e nunca deve entrar como setor econômico. Em FIIs, o
+  // segmento do informe é a classificação operacional disponível.
+  const official = asset?.kind === "fii" ? (f.segment ?? f.sector) : f.sector;
   if (official) return { label: official, source: "Classificação publicada pela fonte", confidence: "alta", official: true };
   const text = `${asset?.ticker ?? ""} ${asset?.name ?? ""} ${f.companyName ?? ""}`;
   const match = RULES.find(([, pattern]) => pattern.test(text));
