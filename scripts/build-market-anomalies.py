@@ -49,6 +49,9 @@ def read_history(folder: Path | None, universe: set[str]) -> dict[str, list[dict
             if ticker not in universe:
                 continue
             try:
+                open_price = int(line[56:69]) / 100
+                high = int(line[69:82]) / 100
+                low = int(line[82:95]) / 100
                 close = int(line[108:121]) / 100
                 volume = int(line[170:188]) / 100
             except ValueError:
@@ -57,6 +60,9 @@ def read_history(folder: Path | None, universe: set[str]) -> dict[str, list[dict
                 continue
             history.setdefault(ticker, []).append({
                 "date": f"{line[2:6]}-{line[6:8]}-{line[8:10]}",
+                "open": open_price,
+                "high": high,
+                "low": low,
                 "close": close,
                 "volume": max(0, volume),
             })
@@ -94,10 +100,21 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
     extreme_days = sum(1 for value in recent_returns if abs(value) >= 5 and reference_sd and abs((value - reference_mean) / reference_sd) >= 3)
     reversal = len(returns) >= 2 and abs(returns[-2]) >= 6 and returns[-2] * returns[-1] < 0 and abs(returns[-1]) >= abs(returns[-2]) * .5
     median_volume = statistics.median(row["volume"] for row in rows[-20:])
+    previous_volume_window = [row["volume"] for row in rows[-21:-1]]
+    average_volume20 = statistics.fmean(previous_volume_window) if previous_volume_window else None
+    volume_vs_average20 = (rows[-1]["volume"] / average_volume20 - 1) * 100 if average_volume20 and average_volume20 > 0 else None
     low_liquidity = median_volume < 100_000
     possible_event = any(abs(value) >= 30 for value in recent_returns)
     daily_vol = statistics.stdev(returns[-60:]) if len(returns) >= 20 else 0
     annual_vol = daily_vol * math.sqrt(252)
+    return5 = (rows[-1]["close"] / rows[-6]["close"] - 1) * 100 if len(rows) > 5 else None
+    return20 = (rows[-1]["close"] / rows[-21]["close"] - 1) * 100 if len(rows) > 20 else None
+    previous5 = (rows[-6]["close"] / rows[-11]["close"] - 1) * 100 if len(rows) > 10 else None
+    acceleration = return5 - previous5 if return5 is not None and previous5 is not None else None
+    latest_open = rows[-1].get("open")
+    gap = (latest_open / rows[-2]["close"] - 1) * 100 if latest_open and rows[-2]["close"] > 0 else None
+    high20 = max(row.get("high", row["close"]) for row in rows[-20:])
+    low20 = min(row.get("low", row["close"]) for row in rows[-20:])
     return_points = min(35, max(0, (abs(return_z or 0) - 1.5) * 14))
     volume_points = min(25, max(0, ((volume_z or 0) - 1.5) * 10))
     cluster_points = min(20, extreme_days * 7)
@@ -115,7 +132,8 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
         flags.append({"code": "liquidity", "label": "Baixa liquidez", "severity": "context", "explanation": "Pouco volume pode ampliar oscilações sem irregularidade."})
     if possible_event:
         flags.append({"code": "event", "label": "Verificar evento corporativo", "severity": "context", "explanation": "Oscilação muito ampla pode refletir grupamento, desdobramento, provento ou outro evento."})
-    first_20 = rows[-20]["close"]
+    if gap is not None and abs(gap) >= 4:
+        flags.append({"code": "gap", "label": "Gap relevante", "severity": "medium", "explanation": f"Abertura a {gap:+.1f}% do fechamento anterior."})
     result = {
         "ticker": ticker,
         "score": score,
@@ -123,10 +141,17 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
         "latestReturnPct": round(latest_return, 2),
         "returnZ": round(return_z, 2) if return_z is not None else None,
         "volumeZ": round(volume_z, 2) if volume_z is not None else None,
-        "return20Pct": round((rows[-1]["close"] / first_20 - 1) * 100, 2),
+        "return5Pct": round(return5, 2) if return5 is not None else None,
+        "return20Pct": round(return20, 2) if return20 is not None else None,
+        "acceleration5Pct": round(acceleration, 2) if acceleration is not None else None,
+        "gapPct": round(gap, 2) if gap is not None else None,
         "dailyVolatilityPct": round(daily_vol, 2),
         "annualizedVolatilityPct": round(annual_vol, 2),
         "medianVolume20": round(median_volume, 2),
+        "averageVolume20": round(average_volume20, 2) if average_volume20 is not None else None,
+        "volumeVsAverage20Pct": round(volume_vs_average20, 2) if volume_vs_average20 is not None else None,
+        "high20": round(high20, 2),
+        "low20": round(low20, 2),
         "extremeDays20": extreme_days,
         "flags": flags,
         "sessions": len(rows),
@@ -149,10 +174,10 @@ def build() -> dict:
     return {
         "generatedAt": datetime.now(UTC).isoformat(),
         "quoteDate": max((row["lastDate"] for row in assets.values()), default=None),
-        "modelVersion": "2.0.0",
+        "modelVersion": "3.0.0",
         "universe": len(universe),
         "analysed": len(assets),
-        "methodology": "Z-scores de retorno e log-volume, repetição de extremos, reversão e contexto de liquidez. Série auditável de até 260 pregões; os z-scores usam até 60 pregões anteriores.",
+        "methodology": "Retornos de 1, 5 e 20 pregões, z-scores de retorno e log-volume, volume contra média de 20 pregões, gaps, aceleração, repetição de extremos, reversão e contexto de liquidez. Série auditável de até 260 pregões; os z-scores usam até 60 pregões anteriores.",
         "disclaimer": "Anomalia estatística não comprova fraude, manipulação, intenção ou irregularidade. Verifique eventos corporativos, fatos relevantes e notícias antes de interpretar o movimento.",
         "sources": ["B3 COTAHIST", "CVM Resolução 62", "CVM documentos periódicos e eventuais"],
         "assets": assets,

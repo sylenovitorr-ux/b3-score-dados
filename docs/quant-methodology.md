@@ -47,6 +47,43 @@ Fluxo de dividendos e múltiplos históricos aparecem como indisponíveis até e
 
 Beta e correlação exigem uma série sincronizada do benchmark. Sem ela, permanecem indisponíveis.
 
+## Detector de movimentos
+
+O detector usa a série oficial da B3 e mantém as janelas explicitamente separadas:
+
+- retorno em 1, 5 e 20 pregões;
+- volatilidade anualizada com até 60 retornos e base de 252 pregões;
+- volume do último pregão contra a média dos 20 anteriores;
+- z-score do retorno e do logaritmo do volume contra até 60 observações anteriores;
+- aceleração como retorno dos últimos 5 pregões menos o retorno dos 5 anteriores;
+- gap como abertura atual dividida pelo fechamento anterior menos 1;
+- máxima e mínima dos últimos 20 pregões.
+
+Um movimento é classificado como relevante quando ao menos um critério documentado ultrapassa seu limiar. A classificação é estatística e não comprova fraude, manipulação, intenção ou causa.
+
+## Contexto e relevância
+
+Eventos oficiais de proventos e manchetes já coletadas pelo radar são normalizados sem chaves no frontend. A relevância de 0 a 100 combina:
+
+- 50% relação direta com empresa, setor ou macroeconomia;
+- 18% proximidade temporal;
+- 20% credibilidade da fonte;
+- 12% magnitude lexical do acontecimento.
+
+Notícias com relação indireta recebem pouca relevância. O sentimento é apenas contextual e nunca substitui valuation, score ou cálculo financeiro. Toda notícia exibe a ressalva de que associação temporal não significa causalidade comprovada.
+
+## Justificativa do preço e cenários
+
+A divergência é calculada por `preço atual ÷ valor justo consensual − 1`. O estado visual usa a distância absoluta: até 10% bem explicado, até 25% parcialmente explicado, até 45% divergência relevante e acima disso grande divergência. O texto combina apenas fatores fundamentais e contextuais disponíveis.
+
+Os cenários usam o menor modelo válido, o consenso ponderado e o maior modelo válido como centros pessimista, base e otimista. A faixa ao redor de cada centro é ampliada pela volatilidade observada, limitada entre 8% e 45%. Não há probabilidades nem valor esperado sem modelo calibrado.
+
+## Gráficos e eventos
+
+O gráfico principal sincroniza preço e volume na mesma janela e permite 1, 3, 6 e 12 meses ou o máximo disponível. O valor justo atual aparece como referência, não como série histórica. Marcadores identificam proventos, notícias e anomalias; o tooltip mostra data, fonte, relevância e limitação causal.
+
+O retorno posterior a eventos é calculado somente quando existem 1, 5 ou 20 pregões posteriores na própria série. Caso contrário, permanece `null`. Múltiplos históricos e benchmarks sincronizados são explicitamente indisponíveis até existirem dados reais comparáveis.
+
 ## Opções
 
 O motor de opções usa a versão `2.0.0`. A cadeia diária é extraída do COTAHIST oficial da B3. O arquivo fornece série, tipo, vencimento, strike, último prêmio, negócios, quantidade e volume financeiro no fechamento D-1. O spot vem do mesmo pregão e a taxa de referência vem da série Selic 1178 do Banco Central.

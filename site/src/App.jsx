@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildActionSignal, buildOpportunity, buildPositionPlan, fairValueRange } from "./opportunity-engine";
 import QuantPage from "./QuantPage";
 import OptionsLab from "./OptionsLab";
+import AssetIntelligencePanel from "./AssetIntelligencePanel";
 import { formatCompactMoney, formatMoney, formatNumber, formatPercent } from "./formatters";
 const FILTERS = [
   { id: "all", label: "Todos" },
@@ -916,7 +917,7 @@ function ActionReading({ asset, assets, anomaly }) {
   const signal = buildActionSignal(asset, assets, anomaly);
   return <section className={`action-reading ${signal.tone}`} id="leitura-ativo"><div className="action-reading-main"><span className="eyebrow">LEITURA DO SISTEMA</span><h3>{signal.label}</h3><p>Classificação matemática, não ordem personalizada. Ela muda quando preço, fundamentos, confiança ou anomalias mudam.</p></div><div className="action-audiences"><article><span>Se já possui</span><b>{signal.holder}</b></article><article><span>Se ainda não possui</span><b>{signal.newcomer}</b></article></div><details><summary>Por que o sistema chegou a esta leitura? <i>⌄</i></summary><div>{signal.reasons.map((reason) => <p key={reason}>• {reason}</p>)}<small>“Vender” pode significar realização por preço ou redução por deterioração. Confira qual motivo foi acionado antes de decidir.</small></div></details></section>;
 }
-function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly }) {
+function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly, radar }) {
   const f = asset.fund;
   const metrics = [
     { label: "P/VP", value: number(f.pb), formula: "Cota\xE7\xE3o \xF7 valor patrimonial por cota", source: `CVM ${shortDate(f.referenceDate ?? void 0)} + B3 ${shortDate(asset.date)}` },
@@ -936,7 +937,7 @@ function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anom
   return <div className="modal-backdrop" onMouseDown={(event) => event.currentTarget === event.target && onClose()}><section className="detail-sheet" role="dialog" aria-modal="true" aria-label={`An\xE1lise do FII ${asset.ticker}`}>
     <div className="sheet-handle" /><div className="detail-top"><button className="back-btn" onClick={onClose}>← Voltar</button><button className={`favorite large ${favorite ? "active" : ""}`} onClick={onFavorite}>★</button></div>
 	    <div className="detail-title"><div><span className="asset-kind">FUNDO IMOBILIÁRIO{f.segment ? ` \u2022 ${f.segment}` : ""}</span><h2>{asset.ticker}</h2><small>{f.name}{f.cnpj ? ` \u2022 ${f.cnpj}` : ""}</small></div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
-	    <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a><a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a><a href="#fontes-ativo">Fontes</a></nav>
+	    <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a><a href="#visao-geral-ativo">Visão geral</a><a href="#painel-grafico-ativo">Gráficos</a><a href="#indicadores-ativo">Indicadores</a><a href="#fontes-ativo">Fontes</a></nav>
 	    <ActionReading asset={asset} assets={assets} anomaly={anomaly} />
 	    <PositionPlan asset={asset} anomaly={anomaly} />
 	    <div className="score-hero fii-score"><ScoreRing value={f.scores.overall} /><div><span className="eyebrow">SCORE EXCLUSIVO PARA FII</span><h3>{scoreLabel(f.scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(f.scores.confidence)}`}>{f.scores.confidence}%</b>. A tela mostra apenas indicadores com valor verificável.</p></div></div>
@@ -946,6 +947,7 @@ function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anom
   })}</div><ScoreWhy scores={f.scores} categories={fiiCategoryMeta} />
 	    <DecisionRadar asset={asset} profile={profile} assets={assets} />
 	    <MarketOverview asset={asset} />
+	    <AssetIntelligencePanel asset={asset} assets={assets} anomaly={anomaly} radar={radar} />
 	    <MetricExplorer metrics={metrics} kind="fii" context={f} />
 	    <section className="statement-strip">{[{ label: "Segmento", value: f.segment }, { label: "Gest\xE3o", value: f.managementType }, { label: "Administrador", value: f.administrator }, { label: "P\xFAblico-alvo", value: f.targetAudience }].filter((item) => item.value).map((item) => <div key={item.label}><span>{item.label}</span><b>{item.value}</b></div>)}</section>
 	    <div className="data-stamp"><b>Preço: {shortDate(asset.date)}</b><span>Informe mensal: {shortDate(f.referenceDate ?? void 0)} • trimestral: {shortDate(f.quarterDate ?? void 0)}</span></div>
@@ -965,8 +967,8 @@ function ExecutiveSummary({ asset, assets, profile }) {
     <details className="executive-audit"><summary>Ver composição e travas do Score <i>⌄</i></summary><div><section className="executive-components">{opportunity.components.map((component) => <article key={component.key}><div><span>{component.label}</span><b>{Math.round(component.value)}/100</b></div><i><em style={{ width: `${component.value}%` }} /></i><small>peso efetivo {number(component.effectiveWeight, 1)}% • contribuição {number(component.contribution, 1)}</small></article>)}</section><section className="executive-calculation"><article><b>Modelo de preço justo</b><p>{opportunity.fair.model}: {opportunity.fair.method}.</p>{opportunity.fair.anchors.map((anchor) => <span key={anchor.label}>{anchor.label}: {money(anchor.value)}{anchor.effectiveWeight ? ` • peso ${anchor.effectiveWeight}%` : ""}</span>)}</article><article><b>Ajustes da nota</b><p>Nota bruta {opportunity.rawScore} − penalidades {opportunity.penaltyPoints} = nota final {opportunity.score}.</p>{opportunity.penalties.map((item) => <span key={item.label}>−{item.points}: {item.label}</span>)}{opportunity.caps.map((item) => <span key={item}>Teto aplicado: {item}</span>)}{!opportunity.penalties.length && !opportunity.caps.length && <span>Sem penalidades ou tetos acionados.</span>}</article></section></div></details>
   </section>;
 }
-function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly }) {
-  if (asset.kind === "fii" && asset.fund) return <FiiDetail asset={asset} favorite={favorite} onFavorite={onFavorite} onClose={onClose} profile={profile} assets={assets} anomaly={anomaly} />;
+function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly, radar }) {
+  if (asset.kind === "fii" && asset.fund) return <FiiDetail asset={asset} favorite={favorite} onFavorite={onFavorite} onClose={onClose} profile={profile} assets={assets} anomaly={anomaly} radar={radar} />;
   const f = asset.fundamentals;
   const scores = f?.scores ?? fallbackScore(asset);
   const metricState = (key) => {
@@ -1013,13 +1015,14 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly
     <section className="detail-sheet" role="dialog" aria-modal="true" aria-label={`An\xE1lise de ${asset.ticker}`}>
 	      <div className="sheet-handle" /><div className="detail-top"><button className="back-btn" onClick={onClose}>← Voltar</button><button className={`favorite large ${favorite ? "active" : ""}`} onClick={onFavorite}>★</button></div>
 	      <div className="detail-title"><div><span className="asset-kind">{f?.companyName || asset.name || "ATIVO B3"}</span><h2>{asset.ticker}</h2>{f && <small>{f.cnpj} • CVM {f.cvmCode || "\u2014"}</small>}</div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
-	      <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a>{f && <a href="#resumo-ativo">Resumo</a>}<a href="#visao-geral-ativo">Visão geral</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
+	      <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a>{f && <a href="#resumo-ativo">Resumo</a>}<a href="#visao-geral-ativo">Visão geral</a><a href="#painel-grafico-ativo">Gráficos</a><a href="#indicadores-ativo">Indicadores</a>{f && <><a href="#empresa-ativo">Empresa</a><a href="#demonstrativos-ativo">Demonstrativos</a></>}<a href="#fontes-ativo">Fontes</a></nav>
 	      <ActionReading asset={asset} assets={assets} anomaly={anomaly} />
 	      <PositionPlan asset={asset} anomaly={anomaly} />
 	      {f && <ExecutiveSummary asset={asset} assets={assets} profile={profile} />}
 	      <div className="score-hero"><ScoreRing value={scores.overall} /><div><span className="eyebrow">SCORE FUNDAMENTALISTA</span><h3>{scoreLabel(scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(scores.confidence)}`}>{scores.confidence}%</b>. A tela exibe somente valores calculados e verificáveis.</p></div></div>
 	      {f ? <StockScorePillars fundamentals={f} /> : <div className="honest-note"><b>Score provisório de mercado</b><p>Sem demonstrativos vinculados, esta leitura usa somente preço e liquidez e não é um score fundamentalista.</p></div>}<ScoreWhy scores={scores} categories={categoryMeta} details={f?.scoreDetails} />{f && <DecisionRadar asset={asset} profile={profile} assets={assets} />}{f && <ConfidenceBreakdown fundamentals={f} />}
 	      <MarketOverview asset={asset} marketCap={f?.marketCap} />
+	      <AssetIntelligencePanel asset={asset} assets={assets} anomaly={anomaly} radar={radar} />
 	      {f ? <><MetricExplorer metrics={metrics} kind="stock" context={f} />
 	      <CompanyAndStatements fundamentals={f} />
 	      <div className="data-stamp"><b>Último balanço usado: {shortDate(f.referenceDate)}</b><span>{f.filingType} • {f.segment || "segmento n\xE3o informado"}</span></div></> : <div className="honest-note"><b>Sem vínculo contábil automático</b><p>Este código está na base oficial de negociações, mas não foi associado com segurança a uma companhia aberta na FCA atual. O score usa apenas preço e liquidez.</p></div>}
@@ -1374,7 +1377,7 @@ function Home() {
     setShowPlatformChooser(true);
   }}>Escolher versão</button></section>
       <footer><div className="brand"><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>FUNDAMENTOS ABERTOS</small></span></div><p>Ações: fechamento B3 de {shortDate(asOf.stockPriceAsOf ?? void 0)}. FIIs: fechamento B3 de {shortDate(asOf.fiiPriceAsOf ?? void 0)}. Informes CVM: referência mais recente em {shortDate(asOf.cvmFilesAsOf ?? void 0)}. “Consultar” busca novamente e mantém o último snapshot válido se uma fonte estiver indisponível.</p><p className="disclaimer">Ferramenta educacional. Não constitui análise profissional, oferta ou recomendação de compra ou venda.</p></footer></>}
-    </div>{selected && <Detail asset={selected} favorite={favorites.has(selected.ticker)} onFavorite={() => toggleFavorite(selected.ticker)} onClose={() => setSelected(null)} profile={investorProfile} assets={assets} anomaly={anomalies?.assets?.[selected.ticker]} />}</main>;
+    </div>{selected && <Detail asset={selected} favorite={favorites.has(selected.ticker)} onFavorite={() => toggleFavorite(selected.ticker)} onClose={() => setSelected(null)} profile={investorProfile} assets={assets} anomaly={anomalies?.assets?.[selected.ticker]} radar={radar} />}</main>;
 }
 export {
   Home as default
