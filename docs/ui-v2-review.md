@@ -67,6 +67,7 @@ Rotas preparadas:
 - 52 testes JavaScript aprovados.
 - 18 testes Python aprovados.
 - Build Vite de produção aprovado, incluindo `data/benchmarks.json` no artefato.
+- O workflow de validação possui somente permissão de leitura e não pode publicar no GitHub Pages.
 
 ## Próximos upgrades recomendados
 
