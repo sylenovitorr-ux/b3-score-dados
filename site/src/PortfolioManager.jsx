@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatMoney, formatPercent } from "./formatters";
+import "./PortfolioManager.css";
 
 const KEY = "b3-score-portfolios-v3";
 const LEGACY_KEY = "b3-score-portfolio-v1";
@@ -87,4 +88,3 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
       <aside className="portfolio-dashboard"><span>DESEMPENHO ATUAL</span><div className="portfolio-kpis"><article><small>Custo</small><b>{money(metrics?.cost)}</b></article><article><small>Valor atual</small><b>{metrics?.coverage === 100 ? money(metrics.value) : "N/D"}</b></article><article className={metrics?.pnl >= 0 ? "positive" : "negative"}><small>Resultado</small><b>{pct(metrics?.returnPct)}</b></article><article><small>Cobertura</small><b>{Math.round((metrics?.coverage ?? 0))}%</b></article></div><div className="portfolio-history"><h4>Evolução registrada</h4>{active.snapshots?.length > 1 ? <svg viewBox="0 0 100 42" preserveAspectRatio="none" role="img" aria-label={`Evolução de ${active.name}`}><polyline points={points(active.snapshots.map((snapshot) => snapshot.value))} /></svg> : <p>A evolução aparecerá quando houver pelo menos duas visitas em dias diferentes com preços disponíveis.</p>}<small>{active.snapshots?.length ?? 0} fotografia(s) • última: {active.snapshots?.at(-1)?.date ?? "ainda não registrada"}</small></div><p className="portfolio-data-note">Preços: ações em {asOf.stockPriceAsOf ?? "data indisponível"}; FIIs em {asOf.fiiPriceAsOf ?? "data indisponível"}. Resultados não incluem custos, impostos, proventos ou novos aportes.</p></aside></div>}
   </section>;
 }
-
