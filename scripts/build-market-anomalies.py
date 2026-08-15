@@ -19,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 OUTPUT = ROOT / "data/market-anomalies.json"
+HISTORY_SESSIONS = 2520
 
 
 def clamp(value: float, low: float = 0, high: float = 100) -> float:
@@ -39,7 +40,9 @@ def read_history(folder: Path | None, universe: set[str]) -> dict[str, list[dict
     paths = sorted(folder.glob("COTAHIST_A*.ZIP")) if folder else []
     if not paths:
         return history
-    for path in paths[-2:]:
+    # Every archive available is read. refresh-data.py controls the official
+    # 10-year download window, avoiding an arbitrary short lookback here.
+    for path in paths:
         with zipfile.ZipFile(path) as archive:
             text = archive.read(archive.namelist()[0]).decode("latin1")
         for line in text.splitlines():
@@ -156,7 +159,7 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
         "flags": flags,
         "sessions": len(rows),
         "lastDate": rows[-1]["date"],
-        "series": [{**row, "returnPct": round(returns[index - 1], 2) if index > 0 else None} for index, row in enumerate(rows[-260:], start=len(rows) - len(rows[-260:]))],
+        "series": [{**row, "returnPct": round(returns[index - 1], 2) if index > 0 else None} for index, row in enumerate(rows[-HISTORY_SESSIONS:], start=len(rows) - len(rows[-HISTORY_SESSIONS:]))],
     }
     return result
 
@@ -174,10 +177,10 @@ def build() -> dict:
     return {
         "generatedAt": datetime.now(UTC).isoformat(),
         "quoteDate": max((row["lastDate"] for row in assets.values()), default=None),
-        "modelVersion": "3.0.0",
+        "modelVersion": "3.1.0",
         "universe": len(universe),
         "analysed": len(assets),
-        "methodology": "Retornos de 1, 5 e 20 pregões, z-scores de retorno e log-volume, volume contra média de 20 pregões, gaps, aceleração, repetição de extremos, reversão e contexto de liquidez. Série auditável de até 260 pregões; os z-scores usam até 60 pregões anteriores.",
+        "methodology": "Retornos de 1, 5 e 20 pregões, z-scores de retorno e log-volume, volume contra média de 20 pregões, gaps, aceleração, repetição de extremos, reversão e contexto de liquidez. Série auditável de até 2.520 pregões (aproximadamente 10 anos); os z-scores usam até 60 pregões anteriores.",
         "disclaimer": "Anomalia estatística não comprova fraude, manipulação, intenção ou irregularidade. Verifique eventos corporativos, fatos relevantes e notícias antes de interpretar o movimento.",
         "sources": ["B3 COTAHIST", "CVM Resolução 62", "CVM documentos periódicos e eventuais"],
         "assets": assets,
