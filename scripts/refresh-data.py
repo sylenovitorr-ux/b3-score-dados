@@ -127,7 +127,9 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         raise SystemExit("No CVM quarterly FII file available")
 
     annual_history = []
-    for history_year in (year - 1, year):
+    # Ten complete calendar years make the Swing backtest auditable while
+    # retaining a bounded data volume compatible with GitHub Pages.
+    for history_year in range(year - 9, year + 1):
         annual_name = f"COTAHIST_A{history_year}.ZIP"
         if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{annual_name}", work / annual_name):
             annual_history.append(history_year)
@@ -188,7 +190,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "fiiCount": len(fii_data),
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
-        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 260, "b3HistoryYears": annual_history},
+        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 2520, "b3HistoryYears": annual_history},
         "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 12", "BCB SGS 1178"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
