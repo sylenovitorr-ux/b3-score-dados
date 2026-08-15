@@ -1,0 +1,16 @@
+import { useMemo, useState } from "react";
+import { buildQuantAnalysis } from "./quant/quant-engine.js";
+import { buildSwingCandidate } from "./quant/swing-engine.js";
+import "./SwingPage.css";
+
+const pct = (value) => value == null ? "N/D" : `${value > 0 ? "+" : ""}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+
+export default function SwingPage({ assets, anomalies, onBack, onOpen }) {
+  const [minimum, setMinimum] = useState(70);
+  const [onlyPositive, setOnlyPositive] = useState(true);
+  const rows = useMemo(() => assets.filter((asset) => asset.kind !== "fii").map((asset) => {
+    const quant = buildQuantAnalysis(asset, assets, anomalies?.assets?.[asset.ticker], "swing_3_6m");
+    return { asset, candidate: buildSwingCandidate(asset, quant, anomalies?.assets?.[asset.ticker]) };
+  }).filter(({ candidate }) => candidate.score !== null && candidate.score >= minimum && (!onlyPositive || candidate.timing.trend.tone === "positive")).sort((a, b) => b.candidate.score - a.candidate.score), [assets, anomalies, minimum, onlyPositive]);
+  return <div className="swing-page"><div className="daily-radar-top"><button className="back-btn" onClick={onBack}>← Visão geral</button><span>SWING 3–6M • hipótese pendente de validação histórica</span></div><section className="swing-hero"><div><span>SELEÇÃO ≠ TIMING</span><h1>Estude o ativo.<br /><em>Depois avalie a entrada.</em></h1><p>Score indica o que estudar. Timing ajuda a avaliar quando entrar. Não é ordem, previsão ou garantia de retorno.</p></div><aside><b>60–126</b><small>pregões esperados</small><p>Pesos iniciais configuráveis e pendentes de backtest.</p></aside></section><section className="swing-controls"><label>Score mínimo<input type="number" min="0" max="100" value={minimum} onChange={(event) => setMinimum(Number(event.target.value))} /></label><label><input type="checkbox" checked={onlyPositive} onChange={(event) => setOnlyPositive(event.target.checked)} /> Somente tendência positiva</label><span>{rows.length} ativos com dados suficientes</span></section><section className="swing-table"><div className="swing-head"><span># / Ativo</span><span>Swing</span><span>B3 Score</span><span>Timing</span><span>Tendência</span><span>60d / 126d</span><span>RSI</span><span>Risco</span></div>{rows.map(({ asset, candidate }, index) => <button key={asset.ticker} onClick={() => onOpen(asset.ticker)}><span><b>{index + 1}</b><strong>{asset.ticker}</strong><small>{asset.name}</small></span><b>{candidate.score}/100</b><b>{candidate.quality}/100</b><span><b>{candidate.timing.score}/100</b><small>{candidate.timing.state}</small></span><span><b>{candidate.timing.trend.label}</b><small>{candidate.state}</small></span><span>{pct(candidate.timing.snapshot.return60)}<small>{pct(candidate.timing.snapshot.return126)}</small></span><span>{candidate.timing.snapshot.rsi14?.toFixed(1) ?? "N/D"}</span><span>{candidate.risk ?? "N/D"}</span></button>)}</section>{!rows.length && <p className="quant-empty">Dados insuficientes para os filtros atuais. Ausências não são convertidas em zero.</p>}<section className="swing-note"><b>Como funciona</b><p>O ranking combina qualidade, timing, confiança, liquidez e risco. Tendência, retornos, médias, RSI e volume formam o timing. Os pesos permanecem como regra pendente de validação por backtest.</p></section></div>;
+}
