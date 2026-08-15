@@ -13,6 +13,11 @@ export default function FinancialChart({ series = [], fairValue, events = [], ti
   const sessions = { "1m": 22, "3m": 66, "6m": 132, "1y": 260, max: Infinity }[period];
   const rows = useMemo(() => series.slice(-sessions), [series, sessions]);
   const averages = useMemo(() => ({ ma20: movingAverage(rows, 20), ma50: movingAverage(rows, 50), ma200: movingAverage(rows, 200) }), [rows]);
+  const latestClose = rows.at(-1)?.close ?? null;
+  const latestMm200 = [...averages.ma200].reverse().find(Number.isFinite) ?? null;
+  const mm200Position = latestClose != null && latestMm200 != null
+    ? latestClose >= latestMm200 ? "acima" : "abaixo"
+    : null;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -97,6 +102,7 @@ export default function FinancialChart({ series = [], fairValue, events = [], ti
     <div className="chart-toolbar"><div>{Object.entries({ "1m": "1 mês", "3m": "3 meses", "6m": "6 meses", "1y": "1 ano", max: "Máximo" }).map(([key, label]) => <button type="button" className={period === key ? "active" : ""} onClick={() => setPeriod(key)} key={key}>{label}</button>)}</div><div><button type="button" className={mode === "candles" ? "active" : ""} onClick={() => setMode("candles")}>Candles</button><button type="button" className={mode === "line" ? "active" : ""} onClick={() => setMode("line")}>Linha</button></div></div>
     <div className="financial-canvas-shell"><canvas ref={canvasRef} onPointerMove={pointer} onPointerLeave={() => setHover(null)} role="img" aria-label={`Gráfico financeiro de ${ticker}: preço, volume, médias móveis, eventos e valor justo`} />{hovered && <output className="financial-tooltip"><b>{shortDate(hovered.date)}</b><span>A {money(hovered.open)} • Mx {money(hovered.high)}</span><span>Mn {money(hovered.low)} • F {money(hovered.close)}</span><span>Volume {money(hovered.volume)}</span></output>}</div>
     <figcaption><span><i className="legend-price" />Preço</span><span><i className="legend-ma20" />MM20</span><span><i className="legend-ma50" />MM50</span><span><i className="legend-ma200" />MM200</span><span><i className="legend-fair" />Valor justo atual</span><small>{rows.length} pregões • B3 COTAHIST • sem ajuste retroativo por proventos</small></figcaption>
+    <details className="chart-reading" open><summary>Como ler o gráfico e a MM200 <i>⌄</i></summary><div className="chart-reading-grid"><article><b>O que é a MM200?</b><p>É a média simples dos últimos 200 fechamentos. Ela suaviza o ruído diário e funciona como uma régua da tendência de longo prazo; não é previsão, alvo nem suporte garantido.</p></article><article><b>Leitura atual</b><p>{latestMm200 == null ? "A MM200 só aparece quando há ao menos 200 pregões no período exibido. Selecione 1 ano ou Máximo quando a série tiver cobertura suficiente." : `O último fechamento (${money(latestClose)}) está ${mm200Position} da MM200 (${money(latestMm200)}). Isso descreve a posição atual frente à tendência longa, não uma ordem de operação.`}</p></article></div><p className="chart-reading-note">Em geral, preço acima de uma MM200 ascendente sugere contexto técnico mais construtivo; abaixo de uma MM200 descendente pede mais cautela. Confirme sempre com valuation, resultados, liquidez, risco e contexto — um cruzamento isolado não decide aquisição ou venda.</p></details>
     <details className="chart-accessible-data"><summary>Últimas cotações em texto</summary><table><thead><tr><th>Data</th><th>Abertura</th><th>Máxima</th><th>Mínima</th><th>Fechamento</th></tr></thead><tbody>{rows.slice(-5).reverse().map((row) => <tr key={row.date}><td>{shortDate(row.date)}</td><td>{money(row.open)}</td><td>{money(row.high)}</td><td>{money(row.low)}</td><td>{money(row.close)}</td></tr>)}</tbody></table></details>
   </figure>;
 }
