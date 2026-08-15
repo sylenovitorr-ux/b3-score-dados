@@ -4,6 +4,7 @@ import { formatMoney, formatNumber } from "./formatters";
 
 const STORAGE_KEY = "b3-score-option-contracts-v1";
 const STRATEGIES = { "long-call": "Call comprada", "long-put": "Put comprada", "covered-call": "Call coberta", "protective-put": "Put protetiva", "bull-call": "Bull Call Spread", "bear-put": "Bear Put Spread", collar: "Collar" };
+const OBJECTIVES = { up: { label: "Alta", strategies: ["long-call", "bull-call"] }, down: { label: "Baixa", strategies: ["long-put", "bear-put"] }, income: { label: "Lateralização / renda", strategies: ["covered-call"] }, protection: { label: "Proteção", strategies: ["protective-put", "collar"] } };
 const COMPONENTS = { liquidity: "Liquidez", priceVolatility: "Preço e volatilidade", strike: "Strike", time: "Tempo", riskReturn: "Risco/retorno" };
 const initialForm = { contractTicker: "", type: "call", strike: "", premium: "", expiration: "", dte: "", rate: "", volatility: "", dividendYield: "", bid: "", ask: "", volume: "", openInterest: "", strategy: "long-call", quantity: "100", width: "", secondPremium: "", scenarioPct: "10" };
 const initialFilters = { type: "all", moneyness: "all", dteMin: "", dteMax: "", volumeMin: "", openInterestMin: "", spreadMax: "", deltaMin: "", deltaMax: "", ivMin: "", ivMax: "", scoreMin: "", objective: "all", sort: "score" };
@@ -31,6 +32,7 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
   const [ticker, setTicker] = useState(stockAssets.find((item) => item.ticker === "BBSE3")?.ticker ?? stockAssets[0]?.ticker ?? "");
   const [form, setForm] = useState(initialForm);
   const [officialId, setOfficialId] = useState("");
+  const [objective, setObjective] = useState("");
   const [contracts, setContracts] = useState(localContracts);
   const [filters, setFilters] = useState(initialFilters);
   useEffect(() => {
@@ -94,9 +96,12 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
   const scenarioPayoff = scenarioPrice === null ? null : strategyPayoffAtExpiration(form.strategy, scenarioPrice, analysis.contract);
   const scenarioReturn = scenarioPayoff !== null && analysis.payoff.capitalRequired > 0 ? scenarioPayoff / analysis.payoff.capitalRequired * 100 : null;
   const contractIndicationReady = Boolean(selectedOfficial && analysis.model.available && analysis.implied.available && analysis.liquidity.metrics.validBook && analysis.liquidity.metrics.openInterest !== null);
+  const compatibleStrategies = objective ? OBJECTIVES[objective].strategies : Object.keys(STRATEGIES);
+  const chooseObjective = (next) => { setObjective(next); setForm((current) => ({ ...current, strategy: OBJECTIVES[next].strategies[0] })); };
 
   return <section className="options-lab">
     <header className="options-lab-head"><div><span>LABORATÓRIO DE CONTRATOS</span><h2>Opções com cálculo auditável</h2><p>Selecione uma série oficial do fechamento B3 ou cadastre um contrato manual. IV, Greeks, Option Score e payoff são calculados localmente e separados do score fundamentalista do ativo.</p></div><strong>ESTRATÉGIA PARA ESTUDO</strong></header>
+    <section className="option-objectives"><div><span>PASSO 1</span><h3>Qual é o objetivo do estudo?</h3><p>A escolha apenas organiza estratégias compatíveis; não prevê a direção do mercado.</p></div><div>{Object.entries(OBJECTIVES).map(([id,item])=><button type="button" className={objective===id?"active":""} onClick={()=>chooseObjective(id)} key={id}>{item.label}<small>{item.strategies.map((key)=>STRATEGIES[key]).join(" • ")}</small></button>)}</div></section>
     <div className="option-source-warning official-chain"><b>{optionChain?.contracts?.length ? `Cadeia B3 carregada • ${optionChain.contracts.length} séries` : "Cadeia B3 aguardando atualização"}</b><span>{optionChain?.contracts?.length ? `Fechamento de ${optionChain.quoteDate}. Série, vencimento, strike, último prêmio e volume são oficiais. Bid/ask e open interest permanecem N/D porque não existem no COTAHIST.` : "O modo manual continua disponível. Nenhum contrato será fabricado enquanto o arquivo oficial não estiver disponível."}</span></div>
     <div className="options-lab-grid"><aside className="option-form">
       <label>Ativo-objeto<select value={ticker} onChange={(event) => selectUnderlying(event.target.value)}>{stockAssets.map((item) => <option value={item.ticker} key={item.ticker}>{item.ticker} • {formatMoney(item.price)}</option>)}</select></label>
@@ -115,7 +120,7 @@ export default function OptionsLab({ assets, anomalies, optionChain }) {
     </div></div>
 
     <section className="option-liquidity"><h3>Mercado e liquidez do contrato</h3><div>{field("bid", "Bid (R$)")}{field("ask", "Ask (R$)")}{field("volume", "Volume (quantidade)")}{field("openInterest", "Open interest")}</div>{analysis.liquidity.alert && <strong>{analysis.liquidity.alert}</strong>}<small>{analysis.liquidity.formula} No modo automático, volume vem da B3; bid/ask e OI continuam indisponíveis.</small></section>
-    <section className="strategy-builder"><div className="strategy-controls"><label>Estratégia<select value={form.strategy} onChange={(event) => set("strategy", event.target.value)}>{Object.entries(STRATEGIES).map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>{field("quantity", "Quantidade", { min: "1" })}{["bull-call", "bear-put", "collar"].includes(form.strategy) && <>{field("width", "Distância entre strikes")}{field("secondPremium", "Prêmio da 2ª perna")}</>}</div>
+    <section className="strategy-builder"><div className="strategy-controls"><label>Estratégia<select value={form.strategy} onChange={(event) => set("strategy", event.target.value)}>{compatibleStrategies.map((key) => <option value={key} key={key}>{STRATEGIES[key]}</option>)}</select></label>{field("quantity", "Quantidade", { min: "1" })}{["bull-call", "bear-put", "collar"].includes(form.strategy) && <>{field("width", "Distância entre strikes")}{field("secondPremium", "Prêmio da 2ª perna")}</>}</div>
       {analysis.payoff.available ? <><div className="payoff-summary"><Metric label="Capital requerido" value={formatMoney(analysis.payoff.capitalRequired)}/><Metric label="Lucro máximo" value={analysis.payoff.profitUnlimited ? "Ilimitado" : formatMoney(analysis.payoff.maxProfit)}/><Metric label="Prejuízo máximo" value={formatMoney(analysis.payoff.maxLoss)}/><Metric label="Break-even" value={formatMoney(analysis.payoff.breakEven)}/><Metric label="Risco/retorno" value={formatNumber(analysis.payoff.riskReward, 2)}/></div><PayoffChart result={analysis.payoff} strike={contract.strike}/><div className="scenario-simulator"><div><h3>Simulador no vencimento</h3><p>Altere o cenário do ativo-objeto. O cálculo usa o payoff matemático da estratégia selecionada.</p></div>{field("scenarioPct", "Variação do ativo (%)", { min: "-100" })}<Metric label="Preço no cenário" value={formatMoney(scenarioPrice)}/><Metric label="P&L da posição" value={formatMoney(scenarioPayoff)} tone={scenarioPayoff >= 0 ? "positive" : "negative"}/><Metric label="Retorno sobre capital" value={pct(scenarioReturn)} tone={scenarioReturn >= 0 ? "positive" : "negative"}/></div><p className="quant-note">{analysis.payoff.formula} {analysis.payoff.limitation}</p></> : <p className="quant-empty">{analysis.payoff.reason}</p>}
     </section>
 
