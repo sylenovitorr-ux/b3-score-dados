@@ -23,28 +23,36 @@ export function fairValueRange(asset) {
   const f = asset.fundamentals;
   if (!f) return null;
   const anchors = [];
+  const addAnchor = (anchor) => {
+    const price = finite(asset?.price);
+    // CVM share quantities occasionally arrive in thousands without an
+    // explicit scale. Preserve the raw fact, but reject a dimensionally
+    // incompatible per-share anchor from the automatic ranking.
+    if (price > 0 && anchor.value / price > 10) return;
+    anchors.push(anchor);
+  };
   if (f.financialCompany) {
     if (f.bookValuePerShare > 0) {
       const targetPb = bounded(.65 + Math.max(0, f.roe ?? 0) / 20, .65, 2.2);
-      anchors.push({ value: f.bookValuePerShare * targetPb, label: `VPA × P/VP-alvo ${fmt(targetPb)}`, weight: 70 });
+      addAnchor({ value: f.bookValuePerShare * targetPb, label: `VPA × P/VP-alvo ${fmt(targetPb)}`, weight: 70 });
     }
     if (f.eps > 0) {
       const targetPe = bounded(7 + Math.max(0, f.roe ?? 0) * .22 + bounded(f.profitGrowth ?? 0, -5, 15) * .08, 7, 14);
-      anchors.push({ value: f.eps * targetPe, label: `LPA × P/L-alvo ${fmt(targetPe)}`, weight: 30 });
+      addAnchor({ value: f.eps * targetPe, label: `LPA × P/L-alvo ${fmt(targetPe)}`, weight: 30 });
     }
   } else {
     if (f.eps > 0) {
       const targetPe = bounded(8 + Math.max(0, f.roe ?? 0) * .35 + bounded(f.revenueGrowth ?? 0, -5, 15) * .15, 7, 18);
-      anchors.push({ value: f.eps * targetPe, label: `LPA × P/L-alvo ${fmt(targetPe)}`, weight: 45 });
+      addAnchor({ value: f.eps * targetPe, label: `LPA × P/L-alvo ${fmt(targetPe)}`, weight: 45 });
     }
     if (f.bookValuePerShare > 0) {
       const targetPb = bounded(.65 + Math.max(0, f.roe ?? 0) / 20, .65, 2);
-      anchors.push({ value: f.bookValuePerShare * targetPb, label: `VPA × P/VP-alvo ${fmt(targetPb)}`, weight: 25 });
+      addAnchor({ value: f.bookValuePerShare * targetPb, label: `VPA × P/VP-alvo ${fmt(targetPb)}`, weight: 25 });
     }
     if (f.ebitdaTTM > 0 && f.sharesOutstanding > 0) {
       const targetEvEbitda = bounded(5 + Math.max(0, f.roic ?? 0) * .12 + bounded(f.revenueGrowth ?? 0, -5, 15) * .08, 4.5, 9);
       const equityValue = f.ebitdaTTM * targetEvEbitda - (f.netDebt ?? 0);
-      if (equityValue > 0) anchors.push({ value: equityValue / f.sharesOutstanding, label: `EBITDA × EV/EBITDA-alvo ${fmt(targetEvEbitda)}`, weight: 30 });
+      if (equityValue > 0) addAnchor({ value: equityValue / f.sharesOutstanding, label: `EBITDA × EV/EBITDA-alvo ${fmt(targetEvEbitda)}`, weight: 30 });
     }
   }
   const valid = anchors.filter((anchor) => anchor.value > 0 && Number.isFinite(anchor.value));
@@ -96,16 +104,21 @@ export function buildActionSignal(asset, assets = [], anomaly = null) {
   const quality = asset.kind === "fii" ? scores?.overall : opportunity?.fundamental?.score;
   const confidence = scores?.confidence ?? opportunity?.confidence ?? 0;
   const severe = Boolean(opportunity?.penalties?.some((item) => item.severe));
+  const valuationBlocked = Boolean(opportunity?.valuationRisk?.blocksPositiveSignal);
   const anomalyScore = anomaly?.score ?? 0;
   const reasons = [`Preço atual ${fmt(plan.potentialPct)}% em relação ao valor justo central.`, `Qualidade ${quality ?? "N/D"}/100 e confiança ${confidence}/100.`];
   if (anomalyScore >= 40) reasons.push(`Movimento com alerta estatístico ${anomalyScore}/100; investigar antes de agir.`);
   if (severe) reasons.push("Há penalidade fundamental grave no histórico disponível.");
+  if (valuationBlocked) reasons.push(`${opportunity.valuationRisk.label}: ${opportunity.valuationRisk.reasons.join("; ")}.`);
 
   if (severe || (quality !== null && quality < 40)) {
     return { code: "reduce", label: "Reavaliar: reduzir ou vender", tone: "sell", holder: "Reavaliar e considerar redução", newcomer: "Evitar nova entrada", reasons, plan, quality, confidence, anomalyScore };
   }
   if (asset.price >= plan.fair.high) {
     return { code: "realize", label: "Boa faixa para realizar ou vender", tone: "sell", holder: "Considerar realização parcial", newcomer: "Não comprar acima da faixa justa", reasons, plan, quality, confidence, anomalyScore };
+  }
+  if (valuationBlocked) {
+    return { code: "wait", label: "Aguardar validação do valuation", tone: "wait", holder: "Manter somente após revisar as premissas", newcomer: "Não iniciar posição só pelo potencial calculado", reasons, plan, quality, confidence, anomalyScore };
   }
   if (asset.price <= plan.fair.low && (quality ?? 0) >= 65 && confidence >= 60 && anomalyScore < 40) {
     return { code: "buy", label: "Boa faixa para comprar", tone: "buy", holder: "Manter ou aportar dentro do limite", newcomer: "Entrada matematicamente favorável", reasons, plan, quality, confidence, anomalyScore };
@@ -172,6 +185,50 @@ export function opportunitySignal(score, penalties) {
   return { label: "Desfavorável", tone: "bad" };
 }
 
+export function valuationRiskAssessment({ fair, potential, confidence, fundamental }) {
+  if (!fair || finite(potential) === null) return { code: "unavailable", label: "Risco do valuation indisponível", tone: "neutral", points: null, scoreCap: null, blocksPositiveSignal: true, reasons: ["dados insuficientes para testar a sensibilidade do valor justo"], checks: [] };
+  const anchors = (fair.anchors ?? []).filter((anchor) => anchor.value > 0 && Number.isFinite(anchor.value));
+  const anchorValues = anchors.map((anchor) => anchor.value);
+  const dispersionPct = anchorValues.length >= 2 ? (Math.max(...anchorValues) - Math.min(...anchorValues)) / fair.base * 100 : null;
+  const absolutePotential = Math.abs(potential);
+  const checks = [
+    { key: "anchors", label: "Duas ou mais âncoras independentes", passed: anchors.length >= 2, value: anchors.length },
+    { key: "confidence", label: "Confiança dos dados ≥ 70%", passed: confidence >= 70, value: confidence },
+    { key: "coverage", label: "Cobertura fundamental ≥ 70%", passed: (fundamental?.coverage ?? 0) >= 70, value: fundamental?.coverage ?? 0 },
+    { key: "cashFlow", label: "Fluxo de caixa calculado ≥ 50", passed: (fundamental?.cashFlow ?? -1) >= 50, value: fundamental?.cashFlow ?? null },
+  ];
+  const supportCount = checks.filter((check) => check.passed).length;
+  let points = absolutePotential >= 200 ? 25 : absolutePotential >= 100 ? 16 : absolutePotential >= 75 ? 8 : 0;
+  if (anchors.length === 1 && absolutePotential >= 60) points += 8;
+  if (dispersionPct !== null && dispersionPct > 60) points += 8;
+  if (confidence < 60) points += 6;
+  if ((fundamental?.coverage ?? 0) < 70) points += 5;
+  const code = points >= 25 ? "very-high" : points >= 18 ? "high" : points >= 8 ? "elevated" : "controlled";
+  const labels = { "very-high": "Sensibilidade muito alta", high: "Sensibilidade alta", elevated: "Sensibilidade moderada", controlled: "Sensibilidade controlada" };
+  const tones = { "very-high": "bad", high: "warn", elevated: "mid", controlled: "good" };
+  const reasons = [];
+  if (absolutePotential >= 200) reasons.push(`distância de ${fmt(absolutePotential)}% entre preço e valor justo`);
+  else if (absolutePotential >= 100) reasons.push(`distância acima de 100% entre preço e valor justo`);
+  else if (absolutePotential >= 75) reasons.push(`distância acima de 75% entre preço e valor justo`);
+  if (anchors.length === 1) reasons.push("modelo sustentado por uma única âncora");
+  if (dispersionPct !== null && dispersionPct > 60) reasons.push(`âncoras divergem ${fmt(dispersionPct)}% da base`);
+  if (confidence < 60) reasons.push("confiança dos dados abaixo de 60%");
+  if ((fundamental?.coverage ?? 0) < 70) reasons.push("cobertura fundamental abaixo de 70%");
+  if (!reasons.length) reasons.push("distância, cobertura e âncoras dentro das travas configuradas");
+  let scoreCap = null;
+  if (potential >= 200) scoreCap = 49;
+  else if (potential >= 100) scoreCap = supportCount >= 3 ? 69 : 59;
+  else if (potential >= 75 && supportCount < 2) scoreCap = 69;
+  else if (potential > 0 && code === "high") scoreCap = 69;
+  return {
+    code, label: labels[code], tone: tones[code], points, scoreCap,
+    blocksPositiveSignal: scoreCap !== null,
+    reasons, checks, anchorCount: anchors.length, dispersionPct, supportCount,
+    sensitivityRange: { low: fair.low, base: fair.base, high: fair.high },
+    formula: "risco = distância preço/justo + concentração das âncoras + dispersão + confiança + cobertura; o valor justo bruto não é alterado",
+  };
+}
+
 export function buildOpportunity(asset, assets) {
   const f = asset.fundamentals;
   if (!f) return null;
@@ -199,5 +256,10 @@ export function buildOpportunity(asset, assets) {
   if (coverage < 50) { score = Math.min(score, 59); caps.push("cobertura inferior a 50%"); }
   else if (coverage < 70) { score = Math.min(score, 69); caps.push("cobertura inferior a 70%"); }
   if (confidence < 50) { score = Math.min(score, 59); caps.push("confiança inferior a 50%"); }
-  return { score, rawScore, penaltyPoints, caps, signal: opportunitySignal(score, penalties), fundamental, fair, potential, discountScore, valuation, relativeValuation: relative, confidence, coverage, components: calculation.components, penalties, evEbitda: evEbitdaValue(f) };
+  const valuationRisk = valuationRiskAssessment({ fair, potential, confidence, fundamental });
+  if (valuationRisk.scoreCap !== null) {
+    score = Math.min(score, valuationRisk.scoreCap);
+    caps.push(`sensibilidade do valuation: teto ${valuationRisk.scoreCap}`);
+  }
+  return { score, rawScore, penaltyPoints, caps, signal: opportunitySignal(score, penalties), fundamental, fair, potential, discountScore, valuation, relativeValuation: relative, confidence, coverage, components: calculation.components, penalties, valuationRisk, evEbitda: evEbitdaValue(f) };
 }

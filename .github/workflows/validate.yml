@@ -33,6 +33,9 @@ jobs:
       - name: Build GitHub Pages
         working-directory: site
         run: npm run build
+      - name: Auditar artefato, dados e orçamento de bundle
+        working-directory: site
+        run: npm run audit:dist
       - name: Guardar prévia revisável (sem publicar)
         uses: actions/upload-artifact@v4
         with:
