@@ -164,6 +164,8 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         str(work / "b3-dividends.json"),
     ], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
+    subprocess.run([sys.executable, str(ROOT / "scripts/build-sector-classification.py")], check=True)
+    subprocess.run([sys.executable, str(ROOT / "scripts/apply-sector-classification.py")], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-options.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
