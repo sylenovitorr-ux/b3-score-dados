@@ -30,10 +30,10 @@ class MarketAnomalyTest(unittest.TestCase):
         self.assertIn("volume", codes)
         self.assertGreaterEqual(result["score"], 40)
 
-    def test_auditable_series_keeps_up_to_260_sessions(self):
-        rows = [{"date": f"D{index:03d}", "open": 10 + index * .01, "high": 10.1 + index * .01, "low": 9.9 + index * .01, "close": 10 + index * .01, "volume": 1_000_000} for index in range(300)]
+    def test_auditable_series_keeps_up_to_ten_year_sessions(self):
+        rows = [{"date": f"D{index:04d}", "open": 10 + index * .01, "high": 10.1 + index * .01, "low": 9.9 + index * .01, "close": 10 + index * .01, "volume": 1_000_000} for index in range(2600)]
         result = MODULE.analyse("TEST3", rows)
-        self.assertEqual(len(result["series"]), 260)
+        self.assertEqual(len(result["series"]), 2520)
 
     def test_movement_windows_and_volume_ratio_are_exposed(self):
         rows = self.rows([.2] * 39, [1_000_000] * 38 + [3_000_000])
