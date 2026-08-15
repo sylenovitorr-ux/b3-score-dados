@@ -10,10 +10,10 @@ SPEC.loader.exec_module(MODULE)
 class MarketAnomalyTest(unittest.TestCase):
     def rows(self, returns, volumes=None):
         price = 10
-        result = [{"date": "2026-01-01", "close": price, "volume": 1_000_000}]
+        result = [{"date": "2026-01-01", "open": price, "high": price * 1.01, "low": price * .99, "close": price, "volume": 1_000_000}]
         for index, change in enumerate(returns, 2):
             price *= 1 + change / 100
-            result.append({"date": f"2026-01-{index:02d}", "close": price, "volume": (volumes or [1_000_000] * len(returns))[index - 2]})
+            result.append({"date": f"2026-01-{index:02d}", "open": price, "high": price * 1.01, "low": price * .99, "close": price, "volume": (volumes or [1_000_000] * len(returns))[index - 2]})
         return result
 
     def test_stable_series_is_not_called_fraud(self):
@@ -31,9 +31,17 @@ class MarketAnomalyTest(unittest.TestCase):
         self.assertGreaterEqual(result["score"], 40)
 
     def test_auditable_series_keeps_up_to_260_sessions(self):
-        rows = [{"date": f"D{index:03d}", "close": 10 + index * .01, "volume": 1_000_000} for index in range(300)]
+        rows = [{"date": f"D{index:03d}", "open": 10 + index * .01, "high": 10.1 + index * .01, "low": 9.9 + index * .01, "close": 10 + index * .01, "volume": 1_000_000} for index in range(300)]
         result = MODULE.analyse("TEST3", rows)
         self.assertEqual(len(result["series"]), 260)
+
+    def test_movement_windows_and_volume_ratio_are_exposed(self):
+        rows = self.rows([.2] * 39, [1_000_000] * 38 + [3_000_000])
+        result = MODULE.analyse("TEST3", rows)
+        self.assertIsNotNone(result["return5Pct"])
+        self.assertIsNotNone(result["return20Pct"])
+        self.assertGreater(result["volumeVsAverage20Pct"], 100)
+        self.assertIn("open", result["series"][-1])
 
 
 if __name__ == "__main__":
