@@ -5,6 +5,14 @@ const weights = (valuation, quality, growth, profitability, debt, momentum, risk
 });
 
 export const PROFILE_CONFIG = Object.freeze({
+  swing_3_6m: {
+    id: "swing_3_6m", label: "Swing 3–6M",
+    // Hipótese inicial: exige validação histórica antes de qualquer conclusão de superioridade.
+    weights: weights(15, 10, 10, 8, 5, 25, 15, 7, 3, 2),
+    limits: { maxAssetPct: 15, maxSectorPct: 35, drawdownPct: 18, volatilityPct: 45, derivativesPct: 10, minimumDailyVolume: 500_000, minimumRiskReward: 2, safetyMarginPct: 15, holdingSessionsMin: 60, holdingSessionsMax: 126 },
+    valuation: { targetPE: 12, targetPB: 1.5, discountRatePct: 12, terminalGrowthPct: 3, explicitGrowthCapPct: 12 },
+    hypothesis: "Pesos iniciais para estudo de Swing Trade em 60–126 pregões; regra pendente de validação por backtest.",
+  },
   conservative: {
     id: "conservative", label: "Conservador",
     weights: weights(18, 18, 8, 14, 14, 4, 12, 5, 4, 3),
