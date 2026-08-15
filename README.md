@@ -2,6 +2,10 @@
 
 Aplicativo educacional para analisar ações, units, FIIs e estratégias com opções usando dados públicos, cálculos determinísticos e trilha de auditoria. A decisão final permanece com o usuário.
 
+## Navegação v2 em revisão
+
+A branch `refactor/ui-navigation-v2` reorganiza o frontend em rotas separadas, acrescenta comparador e simuladores dedicados e preserva os motores existentes. Consulte `docs/ui-v2-inventory.md` e `docs/ui-v2-review.md`. Esta versão não substitui automaticamente a publicação atual.
+
 ## Fontes e atualização
 
 - **B3 COTAHIST:** fechamento, abertura, máxima, mínima, volume, quantidade e histórico de até 260 pregões.
