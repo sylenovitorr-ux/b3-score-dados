@@ -12,14 +12,14 @@ export function parseRoute(hash = "") {
   if (!raw) return { page: "home", ticker: null };
   if (LEGACY[raw]) return { page: LEGACY[raw], ticker: null };
   const [page, ticker] = raw.split("/");
-  const aliases = { oportunidade: "opportunities", oportunidades: "opportunities", comparar: "compare", comparador: "compare", analisar: "analyze", simulador: "simulator", opcoes: "options", carteira: "portfolio", metodologia: "methodology", alertas: "integrity", inicio: "home", ativo: "asset" };
+  const aliases = { oportunidade: "opportunities", oportunidades: "opportunities", swing: "swing", comparar: "compare", comparador: "compare", analisar: "analyze", simulador: "simulator", opcoes: "options", carteira: "portfolio", metodologia: "methodology", alertas: "integrity", inicio: "home", ativo: "asset" };
   const normalized = aliases[page] ?? page;
-  const allowed = new Set(["home", "radar", "opportunities", "analyze", "asset", "compare", "quant", "simulator", "options", "portfolio", "methodology", "integrity"]);
+  const allowed = new Set(["home", "radar", "opportunities", "swing", "analyze", "asset", "compare", "quant", "simulator", "options", "portfolio", "methodology", "integrity"]);
   return allowed.has(normalized) ? { page: normalized, ticker: ticker?.toUpperCase() || null } : { page: "not-found", ticker: null };
 }
 
 export function routeHash(page, ticker = null) {
-  const paths = { home: "", radar: "radar", opportunities: "oportunidades", analyze: "analisar", asset: "ativo", compare: "comparador", quant: "quant", simulator: "simulador", options: "opcoes", portfolio: "carteira", methodology: "metodologia", integrity: "alertas" };
+  const paths = { home: "", radar: "radar", opportunities: "oportunidades", swing: "swing", analyze: "analisar", asset: "ativo", compare: "comparador", quant: "quant", simulator: "simulador", options: "opcoes", portfolio: "carteira", methodology: "metodologia", integrity: "alertas" };
   const path = paths[page] ?? "";
   return `#/${path}${ticker ? `/${String(ticker).toUpperCase()}` : ""}`;
 }
