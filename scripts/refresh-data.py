@@ -169,8 +169,10 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
     if annual_history:
         subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
+        subprocess.run([sys.executable, str(ROOT / "scripts/build-benchmarks.py"), str(work)], check=True)
     else:
         print("Current-year B3 history unavailable; preserving the previous anomaly analysis.")
+        print("Current-year B3 history unavailable; preserving the previous benchmark snapshot.")
 
     stock_data = json.loads((ROOT / "data/b3-fundamentals.json").read_text(encoding="utf-8"))
     fii_data = json.loads((ROOT / "data/fii-catalog.json").read_text(encoding="utf-8"))
@@ -185,6 +187,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
         "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 260, "b3HistoryYears": annual_history},
-        "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 1178"],
+        "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 12", "BCB SGS 1178"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

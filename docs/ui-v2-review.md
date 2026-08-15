@@ -54,13 +54,19 @@ Rotas preparadas:
 - Testes Python: 14 aprovados.
 - Build Vite de produção: aprovado.
 
-## Limitações ainda existentes
+## Limitações contornadas nesta revisão
 
-- IBOV, CDI e índices setoriais não têm séries sincronizadas; nenhum benchmark foi fabricado.
-- Candles usam OHLC disponível no snapshot, mas a versão v2 ainda mantém o gráfico SVG atual.
-- Bid, ask e open interest de opções não existem no COTAHIST.
-- O tema claro permanece como padrão; uma alternância global completa exigirá revisar componentes legados antes de ser ativada.
-- Esta branch é de revisão e não deve ser publicada automaticamente.
+- IBOV, IFNC, IMAT, ICON, IEEX, IDIV e SMLL agora usam a evolução diária oficial da B3; CDI usa SGS 12 do Banco Central. As séries mantêm fonte, referência, normalização e fallback explícitos.
+- O gráfico principal passou de SVG para Canvas nativo, com candles, linha, volume, MM20/50/200, valor justo, eventos, tooltip e tabela textual acessível, sem adicionar dependência.
+- Como bid, ask e open interest não existem no COTAHIST, o laboratório aceita fotografia CSV da corretora ou de outra fonte identificada. Validação rejeita book cruzado, OI inválido e dados sem fonte/data; fotografia defasada não libera o contrato.
+- A alternância claro/escuro agora é global, fica salva em `b3-score-theme-v1` e mantém claro como padrão.
+- O CI armazena o build como artefato por 14 dias para revisão, sem executar deploy. A branch continua sem publicação ou merge automáticos.
+
+## Validação após os contornos
+
+- 52 testes JavaScript aprovados.
+- 18 testes Python aprovados.
+- Build Vite de produção aprovado, incluindo `data/benchmarks.json` no artefato.
 
 ## Próximos upgrades recomendados
 
