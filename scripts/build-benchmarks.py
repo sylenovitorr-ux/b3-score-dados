@@ -19,6 +19,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 OUTPUT = ROOT / "data/benchmarks.json"
+HISTORY_SESSIONS = 2520
+HISTORY_DAYS = 3654
 INDEXES = {
     "IBOV": "Ibovespa",
     "IFNC": "Índice Financeiro",
@@ -34,7 +36,7 @@ def read_b3_indexes(folder: Path | None) -> dict[str, list[dict]]:
     result = {ticker: [] for ticker in INDEXES}
     if not folder:
         return result
-    for path in sorted(folder.glob("COTAHIST_A*.ZIP"))[-2:]:
+    for path in sorted(folder.glob("COTAHIST_A*.ZIP")):
         with zipfile.ZipFile(path) as archive:
             with archive.open(archive.namelist()[0]) as source:
                 for raw in source:
@@ -152,23 +154,23 @@ def unavailable(identifier: str, name: str, source: str, reason: str) -> dict:
 def build() -> dict:
     now = datetime.now(UTC)
     end = now.date()
-    start = end - timedelta(days=740)
+    start = end - timedelta(days=HISTORY_DAYS)
     b3_fallback = read_b3_indexes(SOURCE)
     series = {}
     for ticker, name in INDEXES.items():
         source = "B3 Estatísticas de Índices — GetPortfolioDay"
         try:
-            official_rows = fetch_b3_index(ticker, [end.year - 1, end.year])
+            official_rows = fetch_b3_index(ticker, list(range(end.year - 9, end.year + 1)))
         except (OSError, ValueError, json.JSONDecodeError):
             official_rows = b3_fallback[ticker]
             source = "B3 COTAHIST — fallback"
-        rows = normalized(official_rows[-260:])
+        rows = normalized(official_rows[-HISTORY_SESSIONS:])
         series[ticker] = ({
             "id": ticker, "name": name, "status": "ATUALIZADO", "source": source,
             "referenceDate": rows[-1]["date"], "updatedAt": now.isoformat(), "normalization": "primeira observação = 100", "series": rows,
         } if rows else unavailable(ticker, name, source, "A consulta oficial e o fallback não retornaram observações deste índice."))
     try:
-        cdi_rows = compound_daily_percent(fetch_sgs(12, start, end))[-260:]
+        cdi_rows = compound_daily_percent(fetch_sgs(12, start, end))[-HISTORY_SESSIONS:]
         series["CDI"] = {
             "id": "CDI", "name": "CDI acumulado", "status": "ATUALIZADO" if cdi_rows else "INDISPONÍVEL",
             "source": "Banco Central do Brasil — SGS 12", "referenceDate": cdi_rows[-1]["date"] if cdi_rows else None,
@@ -178,7 +180,7 @@ def build() -> dict:
     except (OSError, ValueError, json.JSONDecodeError) as error:
         series["CDI"] = unavailable("CDI", "CDI acumulado", "Banco Central do Brasil — SGS 12", f"Falha de atualização: {type(error).__name__}.")
     try:
-        selic_rows = compound_annualized_rate(fetch_sgs(1178, start, end))[-260:]
+        selic_rows = compound_annualized_rate(fetch_sgs(1178, start, end))[-HISTORY_SESSIONS:]
         series["SELIC"] = {
             "id": "SELIC", "name": "Selic acumulada", "status": "ATUALIZADO" if selic_rows else "INDISPONÍVEL",
             "source": "Banco Central do Brasil — SGS 1178", "referenceDate": selic_rows[-1]["date"] if selic_rows else None,
@@ -188,8 +190,8 @@ def build() -> dict:
     except (OSError, ValueError, json.JSONDecodeError) as error:
         series["SELIC"] = unavailable("SELIC", "Selic acumulada", "Banco Central do Brasil — SGS 1178", f"Falha de atualização: {type(error).__name__}.")
     return {
-        "generatedAt": now.isoformat(), "modelVersion": "1.0.0", "series": series,
-        "methodology": "Índices: evolução diária oficial B3 normalizada pela primeira observação, com COTAHIST como fallback. CDI: composição das taxas diárias oficiais SGS 12. Selic: acumulação teórica da série anualizada SGS 1178 em base 252.",
+        "generatedAt": now.isoformat(), "modelVersion": "1.1.0", "series": series,
+        "methodology": "Séries de até 2.520 pregões (aproximadamente 10 anos). Índices: evolução diária oficial B3 normalizada pela primeira observação, com COTAHIST como fallback. CDI: composição das taxas diárias oficiais SGS 12. Selic: acumulação teórica da série anualizada SGS 1178 em base 252.",
     }
 
 
