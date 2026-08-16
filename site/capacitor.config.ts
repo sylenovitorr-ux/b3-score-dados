@@ -1,15 +1,11 @@
-[eval]:1
-process.stdout.write(require('fs').readFileSync(site/capacitor.config.ts, 'utf8'))
-                                                ^
+import type { CapacitorConfig } from "@capacitor/cli";
 
-ReferenceError: site is not defined
-    at [eval]:1:49
-    at runScriptInThisContext (node:internal/vm:219:10)
-    at node:internal/process/execution:451:12
-    at [eval]-wrapper:6:24
-    at runScriptInContext (node:internal/process/execution:449:60)
-    at evalFunction (node:internal/process/execution:283:30)
-    at evalTypeScript (node:internal/process/execution:295:3)
-    at node:internal/main/eval_string:71:3
+const config: CapacitorConfig = {
+  appId: "br.com.b3score.dados",
+  appName: "B3 Score",
+  webDir: "dist",
+  bundledWebRuntime: false,
+  android: { allowMixedContent: false },
+};
 
-Node.js v24.19.0
+export default config;
