@@ -59,7 +59,7 @@ O mesmo frontend React também pode ser instalado como aplicativo Android nativo
 via Capacitor. O site GitHub Pages continua intacto: o build Android usa assets
 relativos, enquanto o build web mantém a base `/b3-score-dados/`.
 
-Pré-requisitos para gerar o pacote localmente: Node 20+, Java 17+, Android SDK
+Pré-requisitos para gerar o pacote localmente: Node 20+, Java 21+, Android SDK
 e Android Studio (ou Gradle com o SDK configurado).
 
 ```bash
