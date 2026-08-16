@@ -13,3 +13,7 @@ test("links legados continuam válidos", () => {
   assert.deepEqual(parseRoute("#opcoes"), { page: "options", ticker: null });
   assert.deepEqual(parseRoute("#qualquer-coisa"), { page: "not-found", ticker: null });
 });
+
+test("rota simuladores é aceita como alias do simulador", () => {
+  assert.equal(parseRoute("#/simuladores").page, "simulator");
+});
