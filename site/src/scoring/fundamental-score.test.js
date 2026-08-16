@@ -1,0 +1,11 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { upgradeFundamentals, fallbackMarketScores } from "./fundamental-score.js";
+import { scoreEligibility } from "./score-eligibility.js";
+const full = { referenceDate: "2026-06-30", cnpj: "1", cvmCode: "1", scores: { price: 80, quality: 84, growth: 76, debt: 75, dividends: 70 }, pe: 10, pb: 2, evEbit: 8, roe: 20, roa: 9, netMargin: 12, netDebtEbit: 2, currentRatio: 1.5, revenueGrowth: 8, profitGrowth: 9 };
+test("empresa saudável com dados completos recebe score geral", () => { const result = upgradeFundamentals(full); assert.ok(result.scores.overall >= 70); assert.ok(result.scores.confidence >= 80); });
+test("empresa com poucos fundamentos fica sem score geral", () => { const result = upgradeFundamentals({ ...full, pe: null, pb: null, evEbit: null, roe: null, roa: null, netMargin: null, netDebtEbit: null, currentRatio: null, revenueGrowth: null, profitGrowth: null, scores: { price: 80, quality: null, debt: null, dividends: null } }); assert.equal(result.scores.overall, null); });
+test("momentum e liquidez altos não substituem fundamentos", () => { const result = fallbackMarketScores({ changepct: 9, volume: 120_000_000 }); assert.equal(result.momentum, 90); assert.equal(result.liquidity, 92); assert.equal(result.overall, null); });
+test("empresa financeira não exige dívida industrial", () => { const result = upgradeFundamentals({ ...full, financialCompany: true, scores: { price: 80, quality: 85, growth: 70, debt: null, dividends: 70 } }); assert.notEqual(result.scores.overall, null); });
+test("FII usa blocos próprios", () => { const eligible = scoreEligibility({ kind: "fii", fund: { scores: { quality: 80, price: 75, risk: 72, income: 70, confidence: 80 } } }); assert.equal(eligible.eligible, true); });
+test("ausência permanece indisponível", () => { const eligible = scoreEligibility({ kind: "stock", fundamentals: { scores: { price: null, quality: null, debt: null, dividends: null, confidence: 0 } } }); assert.equal(eligible.status, "insufficient_data"); });
