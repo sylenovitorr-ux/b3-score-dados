@@ -1,12 +1,52 @@
-[eval]:1
-process.stdout.write(require('fs').readFileSync(.github/workflows/android-apk.yml, 'utf8'))
-                                                ^
-Expression expected
+name: Gerar APK Android
 
-SyntaxError: Unexpected token '.'
-    at makeContextifyScript (node:internal/vm:194:14)
-    at compileScript (node:internal/process/execution:388:10)
-    at evalTypeScript (node:internal/process/execution:260:22)
-    at node:internal/main/eval_string:71:3
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
 
-Node.js v24.19.0
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  debug-apk:
+    name: Build APK de teste
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Instalar dependências
+        run: npm ci
+      - name: Gerar frontend para Android
+        run: npm run build:android
+      - name: Criar projeto nativo e sincronizar assets
+        run: |
+          npx cap add android
+          npx cap sync android
+      - name: Compilar APK instalável
+        run: cd android && ./gradlew assembleDebug
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: b3-score-android-debug-apk
+          path: site/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
