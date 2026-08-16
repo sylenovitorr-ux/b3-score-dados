@@ -6,14 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:android": "vite build --mode android",
     "preview": "vite preview",
     "test": "node --test src/*.test.js src/analysis/*.test.js src/quant/*.test.js src/scoring/*.test.js",
-    "audit:dist": "node validate-dist.mjs"
+    "audit:dist": "node validate-dist.mjs",
+    "android:sync": "npm run build:android && cap sync android",
+    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "android:release": "npm run android:sync && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
+    "@capacitor/android": "7.4.3",
+    "@capacitor/core": "7.4.3",
     "@vitejs/plugin-react": "6.0.4",
-    "vite": "8.1.5",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "vite": "8.1.5"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.4.3",
+    "typescript": "5.9.3"
   }
 }
