@@ -1,15 +1,24 @@
-[eval]:1
-process.stdout.write(require('fs').readFileSync(site/vite.config.js, 'utf8'))
-                                                ^
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { copyFileSync, mkdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
-ReferenceError: site is not defined
-    at [eval]:1:49
-    at runScriptInThisContext (node:internal/vm:219:10)
-    at node:internal/process/execution:451:12
-    at [eval]-wrapper:6:24
-    at runScriptInContext (node:internal/process/execution:449:60)
-    at evalFunction (node:internal/process/execution:283:30)
-    at evalTypeScript (node:internal/process/execution:295:3)
-    at node:internal/main/eval_string:71:3
+const bundleBenchmarks = () => ({
+  name: "bundle-official-benchmarks",
+  closeBundle() {
+    const source = resolve("../data/benchmarks.json");
+    const target = resolve("dist/data/benchmarks.json");
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(source, target);
+  },
+});
 
-Node.js v24.19.0
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), bundleBenchmarks()],
+  // GitHub Pages usa subdiretório; o WebView Android abre arquivos locais.
+  base: mode === "android" ? "./" : "/b3-score-dados/",
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+  },
+}));
