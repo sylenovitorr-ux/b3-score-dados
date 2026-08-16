@@ -1,16 +1,14 @@
 import { useMemo, useState } from "react";
 import { formatCompactMoney } from "./formatters";
 
-const GROUPS = [
-  ["Análises complementares", [["swing", "Swing 3–6M", "Filtro separado de qualidade e timing", "↗"], ["compare", "Comparador", "Ativos lado a lado e performance base 100", "⇄"], ["quant", "Central Quant", "Risco, momentum, estatística e auditoria", "∑"], ["integrity", "Integridade", "Movimentos atípicos para investigar, sem acusação", "◎"]]],
-  ["Planejamento e estudo", [["simulator", "Simuladores", "Risco, alvo, aportes e cenários", "▤"], ["options", "Opções", "Contratos, gregas, IV e payoff", "◉"], ["portfolio", "Carteira", "Posições, exposição e concentração", "▦"], ["methodology", "Metodologia", "Fontes, fórmulas, limitações e guia de uso", "ⓘ"]]],
-];
+const GROUPS = [["Ferramentas Avançadas", [["advanced", "Abrir hub avançado", "Opções, swing, integridade, Central Quant e simuladores especializados", "⌘"], ["quant", "Central Quant", "Risco, estatística e auditoria", "∑"], ["swing", "Swing 3–6M", "Timing e validação histórica", "↗"], ["integrity", "Integridade", "Movimentos atípicos para investigar", "◎"], ["simulator", "Simuladores", "Risco, alvo e cenários", "▤"], ["options", "Opções", "Payoff, IV e gregas", "◉"], ["methodology", "Metodologia", "Fontes, fórmulas e limitações", "ⓘ"]]]];
 
 const JOURNEY = [
   ["radar", "1", "Radar diário", "Comece pelo que mudou no último pregão. É triagem de curto prazo, não valuation."],
-  ["opportunities", "2", "Valuation", "Verifique preço justo, margem de segurança, qualidade e sensibilidade do modelo."],
+  ["opportunities", "2", "Oportunidades", "Veja quais ativos merecem investigação: preço, qualidade, risco e confiança juntos."],
   ["analyze", "3", "Análise do ativo", "Abra fontes, indicadores, gráficos, entrada, saída e prazo mínimo de reavaliação."],
-  ["portfolio", "4", "Carteira", "Decida o tamanho da posição pelos riscos, concentração e objetivos da carteira."],
+  ["compare", "4", "Comparador", "Confronte candidatos com pares compatíveis antes de decidir um aporte."],
+  ["portfolio", "5", "Carteira", "Decida o tamanho da posição pelos riscos, concentração e objetivos da carteira."],
 ];
 
 export default function HomeHub({ assets, market, statusText, asOf, loading, onNavigate, onOpenAsset }) {
