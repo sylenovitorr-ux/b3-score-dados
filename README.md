@@ -8,7 +8,8 @@ A branch `refactor/ui-navigation-v2` reorganiza o frontend em rotas separadas, a
 
 ## Fontes e atualização
 
-- **B3 COTAHIST:** fechamento, abertura, máxima, mínima, volume, quantidade e histórico de até 260 pregões.
+- **B3 COTAHIST:** fechamento, abertura, máxima, mínima, volume, quantidade e histórico auditável de até 10 anos quando disponível.
+- **Banco Central do Brasil — SGS 12:** série diária oficial usada para compor CDI, sempre identificada com janela, data e fonte.
 - **B3 Proventos:** eventos em dinheiro por classe de ação.
 - **CVM Dados Abertos:** DFP, ITR, FCA e informes mensais/trimestrais de FIIs.
 - **GDELT e Google Notícias RSS:** manchetes secundárias identificadas como contexto no radar; ausência de notícia não é tratada como fato positivo ou negativo.
@@ -35,6 +36,8 @@ Ao abrir uma ação ou FII, o painel gráfico preserva toda a análise anterior 
 - fundamentos históricos por métrica;
 - cenários pessimista, base e otimista em faixas, sem probabilidades inventadas;
 - evidências oficiais e notícias classificadas por relevância, fonte, data e relação com o ativo.
+- retorno total esperado separado em valorização estimada, proventos observados, anualização, CDI e prêmio potencial; todos como estimativas auditáveis, nunca como promessa.
+- sustentabilidade de proventos: DY observado, regularidade, payout quando aplicável e alerta estatístico para eventos fora do padrão.
 
 Os eventos são apresentados como associação temporal. O aplicativo não converte coincidência em causalidade comprovada.
 
@@ -53,7 +56,8 @@ Metodologia detalhada: [`docs/quant-methodology.md`](docs/quant-methodology.md).
 ## Limitações importantes
 
 - A cadeia de opções usa o fechamento oficial D-1 da B3. Bid, ask e open interest continuam indisponíveis no COTAHIST; o modo manual permanece identificado.
-- CDI, IPCA e IBOV sincronizados ainda não fazem parte do snapshot; comparações que dependeriam dessas séries ficam indisponíveis.
+- CDI é composto a partir da série oficial SGS 12 quando a janela sincronizada está disponível. IBOV, IFIX e demais comparações permanecem condicionados à série real correspondente.
 - O histórico de valor justo não é fabricado: enquanto só existir o valor atual, o gráfico mostra apenas essa referência e informa a limitação.
+- O backtest do próprio Score só é executável com snapshots datados do Score. O aplicativo não reconstrói notas passadas com demonstrativos publicados no futuro.
 - Alertas estatísticos de preço/volume não comprovam fraude, manipulação ou intenção.
 - Scores, preço justo, payoff e backtests são ferramentas educacionais, não ordens nem garantias.
