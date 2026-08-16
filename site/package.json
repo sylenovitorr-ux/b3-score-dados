@@ -7,13 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/*.test.js src/quant/*.test.js",
+    "test": "node --test src/*.test.js src/analysis/*.test.js src/quant/*.test.js src/scoring/*.test.js",
     "audit:dist": "node validate-dist.mjs"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "@vitejs/plugin-react": "6.0.4",
+    "vite": "8.1.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   }
 }
