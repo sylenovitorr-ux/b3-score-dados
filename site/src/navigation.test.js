@@ -17,3 +17,9 @@ test("links legados continuam válidos", () => {
 test("rota simuladores é aceita como alias do simulador", () => {
   assert.equal(parseRoute("#/simuladores").page, "simulator");
 });
+
+test("Ferramentas Avançadas tem rota canônica e aliases", () => {
+  assert.equal(parseRoute("#/ferramentas-avancadas").page, "advanced");
+  assert.equal(parseRoute("#/avancadas").page, "advanced");
+  assert.equal(routeHash("advanced"), "#/ferramentas-avancadas");
+});
