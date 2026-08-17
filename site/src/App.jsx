@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 43329)
+Total output lines: 1421
+
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildActionSignal, buildOpportunity, buildPositionPlan, buildThreeWayDecision, fairValueRange } from "./opportunity-engine";
@@ -10,12 +13,15 @@ import SimulatorPage from "./SimulatorPage";
 import MethodologyPage from "./MethodologyPage";
 import PortfolioManager from "./PortfolioManager";
 import SwingPage from "./SwingPage";
+import AdvancedToolsPage from "./AdvancedToolsPage";
+import HeatmapPage from "./HeatmapPage";
 import { parseRoute, PRIMARY_NAV, routeHash } from "./navigation";
 import "./v2.css";
 import "./v2-extra-1.css";
 import "./v2-extra-2.css";
 import { formatCompactMoney, formatMoney, formatNumber, formatPercent } from "./formatters";
 import { normalizeAsset } from "./data/normalize-asset";
+import { applyIntradayQuotes, normalizeIntraday } from "./data/intraday";
 import { fallbackMarketScores, assetOverallScore } from "./scoring/fundamental-score";
 import { scoreLabel as overallScoreLabel, scoreTone as overallScoreTone, confidenceTone as overallConfidenceTone } from "./scoring/score-labels";
 import { buildDecision } from "./analysis/decision-engine";
@@ -40,6 +46,7 @@ const REMOTE_RADAR_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-s
 const REMOTE_ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
 const REMOTE_OPTIONS_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/options-chain.json";
 const REMOTE_BENCHMARK_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/benchmarks.json";
+const REMOTE_INTRADAY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/intraday.json";
 const LOCAL_BENCHMARK_URL = `${import.meta.env.BASE_URL}data/benchmarks.json`;
 const n = (value) => {
   const parsed = Number(value);
@@ -73,7 +80,6 @@ function buildScoreDetails(f, scores) {
     debt: f.financialCompany ? null : scores.debt,
     dividends: scores.dividends
   };
-
   const availableWeight = Object.keys(values).reduce((sum, key) => values[key] === null ? sum : sum + weights[key], 0);
   return Object.fromEntries(Object.keys(values).map((key) => [key, {
     weight: weights[key],
@@ -149,7 +155,6 @@ const scoreLabel = overallScoreLabel;
 const scoreTone = overallScoreTone;
 const confidenceTone = overallConfidenceTone;
 const assetScore = (asset) => assetOverallScore(asset) ?? -Infinity;
-
 const healthySnapshot = (data) => data.length >= 600 && data.filter((asset) => asset.fundamentals).length >= 250 && data.filter((asset) => asset.fund).length >= 200;
 const SCORE_LEGEND = [
   { range: "80\u2013100", label: "Excelente", tone: "excellent" },
@@ -225,7 +230,6 @@ function peerComparison(asset, assets) {
     ].filter((row) => row.asset !== null && row.asset !== void 0 && row.peer !== null)
   };
 }
-
 function decisionPillars(asset) {
   if (asset.kind === "fii" && asset.fund) {
     const scores = asset.fund.scores;
@@ -301,7 +305,6 @@ function legacyBuildDecision(asset, profile = DEFAULT_INVESTOR_PROFILE, assets =
   else if (fitScore < 55 || confidence < 60 || risks.length >= 3) status = "attention";
   else if (fitScore >= 70 && confidence >= 65 && margin !== null && margin >= 10 && !risks.some((risk) => risk.includes("prejuízo"))) status = "candidate";
   const peer = peerComparison(asset, assets);
-
   const monitor = isFii ? ["recorrência dos rendimentos", "vacância, inadimplência e passivos", "próximo informe mensal/trimestral"] : ["próximo resultado trimestral", "evolução das margens e do lucro", "dívida e geração de caixa"];
   const invalidators = isFii ? ["queda recorrente dos rendimentos", "alta relevante de vacância ou inadimplência", "aumento de passivos sem melhora da renda"] : ["dois resultados seguidos com piora operacional", "dívida superar a capacidade de geração de caixa", "lucro ou margem deteriorarem sem sinal de recuperação"];
   return {
@@ -377,7 +380,6 @@ function PortfolioSimulator({ assets, asOf }) {
     const maxWeight = invested ? Math.max(0, ...rows.map((row) => row.invested / invested * 100)) : 0;
     return { rows, invested, leftover: Math.max(0, capital - invested), weightedScore, confidence, maxWeight };
   }, [selectedAssets, capital, strategy]);
-
   const contributed = capital + monthly * months;
   const projectionBasis = useMemo(() => {
     const rows = simulation.rows;
@@ -453,7 +455,6 @@ const ANALYSIS_GUIDES = {
     title: "Como analisar um FII",
     intro: "Em fundos imobili\xE1rios, renda e patrim\xF4nio importam tanto quanto o pre\xE7o. Compare apenas fundos com estrat\xE9gia e segmento parecidos.",
     steps: [
-
       { title: "Identifique o tipo de fundo", text: "Entenda mandato, segmento, gest\xE3o e de onde vem a renda distribu\xEDda.", metrics: "Tijolo ou papel \u2022 segmento \u2022 gest\xE3o" },
       { title: "Compare pre\xE7o e patrim\xF4nio", text: "P/VP ajuda a enxergar \xE1gio ou desconto, mas o valor dos im\xF3veis e cr\xE9ditos tamb\xE9m precisa ser saud\xE1vel.", metrics: "P/VP \u2022 VP por cota \u2022 patrim\xF4nio" },
       { title: "Avalie a renda", text: "Prefira rendimentos recorrentes e verifique se houve ganho n\xE3o recorrente elevando o DY.", metrics: "DY 12 meses \u2022 hist\xF3rico mensal" },
@@ -529,7 +530,6 @@ function AssetCard({ asset, favorite, onFavorite, onOpen, assets, anomaly }) {
     <div className="open-hint"><span>{asset.fund ? `FII \u2022 CVM ${shortDate(asset.fund.referenceDate ?? void 0)}` : asset.fundamentals ? `CVM \u2022 ${shortDate(asset.fundamentals.referenceDate)}` : "Sem v\xEDnculo oficial"}</span><b>Ver análise →</b></div>
   </article>;
 }
-
 const categoryMeta = [
   { key: "price", label: "Pre\xE7o", description: "P/L, P/VP e EV/EBIT" },
   { key: "quality", label: "Qualidade", description: "Rentabilidade, margens e crescimento" },
@@ -605,7 +605,6 @@ function interpretMetric(label, context, kind) {
   if (label === "P/VP") {
     const value = f.pb;
     if (value === null || value <= 0) return assessment("na", "N\xE3o avali\xE1vel", "Compara o valor de mercado com o patrim\xF4nio l\xEDquido.", "Patrim\xF4nio negativo invalida a leitura tradicional.", "Ativos cont\xE1beis podem n\xE3o refletir valor econ\xF4mico ou qualidade.", evidence);
-
     const tone = value <= 1 ? "excellent" : value <= 2 ? "good" : value <= 3 ? "neutral" : value <= 5 ? "attention" : "bad";
     return assessment(tone, tone === "excellent" ? "Excelente" : tone === "good" ? "Bom" : tone === "neutral" ? "Neutro" : tone === "attention" ? "Aten\xE7\xE3o" : "Ruim", "Indica quanto o mercado paga por R$ 1 de patrim\xF4nio l\xEDquido.", "Perto ou abaixo de 1 pode indicar desconto; empresas muito rent\xE1veis justificam m\xFAltiplos maiores.", "Patrim\xF4nio barato n\xE3o significa neg\xF3cio lucrativo.", `P/VP de ${number(value)} e ROE de ${percent(f.roe, false)}. ${evidence}`);
   }
@@ -643,399 +642,7 @@ function interpretMetric(label, context, kind) {
     return assessment(tone, tone === "good" ? "Boa" : tone === "neutral" ? "Neutra" : tone === "attention" ? "Aten\xE7\xE3o" : "Ruim", "Indica a cobertura das d\xEDvidas de curto prazo pelos ativos circulantes.", "Acima de 1 sugere cobertura cont\xE1bil; abaixo de 1 exige an\xE1lise do ciclo de caixa.", "O indicador n\xE3o mostra a qualidade de estoques e contas a receber.", `Liquidez corrente de ${number(value)}. ${evidence}`);
   }
   if (label === "Cresc. receita" || label === "Cresc. lucro") {
-    const value = label === "Cresc. receita" ? f.revenueGrowth : f.profitGrowth;
-    if (value === null) return assessment("na", "N\xE3o compar\xE1vel", "Compara o exerc\xEDcio atual com o anterior.", "Viradas entre lucro e preju\xEDzo n\xE3o s\xE3o convertidas em percentuais enganosos.", "Um \xFAnico ano n\xE3o define uma tend\xEAncia.", evidence);
-    const tone = value >= 20 ? "excellent" : value >= 8 ? "good" : value >= 0 ? "neutral" : value >= -10 ? "attention" : "bad";
-    return assessment(tone, tone === "excellent" ? "Excelente" : tone === "good" ? "Bom" : tone === "neutral" ? "Neutro" : tone === "attention" ? "Aten\xE7\xE3o" : "Ruim", `Mostra a varia\xE7\xE3o anual de ${label === "Cresc. receita" ? "vendas" : "lucro"}.`, "Crescimento saud\xE1vel deve ser recorrente e acompanhado por margens e caixa.", "Aquisi\xE7\xF5es, infla\xE7\xE3o e base de compara\xE7\xE3o podem distorcer a varia\xE7\xE3o.", `${label} de ${percent(value)}. ${evidence}`);
-  }
-  if (label === "Dividend yield 12m") {
-    const value = f.dividendYield;
-    if (value === null) return assessment("na", "N\xE3o avali\xE1vel", "Relaciona proventos dos \xFAltimos 12 meses com a cota\xE7\xE3o.", "A B3 n\xE3o forneceu eventos suficientes para essa classe.", "Aus\xEAncia no app n\xE3o prova que a empresa nunca distribuiu proventos.", evidence);
-    const tone = value > 15 ? "attention" : value >= 6 ? "good" : value >= 2 ? "neutral" : "attention";
-    return assessment(tone, tone === "good" ? "Bom" : tone === "neutral" ? "Neutro" : "Aten\xE7\xE3o", "Mostra o retorno passado em proventos sobre o pre\xE7o atual.", "Avalie junto com payout, lucro, endividamento e regularidade.", "DY elevado pode refletir evento extraordin\xE1rio ou queda da cota\xE7\xE3o.", `DY de ${percent(value, false)}, payout de ${percent(f.payout ?? null, false)} e lucro de ${compactMoney(f.netIncomeTTM)}.`);
-  }
-  if (label === "Payout") {
-    const value = f.payout ?? null;
-    if (value === null || value < 0) return assessment("na", "N\xE3o avali\xE1vel", "Mostra a parcela estimada do lucro distribu\xEDda.", "Sem lucro por a\xE7\xE3o positivo n\xE3o h\xE1 payout compar\xE1vel.", "O c\xE1lculo por classe pode diferir do payout societ\xE1rio divulgado.", evidence);
-    const tone = value <= 70 ? "good" : value <= 100 ? "neutral" : value <= 130 ? "attention" : "bad";
-    return assessment(tone, tone === "good" ? "Bom" : tone === "neutral" ? "Neutro" : tone === "attention" ? "Aten\xE7\xE3o" : "Ruim", "Indica quanto do lucro estimado foi destinado a proventos.", "Faixas moderadas tendem a equilibrar renda e reinvestimento.", "Acima de 100% pode ser tempor\xE1rio, n\xE3o recorrente ou consumir reservas.", `Payout estimado de ${percent(value, false)} e DY de ${percent(f.dividendYield, false)}. ${evidence}`);
-  }
-  if (label === "Regularidade 24m") {
-    const value = f.dividendRegularity ?? null;
-    if (value === null) return assessment("na", "N\xE3o avali\xE1vel", "Mede em quantos meses houve proventos.", "N\xE3o h\xE1 janela oficial suficiente.", "Regularidade n\xE3o garante manuten\xE7\xE3o dos valores.", evidence);
-    const tone = value >= 40 ? "good" : value >= 20 ? "neutral" : "attention";
-    return assessment(tone, tone === "good" ? "Boa" : tone === "neutral" ? "Neutra" : "Aten\xE7\xE3o", "Mostra a frequ\xEAncia dos pagamentos em 24 meses.", "Maior frequ\xEAncia facilita avaliar consist\xEAncia, mas n\xE3o substitui sustentabilidade.", "Empresas podem pagar dividendos anuais e ainda serem boas pagadoras.", `${f.dividendMonths24m ?? 0} meses com proventos em 24. ${evidence}`);
-  }
-  if (label === "Lucro l\xEDquido 12m" || label === "EBITDA 12m") {
-    const value = label === "Lucro l\xEDquido 12m" ? f.netIncomeTTM : f.ebitdaTTM ?? null;
-    if (value === null) return assessment("na", "N\xE3o avali\xE1vel", "Resultado acumulado dos \xFAltimos 12 meses.", "A conta n\xE3o foi identificada com seguran\xE7a.", "O tamanho absoluto deve ser comparado com receita, capital e hist\xF3rico.", evidence);
-    return assessment(value > 0 ? "good" : "bad", value > 0 ? "Positivo" : "Negativo", `Mostra o ${label === "Lucro l\xEDquido 12m" ? "resultado final" : "resultado operacional antes de juros, impostos, deprecia\xE7\xE3o e amortiza\xE7\xE3o"}.`, "O sinal \xE9 importante, mas margens e evolu\xE7\xE3o explicam melhor a qualidade.", "Resultado positivo pode conter itens n\xE3o recorrentes.", `${label} de ${compactMoney(value)}. ${evidence}`);
-  }
-  return info(
-    label === "LPA" ? "Lucro dos \xFAltimos 12 meses atribu\xEDdo a cada a\xE7\xE3o." : label === "VPA" ? "Patrim\xF4nio l\xEDquido atribu\xEDdo a cada a\xE7\xE3o." : label === "Valor de mercado" ? "Valor estimado de todas as a\xE7\xF5es da companhia." : label === "Proventos por a\xE7\xE3o 12m" ? "Soma dos proventos em dinheiro por a\xE7\xE3o no per\xEDodo." : "Valor oficial usado como contexto da an\xE1lise.",
-    "O n\xFAmero \xE9 \xFAtil para compara\xE7\xE3o e para outras f\xF3rmulas, mas n\xE3o define sozinho se a a\xE7\xE3o est\xE1 barata ou tem qualidade."
-  );
-}
-function MarketOverview({ asset, marketCap }) {
-  const rangeReady = asset.low52 !== null && asset.high52 !== null && asset.price !== null && asset.high52 > asset.low52;
-  const rangePosition = rangeReady ? Math.max(0, Math.min(100, (asset.price - asset.low52) / (asset.high52 - asset.low52) * 100)) : 0;
-  const items = [
-    { label: "Abertura", value: money(asset.priceopen) },
-
-    { label: "M\xE1xima do dia", value: money(asset.high) },
-    { label: "M\xEDnima do dia", value: money(asset.low) },
-    { label: "Volume financeiro", value: compactMoney(asset.volume) },
-    { label: "Fechamento anterior", value: money(asset.closeyest) },
-    { label: "Valor de mercado", value: compactMoney(marketCap ?? null) }
-  ].filter((item) => item.value !== "\u2014");
-  return <section className="market-overview" id="visao-geral-ativo">
-    <div className="section-heading"><h3>Visão geral de mercado</h3><span>fechamento B3 de {shortDate(asset.date)}</span></div>
-    <div className="market-overview-grid">{items.map((item) => <article key={item.label}><span>{item.label}</span><strong>{item.value}</strong></article>)}</div>
-    {rangeReady && <div className="detail-range"><div><span>Mínima em 52 semanas</span><b>{money(asset.low52)}</b></div><div className="detail-range-track"><i style={{ width: `${rangePosition}%` }} /><em style={{ left: `${rangePosition}%` }} /></div><div><span>Máxima em 52 semanas</span><b>{money(asset.high52)}</b></div></div>}
-  </section>;
-}
-function MetricExplorer({ metrics, kind, context }) {
-  const valid = metrics.filter((metric) => metric.value !== "\u2014" && !metric.value.startsWith("N/A"));
-  const missing = metrics.filter((metric) => metric.value === "\u2014" || metric.value.startsWith("N/A"));
-  const groups = kind === "stock" ? [
-    { title: "Valuation", subtitle: "Pre\xE7o em rela\xE7\xE3o aos resultados e ao patrim\xF4nio", labels: ["P/L", "P/VP", "EV/EBIT", "LPA", "VPA", "Valor de mercado"] },
-    { title: "Rentabilidade e margens", subtitle: "Qualidade e efici\xEAncia do neg\xF3cio", labels: ["ROE", "ROA", "ROIC", "Margem bruta", "Margem EBIT", "Margem l\xEDquida", "EBITDA 12m", "Lucro l\xEDquido 12m"] },
-    { title: "Endividamento", subtitle: "Capacidade financeira e estrutura de capital", labels: ["D\xEDvida l\xEDq./EBIT", "D\xEDvida l\xEDq./EBITDA", "Liquidez corrente"] },
-    { title: "Crescimento", subtitle: "Compara\xE7\xE3o dispon\xEDvel nos demonstrativos oficiais", labels: ["Cresc. receita", "Cresc. lucro"] },
-    { title: "Dividendos", subtitle: "Proventos em dinheiro publicados pela B3", labels: ["Dividend yield 12m", "Proventos por a\xE7\xE3o 12m", "Regularidade 24m", "Payout"] }
-  ] : [
-    { title: "Pre\xE7o e patrim\xF4nio", subtitle: "Cota\xE7\xE3o comparada ao valor patrimonial", labels: ["P/VP", "Valor patrimonial/cota", "Patrim\xF4nio l\xEDquido"] },
-    { title: "Renda", subtitle: "Rendimentos informados pelo fundo", labels: ["DY 12 meses", "DY do m\xEAs"] },
-    { title: "Im\xF3veis e risco", subtitle: "Estrutura, ocupa\xE7\xE3o e concentra\xE7\xE3o", labels: ["Passivos/PL", "Vac\xE2ncia", "Inadimpl\xEAncia", "Im\xF3veis informados", "Maior concentra\xE7\xE3o"] },
-    { title: "Liquidez e p\xFAblico", subtitle: "Negocia\xE7\xE3o e base de investidores", labels: ["Liquidez di\xE1ria", "Cotistas"] }
-  ];
-  const stateLabel = (metric) => metric.state === "estimated" ? "Estimado" : metric.state === "stale" ? "Antigo" : metric.state === "not_applicable" ? "N\xE3o aplic\xE1vel" : metric.state === "not_found" ? "N\xE3o encontrado" : metric.state === "official" ? "Oficial" : "Calculado";
-  return <section className="detail-section metric-explorer" id="indicadores-ativo">
-    <div className="section-heading"><h3>Indicadores e fórmulas</h3><span>{valid.length} valores calculados</span></div>
-    <p className="section-intro">Cada indicador recebe uma leitura educativa baseada no próprio valor e nos demais dados disponíveis. Toque para entender, analisar e auditar o cálculo.</p>
-    <div className="metric-groups">{groups.map((group) => {
-    const groupMetrics = valid.filter((metric) => group.labels.includes(metric.label));
-    if (!groupMetrics.length) return null;
-    return <section className="metric-group" key={group.title}><div className="metric-group-title"><div><b>{group.title}</b><span>{group.subtitle}</span></div><i>{groupMetrics.length}</i></div><div className="formula-grid audit-grid">{groupMetrics.map((metric) => {
-      const reading = interpretMetric(metric.label, context, kind);
-      return <details className={`metric-card ${reading.tone}`} key={metric.label}><summary><div><span>{metric.label}</span><strong>{metric.value}</strong><em className={`assessment-chip ${reading.tone}`}>{reading.label}</em></div><i className={`metric-state ${metric.state ?? "calculated"}`}>{stateLabel(metric)}</i><b>Entender e auditar</b></summary><div className="metric-audit"><section className={`metric-reading ${reading.tone}`}><h4>{reading.label}: como interpretar</h4><p><b>O que significa</b>{reading.meaning}</p><p><b>Como analisar</b>{reading.analysis}</p><p><b>Ponto de atenção</b>{reading.caution}</p><p><b>Por que recebeu esta leitura</b>{reading.rationale}</p></section><p><b>Fórmula</b>{metric.formula}</p>{metric.inputs?.length ? <dl>{metric.inputs.map((input) => <div key={input.label}><dt>{input.label}</dt><dd>{input.value}</dd></div>)}</dl> : null}<small><b>Período:</b> {metric.period || metric.source}</small><small><b>Fonte:</b> {metric.source}{metric.note ? ` \u2022 ${metric.note}` : ""}</small></div></details>;
-    })}</div></section>;
-  })}</div>
-    {missing.length > 0 && <details className="missing-metrics"><summary>{missing.length} indicadores não calculados — ver motivos</summary><div>{missing.map((metric) => <article key={metric.label}><b>{metric.label}</b><span>{metric.value.startsWith("N/A") ? metric.value : "N/D \u2014 conta ou per\xEDodo n\xE3o identificado com seguran\xE7a"}</span></article>)}</div></details>}
-  </section>;
-}
-function AccountingAudit({ fundamentals: f }) {
-  const audit = f.audit;
-  if (!audit) return null;
-  const ttmEntries = Object.entries(audit.ttm ?? {});
-  const validated = ttmEntries.filter(([, item]) => item.state === "validated_ttm").length;
-  const reconciliation = audit.balanceReconciliation;
-  const growthLabel = (state) => ({
-    turnaround: "Preju\xEDzo \u2192 lucro",
-    profit_to_loss: "Lucro \u2192 preju\xEDzo",
-    loss_reduced: "Preju\xEDzo reduzido",
-    loss_increased: "Preju\xEDzo ampliado",
-    normal: "Varia\xE7\xE3o percentual comum"
-  })[state ?? ""] ?? "N\xE3o compar\xE1vel";
-  return <section className="accounting-audit">
-    <div className="section-heading"><h3>Validações contábeis</h3><span>motor {audit.methodVersion || "3.0"}</span></div>
-    <div className="accounting-audit-grid">
-      <article className={validated ? "audit-ok" : "audit-warn"}><span>TTM</span><strong>{validated ? `${validated}/${ttmEntries.length} contas validadas` : "DFP anual utilizada"}</strong><small>{validated ? "DFP + ITR atual \u2212 comparativa com datas compat\xEDveis" : "O rob\xF4 n\xE3o combinou per\xEDodos incompat\xEDveis."}</small></article>
-      <article className={reconciliation?.balanced ? "audit-ok" : reconciliation?.balanced === false ? "audit-error" : "audit-warn"}><span>Conciliação do balanço</span><strong>{reconciliation?.balanced ? "Equa\xE7\xE3o conciliada" : reconciliation?.balanced === false ? "Diferen\xE7a detectada" : "Dados insuficientes"}</strong><small>{reconciliation?.difference !== null && reconciliation?.difference !== void 0 ? `Diferen\xE7a: ${compactMoney(reconciliation.difference)}` : "Ativo = passivos + patrim\xF4nio l\xEDquido"}</small></article>
-      <article><span>Escopo</span><strong>{audit.scope === "consolidated" ? "Somente consolidado" : audit.scope === "individual" ? "Somente individual" : "N\xE3o informado"}</strong><small>{audit.scope === "individual" ? "Fallback oficial: o conjunto consolidado estava incompleto. Nenhum escopo foi misturado." : "Demonstrativos individuais n\xE3o s\xE3o misturados."}</small></article>
-      <article><span>Crescimento do lucro</span><strong>{growthLabel(audit.growthStates?.profit)}</strong><small>Viradas de sinal não são apresentadas como percentuais absurdos.</small></article>
-    </div>
-    {(audit.documents?.length ?? 0) > 0 && <details className="document-audit"><summary>Versões e reapresentações da CVM</summary><div>{audit.documents.map((document2) => <article key={document2.documentType}><b>{document2.documentType} {shortDate(document2.referenceDate)}</b><span>versão {document2.selectedVersion ?? "N/D"} • {document2.scope === "consolidated" ? "consolidado" : document2.scope}</span><small>{document2.reissued ? `Reapresentado; vers\xF5es substitu\xEDdas: ${document2.supersededVersions.join(", ")}` : "Sem vers\xE3o anterior identificada para a mesma refer\xEAncia."}</small></article>)}</div></details>}
-  </section>;
-}
-function DividendHistory({ fundamentals: f }) {
-  const events = f.dividendEvents ?? [];
-  if (!events.length) return null;
-  return <section className="dividend-history">
-    <div className="section-heading"><h3>Proventos recentes</h3><span>B3 • classe do ativo</span></div>
-    <p className="section-intro">Valores brutos por ação. “Data com” é o último dia informado pela B3 para ter direito ao evento.</p>
-    <div className="dividend-event-list">{events.slice(0, 10).map((event, index) => <article key={`${event.lastDateWith}-${event.type}-${index}`}>
-      <div><b>{event.type}</b><span>{event.shareType}</span></div>
-      <strong>{money(event.valuePerShare)}</strong>
-
-      <dl><div><dt>Data com</dt><dd>{shortDate(event.lastDateWith)}</dd></div><div><dt>Data ex</dt><dd>{event.exDate ? shortDate(event.exDate) : "n\xE3o informado"}</dd></div><div><dt>Pagamento</dt><dd>{event.paymentDate ? shortDate(event.paymentDate) : "n\xE3o informado"}</dd></div></dl>
-    </article>)}</div>
-    <small className="source-caption">Fonte: consulta oficial “Dividendos e outros eventos corporativos” da B3. Eventos repetidos com a mesma classe, tipo, valor e data são consolidados.</small>
-  </section>;
-}
-function CompanyAndStatements({ fundamentals: f }) {
-  const [statement, setStatement] = useState("income");
-  const [historyLimit, setHistoryLimit] = useState(5);
-  const resultRows = [
-    { label: "Receita l\xEDquida \u2014 12m", value: f.revenueTTM, text: compactMoney(f.revenueTTM), growth: f.revenueGrowth },
-    { label: "Lucro bruto \u2014 12m", value: f.grossProfitTTM, text: compactMoney(f.grossProfitTTM), growth: null },
-    { label: "EBIT \u2014 12m", value: f.ebitTTM, text: compactMoney(f.ebitTTM), growth: null },
-    { label: "Lucro l\xEDquido \u2014 12m", value: f.netIncomeTTM, text: compactMoney(f.netIncomeTTM), growth: f.profitGrowth }
-  ].filter((item) => item.value !== null);
-  const balanceRows = [
-    { label: "Ativo total", value: f.assets },
-    { label: "Ativo circulante", value: f.currentAssets ?? null },
-    { label: "Patrim\xF4nio l\xEDquido", value: f.equity },
-    { label: "D\xEDvida bruta", value: f.financialCompany ? null : f.grossDebt },
-    { label: "Caixa e aplica\xE7\xF5es", value: f.financialCompany ? null : f.cashAndInvestments },
-    { label: "D\xEDvida l\xEDquida", value: f.financialCompany ? null : f.netDebt }
-  ].filter((item) => item.value !== null);
-  const summary = [
-    ["Patrim\xF4nio l\xEDquido", compactMoney(f.equity)],
-    ["Ativos", compactMoney(f.assets)],
-    ["Ativo circulante", compactMoney(f.currentAssets ?? null)],
-    ["D\xEDvida bruta", f.financialCompany ? "N/A banco" : compactMoney(f.grossDebt)],
-    ["Disponibilidade", f.financialCompany ? "N/A banco" : compactMoney(f.cashAndInvestments)],
-    ["D\xEDvida l\xEDquida", f.financialCompany ? "N/A banco" : compactMoney(f.netDebt)],
-    ["Valor de mercado", compactMoney(f.marketCap)],
-    ["Valor da firma", f.financialCompany ? "N/A banco" : compactMoney(f.enterpriseValue ?? null)],
-    ["Total de pap\xE9is", compactNumber(f.sharesOutstanding)],
-    ["Free float", f.freeFloat === null || f.freeFloat === void 0 ? "N/D" : percent(f.freeFloat, false)]
-  ].filter(([, value]) => value !== "\u2014");
-  const history = f.history ?? [];
-  const quarterlyHistory = f.quarters ?? [];
-  const visibleHistory = history.slice(0, historyLimit);
-  const accountingScopeLabel = f.audit?.scope === "individual" ? "individual" : "consolidado";
-  const accountingScopePlural = f.audit?.scope === "individual" ? "individuais" : "consolidados";
-  const tableConfig = {
-    income: {
-      title: "DRE",
-      rows: [
-        ["Receita l\xEDquida", "revenue", "money"],
-        ["Custos", "costs", "money"],
-        ["Lucro bruto", "grossProfit", "money"],
-        ["Despesas/receitas operacionais", "operatingExpenses", "money"],
-        ["EBITDA", "ebitda", "money"],
-        ["Deprecia\xE7\xE3o e amortiza\xE7\xE3o", "depreciationAmortization", "money"],
-        ["EBIT", "ebit", "money"],
-        ["Resultado financeiro", "financialResult", "money"],
-        ["Impostos", "taxes", "money"],
-        ["Lucro l\xEDquido", "netIncome", "money"],
-        ["Lucro da controladora", "controllerIncome", "money"],
-        ["N\xE3o controladores", "nonControllerIncome", "money"],
-        ["ROE", "roe", "percent"],
-        ["Margem bruta", "grossMargin", "percent"],
-        ["Margem EBIT", "ebitMargin", "percent"],
-        ["Margem l\xEDquida", "netMargin", "percent"]
-      ]
-    },
-    cashFlow: {
-      title: "Fluxo de caixa",
-      rows: [
-        ["Caixa l\xEDquido operacional", "operating", "money"],
-        ["Caixa l\xEDquido de investimentos", "investing", "money"],
-        ["Fluxo de caixa livre", "freeCashFlow", "money"],
-        ["Caixa l\xEDquido de financiamentos", "financing", "money"],
-        ["Varia\xE7\xE3o cambial", "currencyEffect", "money"],
-        ["Aumento/redu\xE7\xE3o de caixa", "cashChange", "money"],
-        ["Saldo inicial de caixa", "openingCash", "money"],
-        ["Saldo final de caixa", "closingCash", "money"]
-      ]
-    },
-    balance: {
-
-      title: "Balan\xE7o patrimonial",
-      rows: [
-        ["Ativo total", "assets", "money"],
-        ["Ativo circulante", "currentAssets", "money"],
-        ["Aplica\xE7\xF5es financeiras", "financialInvestments", "money"],
-        ["Caixa e equivalentes", "cash", "money"],
-        ["Contas a receber", "receivables", "money"],
-        ["Estoques", "inventory", "money"],
-        ["Ativo n\xE3o circulante", "nonCurrentAssets", "money"],
-        ["Realiz\xE1vel a longo prazo", "longTermAssets", "money"],
-        ["Investimentos", "investments", "money"],
-        ["Imobilizado", "propertyPlantEquipment", "money"],
-        ["Intang\xEDvel", "intangibles", "money"],
-        ["Passivo total", "liabilities", "money"],
-        ["Passivo circulante", "currentLiabilities", "money"],
-        ["Passivo n\xE3o circulante", "nonCurrentLiabilities", "money"],
-        ["Patrim\xF4nio l\xEDquido", "equity", "money"],
-        ["Capital social", "shareCapital", "money"],
-        ["Reservas de capital", "capitalReserves", "money"],
-        ["Reservas de lucros", "profitReserves", "money"],
-        ["Participa\xE7\xE3o de n\xE3o controladores", "nonControllingInterest", "money"],
-        ["D\xEDvida bruta", "grossDebt", "money"],
-        ["D\xEDvida l\xEDquida", "netDebt", "money"]
-      ]
-    }
-  };
-  const config = tableConfig[statement];
-  const visibleRows = config.rows.filter(([, key]) => visibleHistory.some((year) => year[statement][key] !== null && year[statement][key] !== void 0));
-  const classification = [
-    ["Segmento de listagem", f.listingSegment || f.segment || "N/D"],
-    ["Setor de atua\xE7\xE3o", f.sector || "N/D"],
-    ["Subsetor de atua\xE7\xE3o", f.subsector || "N/D"],
-    ["Segmento de atua\xE7\xE3o", f.industrySegment || "N/D"]
-  ];
-  return <>
-    <section className="company-overview" id="empresa-ativo"><div><span className="eyebrow">EMPRESA</span><h3>{f.companyName}</h3><p>Cadastro da companhia e classificação disponível nas fontes oficiais.</p></div><dl><div><dt>CNPJ</dt><dd>{f.cnpj}</dd></div><div><dt>Código CVM</dt><dd>{f.cvmCode || "n\xE3o informado"}</dd></div><div><dt>Documento usado</dt><dd>{f.filingType}</dd></div><div><dt>Período</dt><dd>{f.periodLabel}</dd></div>{classification.map(([label, value]) => <div key={label} className={value === "N/D" ? "unavailable" : ""}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>
-    <section className="fundamental-summary"><div className="section-heading"><h3>Estrutura financeira</h3><span>posição em {shortDate(f.referenceDate)}</span></div><div className="fundamental-summary-grid">{summary.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div><p className="source-caption">Balanço: CVM DFP/ITR. Valor de mercado e valor da firma usam o fechamento B3 indicado no topo. N/D significa que a fonte vinculada não publica o campo com segurança.</p></section>
-    <DividendHistory fundamentals={f} />
-    {f.audit && <AccountingAudit fundamentals={f} />}
-    <section className="financial-overview" id="demonstrativos-ativo"><div className="section-heading"><h3>Demonstrativos financeiros</h3><span>posição em {shortDate(f.referenceDate)}</span></div><p className="section-intro">Resumo dos últimos 12 meses e histórico anual {accountingScopeLabel} publicado pela CVM. O mesmo escopo é mantido em toda a análise.</p><div className="financial-columns"><article><div className="financial-title"><b>Resultado</b><span>últimos 12 meses</span></div>{resultRows.map((row) => <div className="financial-row" key={row.label}><span>{row.label}</span><strong>{row.text}</strong>{row.growth !== null && <i className={(row.growth ?? 0) >= 0 ? "up" : "down"}>{percent(row.growth)}</i>}</div>)}</article><article><div className="financial-title"><b>Balanço patrimonial</b><span>última posição disponível</span></div>{balanceRows.map((row) => <div className="financial-row" key={row.label}><span>{row.label}</span><strong>{compactMoney(row.value)}</strong></div>)}</article></div>
-      {quarterlyHistory.length > 0 && <div className="quarterly-history"><div className="statement-toolbar"><div><b>Trimestres isolados</b><span>1T reportado; 2T, 3T e 4T derivados de períodos acumulados validados</span></div></div><div className="statement-table-wrap"><table className="statement-table"><caption>Valores trimestrais isolados em reais. Nenhum trimestre é combinado quando as datas do período são incompatíveis.</caption><thead><tr><th scope="col">Conta</th>{quarterlyHistory.flatMap((year) => year.quarters.map((quarter) => <th scope="col" key={`${year.year}-${quarter.quarter}`}>{quarter.quarter}T{year.year}<small>{quarter.states.revenue === "reported" ? "reportado" : "derivado"}</small></th>))}</tr></thead><tbody>{[["Receita l\xEDquida", "revenue"], ["Lucro bruto", "grossProfit"], ["EBIT", "ebit"], ["Lucro l\xEDquido", "netIncome"]].map(([label, key]) => <tr key={key}><th scope="row">{label}</th>{quarterlyHistory.flatMap((year) => year.quarters.map((quarter) => <td key={`${year.year}-${quarter.quarter}`}><strong>{compactMoney(quarter.income[key] ?? null)}</strong><small>{quarter.states[key] === "invalid_period" ? "per\xEDodo rejeitado" : quarter.states[key] === "reported" ? "CVM" : "c\xE1lculo validado"}</small></td>))}</tr>)}</tbody></table></div></div>}
-      <div className="statement-toolbar"><div><b>Histórico anual auditável</b><span>até 10 exercícios • valores {accountingScopePlural} • CVM DFP</span></div><div className="statement-controls"><div role="group" aria-label="Quantidade de exercícios"><button className={historyLimit === 5 ? "active" : ""} onClick={() => setHistoryLimit(5)}>5 anos</button><button className={historyLimit === 10 ? "active" : ""} onClick={() => setHistoryLimit(10)}>10 anos</button></div><div role="tablist" aria-label="Tipo de demonstrativo">{["income", "cashFlow", "balance"].map((key) => <button role="tab" aria-selected={statement === key} className={statement === key ? "active" : ""} onClick={() => setStatement(key)} key={key}>{tableConfig[key].title}</button>)}</div></div></div>
-      {visibleHistory.length && visibleRows.length ? <div className="statement-table-wrap"><table className="statement-table"><caption>Valores em reais. AH mostra a variação em relação ao exercício anterior. Cada coluna corresponde a uma DFP {accountingScopeLabel}.</caption><thead><tr><th scope="col">{config.title}</th>{visibleHistory.map((year) => <th scope="col" key={year.year}>{year.year}<small>DFP • {shortDate(year.referenceDate)}</small></th>)}</tr></thead><tbody>{visibleRows.map(([label, key, format]) => <tr key={key}><th scope="row">{label}</th>{visibleHistory.map((year) => {
-    const value = year[statement][key];
-    const variation = (statement === "income" ? year.incomeGrowth : statement === "cashFlow" ? year.cashFlowGrowth : year.balanceGrowth)[key];
-    return <td key={year.year}><strong>{format === "percent" ? percent(value ?? null, false) : compactMoney(value ?? null)}</strong>{variation !== null && variation !== void 0 && <small className={variation >= 0 ? "up" : "down"}>{percent(variation)}</small>}</td>;
-  })}</tr>)}</tbody></table></div> : <div className="history-pending"><b>Histórico anual aguardando o novo processamento</b><span>O robô agora baixa até 10 anos de DFP. A tabela será preenchida somente com exercícios oficiais identificados e conciliados.</span></div>}
-    </section>
-  </>;
-}
-const fiiCategoryMeta = [
-  { key: "price", label: "Pre\xE7o", description: "Pre\xE7o sobre valor patrimonial" },
-  { key: "income", label: "Renda", description: "Dividend yield informado em 12 meses" },
-  { key: "quality", label: "Im\xF3veis", description: "Vac\xE2ncia e diversifica\xE7\xE3o" },
-  { key: "risk", label: "Risco", description: "Passivos e inadimpl\xEAncia" },
-  { key: "liquidity", label: "Liquidez", description: "Volume financeiro na B3" }
-];
-function ScoreWhy({ scores, categories, details }) {
-  const values = scores;
-  const available = categories.map((category) => ({ ...category, value: values[category.key] })).filter((item) => item.value !== null);
-  if (scores.overall === null || scores.overall === undefined) return <section className="score-why score-unavailable"><div className="section-heading"><h3>Score Geral indisponível</h3><span>auditoria da elegibilidade</span></div><p>Dados insuficientes para calcular o Score Geral. Os indicadores independentes abaixo permanecem visíveis, mas momentum, variação e liquidez não substituem fundamentos.</p><p className="missing-score"><b>Blocos disponíveis:</b> {available.length} de {categories.length}. <b>Confiança:</b> <span className={`confidence-value ${confidenceTone(scores.confidence)}`}>{scores.confidence ?? 0}%</span>. Complete os dados fundamentais vinculados à CVM/B3 para habilitar a nota.</p></section>;
-  const strong = available.filter((item) => item.value >= 65);
-  const attention = available.filter((item) => item.value < 45);
-  const balanced = available.filter((item) => item.value >= 45 && item.value < 65);
-  const equation = details ? Object.entries(details).filter(([, detail]) => detail.score !== null && detail.effectiveWeight > 0).map(([, detail]) => `${detail.score}\xD7${detail.effectiveWeight}%`).join(" + ") + ` = ${scores.overall}` : available.length ? `(${available.map((item) => item.value).join(" + ")}) \xF7 ${available.length} = ${scores.overall}` : "Sem blocos suficientes";
-  return <section className="score-why"><div className="section-heading"><h3>Por que recebeu {scores.overall}/100?</h3><span>explicação da nota</span></div><p className="score-equation">A nota combina somente pilares aplicáveis e disponíveis: <b>{equation}</b>. Confiança: <b className={`confidence-value ${confidenceTone(scores.confidence)}`}>{scores.confidence}%</b>.</p><div className="why-grid">
-    <article className="positive"><b>↑ Ajudaram a nota</b>{strong.length ? strong.map((item) => <span key={item.key}>{item.label}: <strong>{item.value}</strong> — {item.description}</span>) : <span>Nenhum bloco acima de 65.</span>}</article>
-    <article className="balanced"><b>→ Ficaram no meio</b>{balanced.length ? balanced.map((item) => <span key={item.key}>{item.label}: <strong>{item.value}</strong> — {item.description}</span>) : <span>Nenhum bloco entre 45 e 64.</span>}</article>
-    <article className="attention"><b>↓ Puxaram para baixo</b>{attention.length ? attention.map((item) => <span key={item.key}>{item.label}: <strong>{item.value}</strong> — {item.description}</span>) : <span>Nenhum bloco abaixo de 45.</span>}</article>
-  </div><p className="missing-score"><b>Cobertura:</b> {available.length} de {categories.length} blocos calculados. A confiança cai quando faltam dados, sem preencher lacunas com zero.</p></section>;
-}
-function StockScorePillars({ fundamentals: f }) {
-  const details = f.scoreDetails ?? buildScoreDetails(f, f.scores);
-  return <div className="score-pillar-grid">{categoryMeta.map((category) => {
-    const detail = details[category.key];
-
-    return <details className={scoreTone(detail.score)} key={category.key}>
-      <summary><span>{category.label}<small>{detail.score === null ? f.financialCompany && category.key === "debt" ? "N\xE3o aplic\xE1vel" : "Dados insuficientes" : `${detail.effectiveWeight}% do score`}</small></span><strong>{detail.score ?? "N/D"}</strong></summary>
-      <div><p>{detail.rationale}</p><b>Indicadores considerados</b><span>{detail.inputs.join(" \u2022 ") || "Nenhum indicador aplic\xE1vel"}</span><small>Peso-base: {detail.weight}%{detail.score !== null ? ` \u2022 peso efetivo ap\xF3s renormaliza\xE7\xE3o: ${detail.effectiveWeight}%` : ""}</small></div>
-    </details>;
-  })}</div>;
-}
-function ConfidenceBreakdown({ fundamentals: f }) {
-  const details = f.confidenceDetails;
-  if (!details) return null;
-  const rows = [
-    ["Cobertura", details.coverage, `${details.available} de ${details.applicable} indicadores aplic\xE1veis`],
-    ["Atualiza\xE7\xE3o", details.freshness, `balan\xE7o de ${shortDate(f.referenceDate)}`],
-    ["V\xEDnculo", details.linkage, "ticker, CNPJ e c\xF3digo CVM"],
-    ["Escopo cont\xE1bil", details.consolidation, f.audit?.scope === "individual" ? "demonstra\xE7\xF5es individuais oficiais, sem mistura" : "demonstra\xE7\xF5es consolidadas"],
-    ["Sem aproxima\xE7\xF5es", details.estimation, f.marketCapEstimated ? "uma classe usou pre\xE7o aproximado" : "cota\xE7\xF5es das classes dispon\xEDveis"]
-  ];
-  const stateCounts = Object.values(f.metricStates ?? {}).reduce((acc, state) => {
-    acc[state] = (acc[state] ?? 0) + 1;
-    return acc;
-  }, {});
-  return <section className="confidence-breakdown"><div className="section-heading"><h3>Como a confiança foi calculada</h3><span>qualidade e completude</span></div><p className="section-intro">A confiança não prevê valorização. Ela mede cobertura, atualização, vínculo correto e uso de aproximações.</p><div className="confidence-grid">{rows.map(([label, value, note]) => <article key={label}><div><span>{label}</span><b className={confidenceTone(value)}>{value}%</b></div><i><em style={{ width: `${value}%` }} /></i><small>{note}</small></article>)}</div><div className="data-state-legend"><span className="available">✓ {stateCounts.available ?? 0} disponíveis</span><span className="estimated">≈ {stateCounts.estimated ?? 0} estimados</span><span className="stale">◷ {stateCounts.stale ?? 0} antigos</span><span className="not-applicable">— {stateCounts.not_applicable ?? 0} não aplicáveis</span><span className="not-found">? {stateCounts.not_found ?? 0} não encontrados</span></div></section>;
-}
-function PositionPlan({ asset, anomaly }) {
-  const plan = buildPositionPlan(asset, anomaly);
-  if (!plan) return <section className="position-plan unavailable"><div><span className="eyebrow">PLANO MATEMÁTICO</span><h3>Dados insuficientes para estimar faixas</h3></div><p>O app precisa de preço atual e ao menos uma âncora verificável de valor justo.</p></section>;
-  return <section className={`position-plan ${plan.tone}`} id="plano-ativo"><div className="position-plan-head"><div><span className="eyebrow">PLANO MATEMÁTICO DO ATIVO</span><h3>Entrada, saída e tempo de reavaliação</h3><p>Faixas condicionais calculadas com valuation, confiança e volatilidade. Não são ordens automáticas.</p></div><i>{plan.status}</i></div>
-    <div className="position-plan-grid"><article><span>Preço atual</span><b>{money(plan.currentPrice)}</b><small>B3 {shortDate(asset.date)}</small></article><article><span>Valor justo</span><b>{money(plan.fair.base)}</b><small>faixa {money(plan.fair.low)} – {money(plan.fair.high)}</small></article><article className="entry"><span>Zona de entrada</span><b>{money(plan.entryLow)} – {money(plan.entryHigh)}</b><small>{plan.tone === "wait" ? "aguardar essa faixa" : "margem calculada"}</small></article><article className="target"><span>Saída por valor</span><b>{money(plan.targetBase)}</b><small>cenário superior {money(plan.targetHigh)}</small></article><article className="defensive"><span>Saída defensiva</span><b>{money(plan.defensiveExit)}</b><small>referência de controle de risco</small></article><article><span>Janela mínima</span><b>{plan.horizon}</b><small>reavaliar antes se os dados mudarem</small></article></div>
-    <details className="position-method"><summary>Como estas faixas foram calculadas <i>⌄</i></summary><div><p>{plan.method}</p><p>Potencial do preço atual até o justo: <b>{percent(plan.potentialPct)}</b>. Margem da entrada superior até o alvo: <b>{percent(plan.marginFromEntryPct)}</b>.</p>{plan.conditions.map((item) => <span key={item}>• {item}</span>)}</div></details>
-  </section>;
-}
-function ActionReading({ asset, assets, anomaly }) {
-  const decision = buildThreeWayDecision(asset, assets, anomaly);
-  const signal = decision.signal;
-  return <section className={`action-reading ${decision.tone}`} id="leitura-ativo"><div className="action-reading-main"><span className="eyebrow">NOTA DE DECISÃO DO SISTEMA</span><h3>{decision.label}</h3><p>{decision.explanation ?? "Não há dados suficientes para classificar o ativo com responsabilidade."} Não é ordem personalizada e muda quando preço, fundamentos, confiança ou anomalias mudam.</p></div><div className="decision-total"><div><span>NOTA TOTAL</span><b>{decision.score == null ? "N/D" : `${decision.score}/100`}</b><small>cobertura {decision.coverage}%</small></div><p>Parâmetro quantitativo: não promete retorno nem substitui sua decisão, perfil e gestão de risco.</p></div><div className="action-audiences"><article><span>Se já possui</span><b>{signal.holder}</b></article><article><span>Se ainda não possui</span><b>{signal.newcomer}</b></article></div><details><summary>Como a nota e a leitura foram calculadas? <i>⌄</i></summary><div><p>{decision.formula}</p>{decision.inputs.map((input) => <p key={input.key}>• {input.label}: {Math.round(input.value)}/100 • peso efetivo {number(input.effectiveWeight)}%</p>)}{signal.reasons.map((reason) => <p key={reason}>• {reason}</p>)}<small>“Vender” pode significar realização por preço ou redução por deterioração. Confira qual motivo foi acionado antes de decidir.</small></div></details></section>;
-}
-function FiiDetail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly, radar, benchmarks, asPage = false }) {
-  const f = asset.fund;
-  const metrics = [
-    { label: "P/VP", value: number(f.pb), formula: "Cota\xE7\xE3o \xF7 valor patrimonial por cota", source: `CVM ${shortDate(f.referenceDate ?? void 0)} + B3 ${shortDate(asset.date)}` },
-    { label: "DY 12 meses", value: percent(f.dy12, false), formula: "Soma dos DY mensais informados pelo fundo", source: `${f.dyMonthsAvailable} meses dispon\xEDveis na CVM` },
-    { label: "DY do m\xEAs", value: percent(f.dyMonth, false), formula: "Dividend yield mensal informado \xE0 CVM", source: `informe de ${shortDate(f.referenceDate ?? void 0)}` },
-    { label: "Valor patrimonial/cota", value: money(f.navPerShare), formula: "Patrim\xF4nio l\xEDquido \xF7 cotas emitidas", source: `posi\xE7\xE3o em ${shortDate(f.referenceDate ?? void 0)}` },
-    { label: "Patrim\xF4nio l\xEDquido", value: compactMoney(f.netAssets), formula: "Patrim\xF4nio l\xEDquido declarado pelo fundo", source: `informe mensal entregue em ${shortDate(f.deliveryDate ?? void 0)}` },
-    { label: "Cotistas", value: number(f.holders, 0), formula: "Quantidade de cotistas declarada", source: `informe de ${shortDate(f.referenceDate ?? void 0)}` },
-    { label: "Passivos/PL", value: percent(f.leverage, false), formula: "Total de passivos \xF7 patrim\xF4nio l\xEDquido", source: `informe mensal de ${shortDate(f.referenceDate ?? void 0)}` },
-    { label: "Vac\xE2ncia", value: percent(f.vacancy, false), formula: "M\xE9dia ponderada pela receita dos im\xF3veis informados", source: `informe trimestral de ${shortDate(f.quarterDate ?? void 0)}` },
-    { label: "Inadimpl\xEAncia", value: percent(f.defaultRate, false), formula: "M\xE9dia ponderada pela receita dos im\xF3veis informados", source: `informe trimestral de ${shortDate(f.quarterDate ?? void 0)}` },
-    { label: "Im\xF3veis informados", value: number(f.properties, 0), formula: "Contagem dos im\xF3veis estruturados no informe", source: `informe trimestral de ${shortDate(f.quarterDate ?? void 0)}` },
-    { label: "Maior concentra\xE7\xE3o", value: percent(f.maxTenantConcentration, false), formula: "Maior participa\xE7\xE3o de receita entre locat\xE1rios declarados", source: `informe trimestral de ${shortDate(f.quarterDate ?? void 0)}` },
-    { label: "Liquidez di\xE1ria", value: compactMoney(asset.volume), formula: "Volume financeiro negociado no preg\xE3o", source: `fechamento B3 de ${shortDate(asset.date)}` }
-  ];
-  const links = { google: `https://www.google.com/finance/quote/${encodeURIComponent(asset.ticker)}:BVMF?hl=pt-BR`, b3: `https://sistemaswebb3-listados.b3.com.br/fundsListedPage/?language=pt-br`, cvm: "https://dados.cvm.gov.br/dataset/fii-doc-inf_mensal" };
-  return <div className={`modal-backdrop ${asPage ? "asset-page-backdrop" : ""}`} onMouseDown={(event) => !asPage && event.currentTarget === event.target && onClose()}><section className="detail-sheet" role={asPage ? "region" : "dialog"} aria-modal={asPage ? undefined : "true"} aria-label={`An\xE1lise do FII ${asset.ticker}`}>
-    <div className="sheet-handle" /><div className="detail-top"><button className="back-btn" onClick={onClose}>← Voltar</button><button className={`favorite large ${favorite ? "active" : ""}`} onClick={onFavorite}>★</button></div>
-	    <div className="detail-title"><div><span className="asset-kind">FUNDO IMOBILIÁRIO{f.segment ? ` \u2022 ${f.segment}` : ""}</span><h2>{asset.ticker}</h2><small>{f.name}{f.cnpj ? ` \u2022 ${f.cnpj}` : ""}</small></div><div className="detail-quote"><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "change up" : "change down"}>{percent(asset.changepct)} • B3 {shortDate(asset.date)}</span></div></div>
-	    <nav className="detail-jump-nav" aria-label="Seções da análise"><a href="#leitura-ativo">Leitura</a><a href="#plano-ativo">Plano</a><a href="#visao-geral-ativo">Visão geral</a><a href="#painel-grafico-ativo">Gráficos</a><a href="#indicadores-ativo">Indicadores</a><a href="#fontes-ativo">Fontes</a></nav>
-	    <ActionReading asset={asset} assets={assets} anomaly={anomaly} />
-	    <PositionPlan asset={asset} anomaly={anomaly} />
-	    <div className="score-hero fii-score"><ScoreRing value={f.scores.overall} /><div><span className="eyebrow">SCORE EXCLUSIVO PARA FII</span><h3>{scoreLabel(f.scores.overall)}</h3><p>Confiança de <b className={`confidence-value ${confidenceTone(f.scores.confidence)}`}>{f.scores.confidence}%</b>. A tela mostra apenas indicadores com valor verificável.</p></div></div>
-	    <div className="score-categories">{fiiCategoryMeta.filter((category) => f.scores[category.key] !== null).map((category) => {
-    const value = f.scores[category.key];
-    return <article className={scoreTone(value)} key={category.key}><span>{category.label}</span><strong>{value}</strong><small>{category.description}</small></article>;
-  })}</div><ScoreWhy scores={f.scores} categories={fiiCategoryMeta} />
-	    <DecisionRadar asset={asset} profile={profile} assets={assets} />
-	    <MarketOverview asset={asset} />
-	    <AssetIntelligencePanel asset={asset} assets={assets} anomaly={anomaly} radar={radar} benchmarks={benchmarks} />
-	    <MetricExplorer metrics={metrics} kind="fii" context={f} />
-	    <section className="statement-strip">{[{ label: "Segmento", value: f.segment }, { label: "Gest\xE3o", value: f.managementType }, { label: "Administrador", value: f.administrator }, { label: "P\xFAblico-alvo", value: f.targetAudience }].filter((item) => item.value).map((item) => <div key={item.label}><span>{item.label}</span><b>{item.value}</b></div>)}</section>
-	    <div className="data-stamp"><b>Preço: {shortDate(asset.date)}</b><span>Informe mensal: {shortDate(f.referenceDate ?? void 0)} • trimestral: {shortDate(f.quarterDate ?? void 0)}</span></div>
-	    <section className="source-section" id="fontes-ativo"><h3>Audite nas fontes</h3><div className="source-links"><a href={links.google} target="_blank" rel="noreferrer">Google Finance ↗</a><a href={links.b3} target="_blank" rel="noreferrer">Fundo na B3 ↗</a><a href={links.cvm} target="_blank" rel="noreferrer">Informe na CVM ↗</a></div></section>
-    <div className="honest-note"><b>Leitura importante</b><p>DY passado não garante rendimentos futuros. Quando um informe não permite calcular um indicador com segurança, esse cartão é ocultado e a confiança da nota diminui.</p></div>
-  </section></div>;
-}
-function ExecutiveSummary({ asset, assets, profile }) {
-  const opportunity = buildOpportunity(asset, assets);
-
-  if (!opportunity) return null;
-  if (!opportunity.fair) return <section className="executive-summary" id="resumo-ativo"><div className="valuation-unavailable"><span className="eyebrow">VALUATION BLOQUEADO</span><h3>Dados insuficientes para calcular.</h3><p>As âncoras por ação estão ausentes ou falharam no teste de consistência dimensional entre fundamentos e preço. Os dados brutos continuam disponíveis nos indicadores; nenhum preço justo foi fabricado.</p></div></section>;
-  const decision = buildDecision(asset, profile, assets);
-  const positives = decision.strengths.length ? decision.strengths : ["nenhum ponto forte atingiu o limite de destaque"];
-  const cautions = [...decision.blockers, ...decision.risks].slice(0, 4);
-  return <section className="executive-summary" id="resumo-ativo"><div className="executive-heading"><div><span className="eyebrow">RESUMO EXECUTIVO</span><h3>O essencial antes dos detalhes</h3><p>Leitura automática baseada somente nos dados disponíveis. Abra a auditoria para conferir pesos, cobertura e penalidades.</p></div><i className={`system-signal ${opportunity.signal.tone}`}>{opportunity.signal.label}</i></div>
-    <div className="executive-kpis"><article><span>Score Fundamental</span><b>{opportunity.fundamental.score ?? "N/D"}<small>/100</small></b><em>qualidade sem considerar o preço</em></article><article className="primary"><span>Score de Oportunidade</span><b>{opportunity.score}<small>/100</small></b><em>nota bruta {opportunity.rawScore} • cobertura {opportunity.coverage}%</em></article><article><span>Preço atual</span><b>{money(asset.price)}</b><em>B3 {shortDate(asset.date)}</em></article><article><span>Faixa justa</span><b>{money(opportunity.fair.low)} – {money(opportunity.fair.high)}</b><em>base {money(opportunity.fair.base)} • {percent(opportunity.potential)}</em></article><article><span>Confiança</span><b>{opportunity.confidence}<small>%</small></b><em>{opportunity.fair.model}</em></article></div>
-    <div className={`valuation-risk-banner ${opportunity.valuationRisk.tone}`}><b>{opportunity.valuationRisk.label}</b><span>{opportunity.valuationRisk.reasons.join(" • ")}</span><small>{opportunity.valuationRisk.anchorCount} âncora(s) • {opportunity.valuationRisk.supportCount}/4 testes de sustentação • valor justo bruto preservado</small></div>
-    <div className="executive-thesis"><article className="positive"><b>Pontos favoráveis</b>{positives.map((item) => <span key={item}>{item}</span>)}</article><article className="caution"><b>Riscos e ressalvas</b>{cautions.length ? cautions.map((item) => <span key={item}>{item}</span>) : <span>nenhuma trava grave foi acionada pelos dados disponíveis</span>}</article></div>
-    <details className="executive-audit"><summary>Ver composição e travas do Score <i>⌄</i></summary><div><section className="executive-components">{opportunity.components.map((component) => <article key={component.key}><div><span>{component.label}</span><b>{Math.round(component.value)}/100</b></div><i><em style={{ width: `${component.value}%` }} /></i><small>peso efetivo {number(component.effectiveWeight, 1)}% • contribuição {number(component.contribution, 1)}</small></article>)}</section><section className="executive-calculation"><article><b>Modelo de preço justo</b><p>{opportunity.fair.model}: {opportunity.fair.method}.</p>{opportunity.fair.anchors.map((anchor) => <span key={anchor.label}>{anchor.label}: {money(anchor.value)}{anchor.effectiveWeight ? ` • peso ${anchor.effectiveWeight}%` : ""}</span>)}</article><article><b>Ajustes da nota</b><p>Nota bruta {opportunity.rawScore} − penalidades {opportunity.penaltyPoints} = nota final {opportunity.score}.</p>{opportunity.penalties.map((item) => <span key={item.label}>−{item.points}: {item.label}</span>)}{opportunity.caps.map((item) => <span key={item}>Teto aplicado: {item}</span>)}{!opportunity.penalties.length && !opportunity.caps.length && <span>Sem penalidades ou tetos acionados.</span>}</article></section></div></details>
-  </section>;
-}
-function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly, radar, benchmarks, asPage = false }) {
-  if (asset.kind === "fii" && asset.fund) return <FiiDetail asset={asset} favorite={favorite} onFavorite={onFavorite} onClose={onClose} profile={profile} assets={assets} anomaly={anomaly} radar={radar} benchmarks={benchmarks} asPage={asPage} />;
-  const f = asset.fundamentals;
-  const scores = f?.scores ?? fallbackScore(asset);
-  const metricState = (key) => {
-    const state = f?.metricStates?.[key];
-    return state === "estimated" ? "estimated" : state === "stale" ? "stale" : state === "not_applicable" ? "not_applicable" : state === "not_found" ? "not_found" : "calculated";
-  };
-  const audited = (label, value, formula, source, key, inputs, note) => ({
-    label,
-    value,
-    formula,
-    source,
-    note,
-    inputs,
-    state: metricState(key),
-    period: f?.periodLabel
-  });
-  const metrics = f ? [
-    audited("P/L", number(f.pe), "Valor de mercado \xF7 lucro l\xEDquido 12m", `CVM ${shortDate(f.referenceDate)} + B3 ${shortDate(asset.date)}`, "pe", [{ label: "Valor de mercado", value: compactMoney(f.marketCap) }, { label: "Lucro l\xEDquido 12m", value: compactMoney(f.netIncomeTTM) }]),
-    audited("P/VP", number(f.pb), "Valor de mercado \xF7 patrim\xF4nio l\xEDquido", `CVM ${shortDate(f.referenceDate)} + B3 ${shortDate(asset.date)}`, "pb", [{ label: "Valor de mercado", value: compactMoney(f.marketCap) }, { label: "Patrim\xF4nio l\xEDquido", value: compactMoney(f.equity) }]),
-    audited("EV/EBIT", number(f.evEbit), "(Valor de mercado + d\xEDvida l\xEDquida) \xF7 EBIT 12m", f.periodLabel, "evEbit", [{ label: "Valor da firma", value: compactMoney(f.enterpriseValue ?? null) }, { label: "EBIT 12m", value: compactMoney(f.ebitTTM) }]),
-    audited("ROE", percent(f.roe, false), "Lucro l\xEDquido 12m \xF7 patrim\xF4nio l\xEDquido", f.periodLabel, "roe", [{ label: "Lucro l\xEDquido 12m", value: compactMoney(f.netIncomeTTM) }, { label: "Patrim\xF4nio l\xEDquido", value: compactMoney(f.equity) }]),
-    audited("ROA", percent(f.roa, false), "Lucro l\xEDquido 12m \xF7 ativo total", f.periodLabel, "roa", [{ label: "Lucro l\xEDquido 12m", value: compactMoney(f.netIncomeTTM) }, { label: "Ativo total", value: compactMoney(f.assets) }]),
-    audited("ROIC", f.financialCompany ? "N/A banco" : percent(f.roic ?? null, false), "EBIT ap\xF3s impostos efetivos \xF7 capital investido", f.periodLabel, "roic", [{ label: "EBIT 12m", value: compactMoney(f.ebitTTM) }, { label: "PL + d\xEDvida l\xEDquida", value: compactMoney(f.equity !== null && f.netDebt !== null ? f.equity + f.netDebt : null) }]),
-    audited("Margem bruta", percent(f.grossMargin, false), "Lucro bruto 12m \xF7 receita 12m", f.periodLabel, "grossMargin", [{ label: "Lucro bruto", value: compactMoney(f.grossProfitTTM) }, { label: "Receita", value: compactMoney(f.revenueTTM) }]),
-    audited("Margem EBIT", percent(f.ebitMargin, false), "EBIT 12m \xF7 receita 12m", f.periodLabel, "ebitMargin", [{ label: "EBIT", value: compactMoney(f.ebitTTM) }, { label: "Receita", value: compactMoney(f.revenueTTM) }]),
-    audited("Margem l\xEDquida", percent(f.netMargin, false), "Lucro l\xEDquido 12m \xF7 receita 12m", f.periodLabel, "netMargin", [{ label: "Lucro l\xEDquido", value: compactMoney(f.netIncomeTTM) }, { label: "Receita", value: compactMoney(f.revenueTTM) }], f.financialCompany ? "Comparabilidade limitada para bancos" : void 0),
-    audited("D\xEDvida l\xEDq./EBIT", f.financialCompany ? "N/A banco" : number(f.netDebtEbit), "D\xEDvida l\xEDquida \xF7 EBIT 12m", f.periodLabel, "netDebtEbit", [{ label: "D\xEDvida l\xEDquida", value: compactMoney(f.netDebt) }, { label: "EBIT", value: compactMoney(f.ebitTTM) }]),
-    audited("D\xEDvida l\xEDq./EBITDA", f.financialCompany ? "N/A banco" : number(f.netDebtEbitda ?? null), "D\xEDvida l\xEDquida \xF7 EBITDA 12m", f.periodLabel, "netDebtEbitda", [{ label: "D\xEDvida l\xEDquida", value: compactMoney(f.netDebt) }, { label: "EBITDA", value: compactMoney(f.ebitdaTTM ?? null) }]),
-    audited("Liquidez corrente", f.financialCompany ? "N/A banco" : number(f.currentRatio), "Ativo circulante \xF7 passivo circulante", `posi\xE7\xE3o em ${shortDate(f.referenceDate)}`, "currentRatio", [{ label: "Ativo circulante", value: compactMoney(f.currentAssets ?? null) }, { label: "Passivo circulante", value: compactMoney(f.currentLiabilities ?? null) }]),
-    audited("Cresc. receita", percent(f.revenueGrowth), "Receita do exerc\xEDcio \xF7 receita anterior \u2212 1", "DFP anual comparativa", "revenueGrowth", []),
-    audited("Cresc. lucro", percent(f.profitGrowth), "Lucro do exerc\xEDcio \xF7 lucro anterior \u2212 1", "DFP anual comparativa", "profitGrowth", []),
-    audited("Dividend yield 12m", percent(f.dividendYield, false), "Proventos por a\xE7\xE3o dos \xFAltimos 12 meses \xF7 cota\xE7\xE3o atual", `B3 at\xE9 ${shortDate(f.dividendSourceDate ?? void 0)}`, "dividendYield", [{ label: "Proventos por a\xE7\xE3o 12m", value: money(f.dividendsPerShare12m ?? null) }, { label: "Cota\xE7\xE3o", value: money(asset.price) }]),
-    audited("Proventos por a\xE7\xE3o 12m", money(f.dividendsPerShare12m ?? null), "Soma dos proventos em dinheiro aplic\xE1veis \xE0 classe do ativo", `B3 at\xE9 ${shortDate(f.dividendSourceDate ?? void 0)}`, "dividendYield", [{ label: "Eventos dispon\xEDveis", value: number(f.dividendEvents?.length ?? 0, 0) }]),
-    audited("Regularidade 24m", percent(f.dividendRegularity ?? null, false), "Meses com pelo menos um provento \xF7 24 meses", "Eventos oficiais B3", "dividendRegularity", [{ label: "Meses com provento", value: `${f.dividendMonths24m ?? 0} de 24` }]),
-    audited("Payout", percent(f.payout ?? null, false), "Proventos por a\xE7\xE3o 12m \xF7 lucro por a\xE7\xE3o 12m", "B3 + CVM", "payout", [{ label: "Proventos por a\xE7\xE3o", value: money(f.dividendsPerShare12m ?? null) }, { label: "LPA", value: money(f.eps) }], "Estimativa por classe; diferen\xE7as entre ON, PN e units s\xE3o preservadas."),
-    audited("LPA", money(f.eps), "Lucro l\xEDquido 12m \xF7 a\xE7\xF5es em circula\xE7\xE3o", f.periodLabel, "eps", [{ label: "Lucro l\xEDquido", value: compactMoney(f.netIncomeTTM) }, { label: "A\xE7\xF5es", value: compactNumber(f.sharesOutstanding) }]),
+…13329 tokens truncated…,
     audited("VPA", money(f.bookValuePerShare), "Patrim\xF4nio l\xEDquido \xF7 a\xE7\xF5es em circula\xE7\xE3o", `posi\xE7\xE3o em ${shortDate(f.referenceDate)}`, "bookValuePerShare", [{ label: "Patrim\xF4nio l\xEDquido", value: compactMoney(f.equity) }, { label: "A\xE7\xF5es", value: compactNumber(f.sharesOutstanding) }]),
     audited("Valor de mercado", compactMoney(f.marketCap), "ON \xD7 cota\xE7\xE3o ON + PN \xD7 cota\xE7\xE3o PN", `B3 ${shortDate(asset.date)} + composi\xE7\xE3o de capital CVM`, "marketCap", [{ label: "A\xE7\xF5es em circula\xE7\xE3o", value: compactNumber(f.sharesOutstanding) }, { label: "Cota\xE7\xE3o", value: money(asset.price) }], f.marketCapEstimated ? "Uma classe sem cota\xE7\xE3o usou a outra como aproxima\xE7\xE3o" : void 0),
     audited("EBITDA 12m", f.financialCompany ? "N/A banco" : compactMoney(f.ebitdaTTM ?? null), "EBIT + deprecia\xE7\xE3o e amortiza\xE7\xE3o identificadas na DFC", f.filingType, "ebitda", [{ label: "EBIT", value: compactMoney(f.ebitTTM) }, { label: "D&A", value: compactMoney(f.depreciationAmortizationTTM ?? null) }]),
@@ -1061,7 +668,6 @@ function Detail({ asset, favorite, onFavorite, onClose, profile, assets, anomaly
       <div className="honest-note"><b>Cobertura da análise</b><p>O pilar Dividendos entra somente quando a B3 vincula o evento à classe do ativo. Datas de pagamento não publicadas na consulta permanecem como “não informado”. Isto não é recomendação de investimento.</p></div>
     </section>
   </div>;
-
 }
 function OpportunityPage({ assets, onBack, onOpen }) {
   const [mode, setMode] = useState("undervalued");
@@ -1137,7 +743,6 @@ function IntegrityPage({ assets, anomalies, onBack, onOpen }) {
     <section className="integrity-warning"><b>Alerta não é prova de fraude</b><p>Manipulação envolve conduta, intenção e contexto. Oscilações também podem vir de notícias, baixa liquidez, desdobramentos, grupamentos e proventos. Use este painel para saber o que investigar.</p></section>
     <section className="integrity-controls"><label>Pesquisar<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="BBSE3 ou MXRF11" /></label><label>Intensidade mínima<select value={minimum} onChange={(event) => setMinimum(Number(event.target.value))}><option value="0">Todos</option><option value="20">Observar 20+</option><option value="40">Atenção 40+</option><option value="60">Forte 60+</option></select></label><label>Tipo<select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">Ações e FIIs</option><option value="stock">Ações</option><option value="fii">FIIs</option></select></label></section>
     {compared.length > 0 && <section className="integrity-compare"><div><span className="eyebrow">COMPARAÇÃO SELECIONADA</span><h2>{compared.length} de 4 ativos</h2></div><div className="compare-grid">{compared.map(({ asset, analysis }) => <article key={asset.ticker}><button aria-label={`Remover ${asset.ticker}`} onClick={() => toggleCompare(asset.ticker)}>×</button><b>{asset.ticker}</b><strong>{analysis.score}<small>/100</small></strong><span>retorno z: {number(analysis.returnZ)}</span><span>volume z: {number(analysis.volumeZ)}</span><span>vol. anual: {percent(analysis.annualizedVolatilityPct, false)}</span><i><em style={{ width: `${analysis.score}%` }} /></i></article>)}</div></section>}
-
     {!anomalies?.analysed ? <div className="integrity-empty"><h2>O histórico está sendo preparado</h2><p>A próxima atualização automática processará as cotações anuais da B3 e preencherá este painel.</p></div> : <section className="integrity-list"><div className="integrity-list-head"><span>{rows.length} ativos analisados</span><small>selecione até 4 para comparar</small></div>{rows.slice(0, 150).map(({ asset, analysis }) => <details className={`integrity-row ${analysis.classification.tone}`} key={asset.ticker}><summary><span className="integrity-asset"><b>{asset.ticker}</b><small>{asset.kind === "fii" ? "FII" : "AÇÃO"} • {asset.name}</small></span><span className="integrity-score"><b>{analysis.score}</b><small>{analysis.classification.label}</small></span><span><b>{number(analysis.returnZ)}</b><small>z retorno</small></span><span><b>{number(analysis.volumeZ)}</b><small>z volume</small></span><span><b>{percent(analysis.return20Pct)}</b><small>20 pregões</small></span><PriceSparkline series={analysis.series} ticker={asset.ticker} /><i>⌄</i></summary><div className="integrity-expand"><div className="integrity-flags">{analysis.flags.length ? analysis.flags.map((flag) => <article key={flag.code}><b>{flag.label}</b><p>{flag.explanation}</p></article>) : <article><b>Nenhum gatilho relevante</b><p>O movimento recente permaneceu dentro dos limites definidos pelo modelo.</p></article>}</div><div className="integrity-facts"><span>Retorno diário <b>{percent(analysis.latestReturnPct)}</b></span><span>Volatilidade anualizada <b>{percent(analysis.annualizedVolatilityPct, false)}</b></span><span>Volume mediano 20d <b>{compactMoney(analysis.medianVolume20)}</b></span><span>Pregões analisados <b>{analysis.sessions}</b></span></div><div className="integrity-actions"><button className={selected.includes(asset.ticker) ? "selected" : ""} onClick={() => toggleCompare(asset.ticker)}>{selected.includes(asset.ticker) ? "Remover comparação" : "Comparar este ativo"}</button><button onClick={() => onOpen(asset.ticker)}>Abrir análise completa →</button></div></div></details>)}</section>}
     <section className="radar-method"><h2>Como interpretar</h2><p>{anomalies?.methodology ?? "O modelo usa desvios estatísticos de preço e volume, repetição, reversão e liquidez."}</p><strong>{anomalies?.disclaimer ?? "Anomalia estatística não comprova fraude ou manipulação."}</strong><div className="integrity-sources"><a href="https://www.b3.com.br/pt_br/market-data-e-indices/servicos-de-dados/market-data/historico/mercado-a-vista/cotacoes-historicas/" target="_blank" rel="noreferrer">Cotações históricas B3 ↗</a><a href="https://www.gov.br/cvm/pt-br/assuntos/normas/resolucoes/resolucoes-cvm" target="_blank" rel="noreferrer">Normas CVM ↗</a><a href="https://dados.cvm.gov.br/dataset/cia_aberta-doc-ipe" target="_blank" rel="noreferrer">Fatos e comunicados CVM ↗</a></div></section>
   </div>;
@@ -1186,6 +791,7 @@ function Home() {
   const [anomalies, setAnomalies] = useState(null);
   const [optionChain, setOptionChain] = useState(null);
   const [benchmarks, setBenchmarks] = useState(null);
+  const [intraday, setIntraday] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem("b3-score-theme-v1") === "dark" ? "dark" : "light");
   const [route, setRoute] = useState(() => parseRoute(window.location.hash));
   const page = route.page;
@@ -1213,23 +819,25 @@ function Home() {
         }
         localStorage.removeItem(CACHE_KEY);
       } catch {
-
         localStorage.removeItem(CACHE_KEY);
       }
     }
     try {
-      const [stockResponse, fiiResponse, radarResponse, anomalyResponse] = await Promise.all([
+      const [stockResponse, fiiResponse, radarResponse, anomalyResponse, intradayResponse] = await Promise.all([
         fetch(REMOTE_STOCK_URL, { cache: "no-store" }),
         fetch(REMOTE_FII_URL, { cache: "no-store" }),
         fetch(REMOTE_RADAR_URL, { cache: "no-store" }).catch(() => null),
-        fetch(REMOTE_ANOMALY_URL, { cache: "no-store" }).catch(() => null)
+        fetch(REMOTE_ANOMALY_URL, { cache: "no-store" }).catch(() => null),
+        fetch(REMOTE_INTRADAY_URL, { cache: "no-store" }).catch(() => null)
       ]);
       if (!stockResponse.ok || !fiiResponse.ok) throw new Error();
       const stockRaw = await stockResponse.json();
       const fiiRaw = await fiiResponse.json();
       if (radarResponse?.ok) setRadar(await radarResponse.json());
       if (anomalyResponse?.ok) setAnomalies(await anomalyResponse.json());
-      const cleaned = [...stockRaw, ...fiiRaw].map(normalizeAsset).filter((a) => a.ticker && a.price && a.price > 0);
+      const normalizedIntraday = intradayResponse?.ok ? normalizeIntraday(await intradayResponse.json()) : normalizeIntraday(null);
+      setIntraday(normalizedIntraday);
+      const cleaned = applyIntradayQuotes([...stockRaw, ...fiiRaw].map(normalizeAsset).filter((a) => a.ticker && a.price && a.price > 0), normalizedIntraday);
       if (!healthySnapshot(cleaned)) throw new Error();
       const latest = (rows) => rows.map((row) => row.date ?? "").filter(Boolean).sort().at(-1) ?? null;
       const cvmFilesAsOf = cleaned.map((row) => row.fund?.referenceDate ?? row.fundamentals?.referenceDate ?? "").filter(Boolean).sort().at(-1) ?? null;
@@ -1288,8 +896,7 @@ function Home() {
     window.addEventListener("beforeinstallprompt", capture);
     const timer = window.setInterval(() => {
       if (!document.hidden) load(true);
-    }, 3e5);
-
+    }, 6e4);
     return () => {
       cancelAnimationFrame(frame);
       clearInterval(timer);
@@ -1365,7 +972,6 @@ function Home() {
     if (standalone) {
       setShowPlatformChooser(false);
       return;
-
     }
     if (installPrompt) {
       await installPrompt.prompt();
@@ -1385,6 +991,7 @@ function Home() {
     const asset = assets.find((item) => item.ticker === ticker);
     if (asset) { setSelected(asset); openPage("asset", ticker); }
   };
+  if (page === "heatmap") return <HeatmapPage assets={assets} intraday={intraday} onBack={() => openPage("home")} onOpen={openRadarAsset} />;
   return <main className={page === "asset" ? "asset-route" : ""}><div className="ambient one" /><div className="ambient two" />
     {showPlatformChooser && <div className="platform-backdrop" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && chooseWeb()}><section className="platform-chooser" role="dialog" aria-modal="true" aria-labelledby="platform-title">
       <button className="platform-close" aria-label="Fechar escolha de versão" onClick={chooseWeb}>×</button>
@@ -1398,7 +1005,7 @@ function Home() {
       <p className="platform-footnote">Você pode abrir esta escolha novamente pelo botão “Web / instalar” no topo.</p>
     </section></div>}
     <header className="site-header v2-header"><div className="header-inner"><button className="brand v2-brand-button" onClick={() => openPage("home")}><span className="brand-mark"><i />B3</span><span><b>B3 Score</b><small>CENTRAL DE ANÁLISE</small></span></button><nav className="v2-nav" aria-label="Navegação principal">{PRIMARY_NAV.map(([id,label])=><button key={id} className={page===id?"active":""} aria-current={page===id?"page":undefined} onClick={()=>openPage(id)}>{label}</button>)}</nav><div className="v2-header-tools"><button className="theme-btn" type="button" aria-pressed={theme === "dark"} aria-label={`Ativar tema ${theme === "dark" ? "claro" : "escuro"}`} onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}>{theme === "dark" ? "☀" : "☾"}</button><button className="install-btn" onClick={()=>{setShowAndroidGuide(true);setShowPlatformChooser(true)}}>▣ <span>Instalar</span></button><button className={`refresh-btn ${loading?"loading":""}`} disabled={loading} aria-label={loading?"Atualizando dados":"Atualizar dados"} onClick={()=>load(true)}>↻</button></div></div></header>
-    <div className="page" id="top">{page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunities" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "swing" ? <SwingPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "integrity" ? <IntegrityPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "options" ? <OptionsPage assets={assets} anomalies={anomalies} optionChain={optionChain} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "quant" ? <QuantPage assets={assets} anomalies={anomalies} initialTicker={route.ticker} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "compare" ? <ComparisonPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "simulator" ? <SimulatorPage assets={assets} onBack={() => openPage("home")} onOptions={() => openPage("options")} portfolio={<PortfolioSimulator assets={assets} asOf={asOf} />} /> : page === "portfolio" ? <div className="v2-page"><header className="v2-page-head"><button onClick={() => openPage("home")}>← Início</button><div><span>CARTEIRAS</span><h1>Carteiras e desempenho</h1><p>Estratégias separadas, comparação e histórico local.</p></div></header><PortfolioManager assets={assets} asOf={asOf} /></div> : page === "methodology" ? <MethodologyPage onBack={() => openPage("home")} onNavigate={openPage} /> : page === "asset" ? <div className="v2-route-state">{loading ? "Carregando análise…" : selected ? "" : `Ativo ${route.ticker ?? ""} não encontrado.`}</div> : page === "home" ? <HomeHub assets={assets} market={market} statusText={statusText} asOf={asOf} loading={loading} onNavigate={openPage} onOpenAsset={openRadarAsset} /> : page === "analyze" ? <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Pesquisar e analisar.<br /><em>Sem atalhos.</em></h1><p>Filtre ações e fundos imobiliários e abra a análise completa com fórmula, período e fonte.</p></div><div className="market-card" aria-live="polite"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{loading && !assets.length ? "—" : assets.length}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100: 0}%` }} /></div><div className="market-stats"><span>{loading && !assets.length ? "—" : market.stocks} ações/units</span><span>{loading && !assets.length ? "—" : market.fiis} FIIs</span><span>{loading && !assets.length ? "—" : market.covered} com CVM</span></div></div></section>
+    <div className="page" id="top">{page === "advanced" ? <AdvancedToolsPage onBack={() => openPage("home")} onNavigate={openPage} /> : page === "radar" ? <DailyRadarPage radar={radar} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "opportunities" ? <OpportunityPage assets={assets} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "swing" ? <SwingPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "integrity" ? <IntegrityPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "options" ? <OptionsPage assets={assets} anomalies={anomalies} optionChain={optionChain} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "quant" ? <QuantPage assets={assets} anomalies={anomalies} initialTicker={route.ticker} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "compare" ? <ComparisonPage assets={assets} anomalies={anomalies} onBack={() => openPage("home")} onOpen={openRadarAsset} /> : page === "simulator" ? <SimulatorPage assets={assets} onBack={() => openPage("home")} onOptions={() => openPage("options")} portfolio={<PortfolioSimulator assets={assets} asOf={asOf} />} /> : page === "portfolio" ? <div className="v2-page"><header className="v2-page-head"><button onClick={() => openPage("home")}>← Início</button><div><span>CARTEIRAS</span><h1>Carteiras e desempenho</h1><p>Estratégias separadas, comparação e histórico local.</p></div></header><PortfolioManager assets={assets} asOf={asOf} /></div> : page === "methodology" ? <MethodologyPage onBack={() => openPage("home")} onNavigate={openPage} /> : page === "asset" ? <div className="v2-route-state">{loading ? "Carregando análise…" : selected ? "" : `Ativo ${route.ticker ?? ""} não encontrado.`}</div> : page === "home" ? <HomeHub assets={assets} market={market} statusText={statusText} asOf={asOf} loading={loading} onNavigate={openPage} onOpenAsset={openRadarAsset} /> : page === "analyze" ? <><section className="hero"><div className="hero-copy"><div className="live-badge"><i className={status} /> {statusText} <span>• ações {shortDate(asOf.stockPriceAsOf ?? void 0)} • FIIs {shortDate(asOf.fiiPriceAsOf ?? void 0)} • CVM {shortDate(asOf.cvmFilesAsOf ?? void 0)}</span></div><h1>Pesquisar e analisar.<br /><em>Sem atalhos.</em></h1><p>Filtre ações e fundos imobiliários e abra a análise completa com fórmula, período e fonte.</p></div><div className="market-card" aria-live="polite"><div className="market-card-top"><span>UNIVERSO MONITORADO</span><b className="up">{loading && !assets.length ? "—" : assets.length}</b></div><div className="sentiment-bar coverage"><i style={{ width: `${assets.length ? market.covered / assets.length * 100: 0}%` }} /></div><div className="market-stats"><span>{loading && !assets.length ? "—" : market.stocks} ações/units</span><span>{loading && !assets.length ? "—" : market.fiis} FIIs</span><span>{loading && !assets.length ? "—" : market.covered} com CVM</span></div></div></section>
       <section className="trust-row"><article><b>B3 D-1</b><span>último fechamento oficial disponível</span></article><article><b>CVM</b><span>DFP/ITR e informes de FIIs</span></article><article><b>0 invenção</b><span>só aparece valor calculável</span></article><article><b>Score correto</b><span>empresas e FIIs usam critérios diferentes</span></article></section>
       <InvestorProfile profile={investorProfile} onChange={setInvestorProfile} />
       <AnalysisGuide />
@@ -1428,4 +1035,3 @@ function Home() {
 export {
   Home as default
 };
-
