@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { formatCompactMoney } from "./formatters";
 
-const GROUPS = [["Ferramentas Avançadas", [["advanced", "Abrir hub avançado", "Opções, swing, integridade, Central Quant e simuladores especializados", "⌘"], ["quant", "Central Quant", "Risco, estatística e auditoria", "∑"], ["swing", "Swing 3–6M", "Timing e validação histórica", "↗"], ["integrity", "Integridade", "Movimentos atípicos para investigar", "◎"], ["simulator", "Simuladores", "Risco, alvo e cenários", "▤"], ["options", "Opções", "Payoff, IV e gregas", "◉"], ["methodology", "Metodologia", "Fontes, fórmulas e limitações", "ⓘ"]]]];
+const GROUPS = [["Ferramentas Avançadas", [["advanced", "Abrir hub avançado", "Opções, swing, integridade, Central Quant e simuladores especializados", "⌘"], ["heatmap", "Mapa de calor", "Variação e liquidez por grupo, com status da cotação", "▦"], ["quant", "Central Quant", "Risco, estatística e auditoria", "∑"], ["swing", "Candidatas 3–6 meses", "Seleção para estudar qualidade e timing; não é recomendação", "↗"], ["integrity", "Integridade", "Movimentos atípicos para investigar", "◎"], ["simulator", "Simuladores", "Risco, alvo e cenários", "▤"], ["options", "Opções", "Payoff, IV e gregas", "◉"], ["methodology", "Metodologia", "Fontes, fórmulas e limitações", "ⓘ"]]]];
 
 const JOURNEY = [
   ["radar", "1", "Radar diário", "Comece pelo que mudou no último pregão. É triagem de curto prazo, não valuation."],
