@@ -1,5 +1,6 @@
 const TOOLS = [
-  ["swing", "Swing e momentum", "Timing, tendência e validação histórica para estudo de operações de médio prazo.", "↗"],
+  ["swing", "Candidatas para 3–6 meses", "Seleção quantitativa de ações para investigar no médio prazo; não é recomendação.", "↗"],
+  ["heatmap", "Mapa de calor", "Variação por grupo, liquidez e status explícito de cotação intradiária ou fechamento.", "▦"],
   ["integrity", "Movimentos e integridade", "Movimentos atípicos e anomalias para investigar; não são acusações de fraude.", "◎"],
   ["quant", "Central Quant", "Risco, estatística, indicadores e auditoria quantitativa.", "∑"],
   ["options", "Opções", "Contratos, gregas, volatilidade implícita e payoff para estudo educacional.", "◉"],
