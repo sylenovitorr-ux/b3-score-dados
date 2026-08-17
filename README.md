@@ -16,6 +16,15 @@ A branch `refactor/ui-navigation-v2` reorganiza o frontend em rotas separadas, a
 
 O workflow `update-data.yml` roda diariamente às 19h17 de Boa Vista e preserva o snapshot anterior quando uma fonte falha. Datas, fontes e estados de disponibilidade são exibidos na interface.
 
+### Fotografia intradiária
+
+O mapa de calor e o app consultam `data/intraday.json` a cada minuto quando a
+tela está aberta. A fotografia só substitui o fechamento quando declarar fonte,
+horário e atraso. O workflow `update-intraday.yml` tenta atualizá-la a cada 15
+minutos durante o pregão, mas exige o segredo `INTRADAY_SOURCE_URL` com uma
+fonte autorizada que entregue JSON auditável. Sem esse segredo, o app informa
+claramente que usa o último fechamento oficial — não exibe “tempo real” falso.
+
 ## Camadas
 
 1. `data/` — snapshots recebidos ou derivados de fontes públicas.
