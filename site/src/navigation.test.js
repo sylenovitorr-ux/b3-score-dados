@@ -23,3 +23,9 @@ test("Ferramentas Avançadas tem rota canônica e aliases", () => {
   assert.equal(parseRoute("#/avancadas").page, "advanced");
   assert.equal(routeHash("advanced"), "#/ferramentas-avancadas");
 });
+
+test("mapa de calor e candidatas de 3–6 meses preservam rotas auditáveis", () => {
+  assert.equal(parseRoute("#/mapa-calor").page, "heatmap");
+  assert.equal(parseRoute("#/candidatas-6m").page, "swing");
+  assert.equal(routeHash("heatmap"), "#/mapa-calor");
+});
