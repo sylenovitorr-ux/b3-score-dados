@@ -28,6 +28,7 @@ export default function HomeHub({ assets, market, statusText, asOf, loading, onN
   const shown = (value) => loading && !assets.length ? "—" : value;
 
   return <div className="v2-home simple-home">
+    <div className="ux-build-badge">UX 4 • NOVO LAYOUT</div>
     <section className="simple-hero">
       <div><span className="v2-kicker">B3 SCORE</span><h1>O que você quer fazer?</h1><p>Pesquise uma ação ou escolha uma das quatro tarefas principais.</p></div>
       <aside><b>{loading ? "Atualizando…" : statusText}</b><span>{shown(assets.length)} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
