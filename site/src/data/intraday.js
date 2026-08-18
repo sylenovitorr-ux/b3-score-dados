@@ -1,4 +1,15 @@
-const number = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const number = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const quoteDate = (value) => {
+  if (!value) return null;
+  const text = String(value);
+  const match = text.match(/^\d{4}-\d{2}-\d{2}/);
+  return match ? match[0] : null;
+};
 
 function normalizeBook(book) {
   if (!book || typeof book !== "object") return null;
@@ -46,14 +57,17 @@ export function applyIntradayQuotes(assets, intraday) {
   return assets.map((asset) => {
     const quote = intraday.quotes.get(asset.ticker);
     if (!quote) return asset;
+    const intradayAsOf = quote.asOf ?? intraday.updatedAt;
     return {
       ...asset,
+      officialQuoteDate: asset.officialQuoteDate ?? asset.date ?? null,
+      date: quoteDate(intradayAsOf) ?? asset.date,
       price: quote.price,
       changepct: quote.changePct ?? asset.changepct,
       volume: quote.volume ?? asset.volume,
       book: quote.book ?? asset.book ?? null,
       intraday: true,
-      intradayAsOf: quote.asOf ?? intraday.updatedAt,
+      intradayAsOf,
       intradaySource: intraday.source,
       intradayDelayMinutes: intraday.delayMinutes,
       bookStatus: quote.book ? "ATUALIZADO" : intraday.bookStatus,
