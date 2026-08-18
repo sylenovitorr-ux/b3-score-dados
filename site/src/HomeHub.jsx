@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
 import { formatCompactMoney } from "./formatters";
 
-const GROUPS = [["Ferramentas Avançadas", [["advanced", "Abrir hub avançado", "Opções, swing, integridade, Central Quant e simuladores especializados", "⌘"], ["heatmap", "Mapa de calor", "Variação e liquidez por grupo, com status da cotação", "▦"], ["quant", "Central Quant", "Risco, estatística e auditoria", "∑"], ["swing", "Candidatas 3–6 meses", "Seleção para estudar qualidade e timing; não é recomendação", "↗"], ["integrity", "Integridade", "Movimentos atípicos para investigar", "◎"], ["simulator", "Simuladores", "Risco, alvo e cenários", "▤"], ["options", "Opções", "Payoff, IV e gregas", "◉"], ["methodology", "Metodologia", "Fontes, fórmulas e limitações", "ⓘ"]]]];
+const QUICK_ACTIONS = [
+  ["radar", "◉", "Ver o mercado agora", "Altas, quedas e movimentos que merecem atenção."],
+  ["analyze", "⌕", "Analisar uma ação", "Histórico diário, COMPRA/VENDA, níveis e fundamentos."],
+  ["heatmap", "▦", "Abrir mapa de calor", "Encontre rapidamente os setores e ativos em movimento."],
+  ["portfolio", "▤", "Minha carteira", "Acompanhe posições, concentração e desempenho."],
+];
 
-const JOURNEY = [
-  ["radar", "1", "Radar diário", "Comece pelo que mudou no último pregão. É triagem de curto prazo, não valuation."],
-  ["opportunities", "2", "Oportunidades", "Veja quais ativos merecem investigação: preço, qualidade, risco e confiança juntos."],
-  ["analyze", "3", "Análise do ativo", "Abra fontes, indicadores, gráficos, entrada, saída e prazo mínimo de reavaliação."],
-  ["compare", "4", "Comparador", "Confronte candidatos com pares compatíveis antes de decidir um aporte."],
-  ["portfolio", "5", "Carteira", "Decida o tamanho da posição pelos riscos, concentração e objetivos da carteira."],
+const MORE = [
+  ["compare", "Comparar ativos"], ["opportunities", "Oportunidades"], ["swing", "Candidatas 3–6 meses"],
+  ["options", "Opções"], ["simulator", "Simuladores"], ["quant", "Central Quant"],
+  ["integrity", "Integridade"], ["methodology", "Metodologia"], ["advanced", "Todas as ferramentas"],
 ];
 
 export default function HomeHub({ assets, market, statusText, asOf, loading, onNavigate, onOpenAsset }) {
@@ -22,12 +25,22 @@ export default function HomeHub({ assets, market, statusText, asOf, loading, onN
     if (exact) onOpenAsset(exact.ticker);
   };
   const shown = (value) => loading && !assets.length ? "—" : value;
-  return <div className="v2-home">
-    <section className="v2-home-hero"><div><span className="v2-kicker">CENTRAL DE ANÁLISE B3</span><h1>Entenda primeiro.<br /><em>Decida depois.</em></h1><p>Dados reais, cálculos reproduzíveis e ferramentas separadas para analisar ações, FIIs e opções.</p></div><aside aria-live="polite"><span>{loading ? "Atualizando fontes…" : statusText}</span><b>{shown(assets.length)}</b><small>{loading && !assets.length ? "carregando universo" : "ativos monitorados"}</small><i>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</i></aside></section>
-    <section className="v2-search"><label><span>Pesquisar ativo</span><div><input aria-label="Pesquisar ativo na central" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4, BBSE3, HGLG11..."/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Analisar →</button></div></label>{matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{asset.ticker}</b><span>{asset.name}</span><em>{asset.price?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</em></button>)}</div>}</section>
-    <section className="v2-market-strip" aria-label="Cobertura carregada"><article><span>Ações/units</span><b>{shown(market.stocks)}</b></article><article><span>FIIs</span><b>{shown(market.fiis)}</b></article><article><span>Com CVM</span><b>{shown(market.covered)}</b></article><article><span>Volume monitorado</span><b>{shown(formatCompactMoney(assets.reduce((sum, asset) => sum + (asset.volume || 0), 0)))}</b></article></section>
-    <section className="v2-journey"><div className="v2-section-title"><span>FLUXO RECOMENDADO</span><h2>Use cada ferramenta no momento certo</h2><p>Radar responde “o que mudou?”. Valuation responde “o preço faz sentido?”. Eles se complementam.</p></div><ol>{JOURNEY.map(([page, step, title, text]) => <li key={page}><button onClick={() => onNavigate(page)}><i>{step}</i><span><b>{title}</b><small>{text}</small></span><em>→</em></button></li>)}</ol></section>
-    {GROUPS.map(([title, items]) => <section className="v2-hub-group" key={title}><div className="v2-section-title"><h2>{title}</h2></div><div className="v2-nav-grid">{items.map(([page, label, text, icon]) => <button key={page} onClick={() => onNavigate(page)}><i>{icon}</i><span><b>{label}</b><small>{text}</small></span><em>→</em></button>)}</div></section>)}
-    <section className="v2-safety"><b>Sem dados inventados</b><span>Ausências permanecem como “Dado indisponível”. Score e preço justo apoiam o estudo, não são ordens de investimento.</span></section>
+
+  return <div className="v2-home simple-home">
+    <section className="simple-hero">
+      <div><span className="v2-kicker">B3 SCORE</span><h1>O que você quer fazer?</h1><p>Pesquise uma ação ou escolha uma das quatro tarefas principais.</p></div>
+      <aside><b>{loading ? "Atualizando…" : statusText}</b><span>{shown(assets.length)} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
+    </section>
+
+    <section className="simple-search">
+      <label><span>Digite o código da ação</span><div><input aria-label="Pesquisar ativo" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="Ex.: PETR4" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Abrir análise</button></div></label>
+      {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{asset.ticker}</b><span>{asset.name}</span><em>{asset.price?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</em></button>)}</div>}
+    </section>
+
+    <section className="simple-actions">{QUICK_ACTIONS.map(([page, icon, title, text]) => <button key={page} onClick={() => onNavigate(page)}><i>{icon}</i><span><b>{title}</b><small>{text}</small></span><em>→</em></button>)}</section>
+
+    <section className="simple-market"><article><span>Ações/units</span><b>{shown(market.stocks)}</b></article><article><span>FIIs</span><b>{shown(market.fiis)}</b></article><article><span>Com dados CVM</span><b>{shown(market.covered)}</b></article><article><span>Volume monitorado</span><b>{shown(formatCompactMoney(assets.reduce((sum, asset) => sum + (asset.volume || 0), 0)))}</b></article></section>
+
+    <details className="simple-more"><summary>Mais ferramentas <span>⌄</span></summary><div>{MORE.map(([page, title]) => <button key={page} onClick={() => onNavigate(page)}>{title}<span>→</span></button>)}</div></details>
   </div>;
 }
