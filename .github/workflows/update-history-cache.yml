@@ -1,5 +1,6 @@
 name: Atualizar cache histórico diário
 
+# Disparo manual da primeira geração em 2026-08-18 15:22 America/Manaus.
 on:
   workflow_dispatch:
   push:
