@@ -8,8 +8,9 @@ on:
       - "scripts/refresh-intraday-v2.py"
       - ".github/workflows/update-intraday.yml"
   schedule:
-    # A cada 15 minutos, em dias úteis, dentro da janela aproximada do pregão B3 em UTC.
-    - cron: "*/15 13-20 * * 1-5"
+    # A cada 10 minutos em dias úteis, deslocado dos horários redondos para
+    # reduzir atrasos da fila de jobs agendados do GitHub Actions.
+    - cron: "7,17,27,37,47,57 13-20 * * 1-5"
 
 permissions:
   contents: write
@@ -21,17 +22,50 @@ concurrency:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       INTRADAY_SOURCE_URL: ${{ secrets.INTRADAY_SOURCE_URL }}
       BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
       BOOK_SOURCE_URL: ${{ secrets.BOOK_SOURCE_URL }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Atualizar cotações e book quando disponível
-        run: python scripts/refresh-intraday-v2.py
+        shell: bash
+        run: |
+          for tentativa in 1 2 3; do
+            if python scripts/refresh-intraday-v2.py; then
+              exit 0
+            fi
+            echo "Falha na tentativa ${tentativa}/3; nova tentativa em 20 segundos."
+            sleep 20
+          done
+          echo "A fonte intradiária falhou após três tentativas."
+          exit 1
+
+      - name: Validar fotografia antes de publicar
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from datetime import UTC, datetime
+
+          path = Path("data/intraday.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          quotes = payload.get("quotes") or []
+          if payload.get("status") != "ATUALIZADO" or len(quotes) < 20:
+              raise SystemExit(f"Fotografia intradiária inválida: status={payload.get('status')} quotes={len(quotes)}")
+          generated = datetime.fromisoformat(payload["generatedAt"].replace("Z", "+00:00"))
+          age = (datetime.now(UTC) - generated).total_seconds()
+          if age > 300:
+              raise SystemExit(f"Fotografia gerada há {age:.0f}s; recusando publicação stale")
+          print(f"Fotografia OK: {len(quotes)} cotações; idade {age:.0f}s")
+          PY
+
       - name: Publicar fotografia válida
         run: |
           git config user.name "github-actions[bot]"
@@ -39,5 +73,12 @@ jobs:
           git add data/intraday.json
           git diff --cached --quiet && exit 0
           git commit -m "Atualizar fotografia intradiária"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          for tentativa in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Branch avançou; repetindo publicação ${tentativa}/3."
+          done
+          exit 1
