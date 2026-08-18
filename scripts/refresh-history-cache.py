@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build a zero-cost daily OHLCV cache for the B3 Score app using brapi.dev.
+"""Build a zero-cost rotating daily OHLCV cache for the whole B3 Score universe.
 
-The API token is read only in GitHub Actions through BRAPI_TOKEN and is never
-published. Each ticker is stored under data/history/<TICKER>.json so the app
-reads GitHub Raw instead of consuming the provider quota on every device.
+Every ticker present in the app is eligible. To stay comfortably inside the
+free brapi.dev quota, each run updates only a bounded batch chosen by age:
+missing caches first, then the stalest caches. Files live in data/history and
+are served by GitHub Raw, so end-user devices do not consume provider quota.
 """
 from __future__ import annotations
 
@@ -19,9 +20,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 OUTPUT = DATA / "history"
-MAX_STOCKS = int(os.environ.get("HISTORY_MAX_STOCKS", "250"))
-MAX_FIIS = int(os.environ.get("HISTORY_MAX_FIIS", "100"))
 TOKEN = (os.environ.get("BRAPI_TOKEN") or "").strip()
+BATCH_SIZE = max(1, int(os.environ.get("HISTORY_BATCH_SIZE", "120")))
+PRIORITY = ["PETR4", "VALE3", "ITUB4", "BBDC4", "BBAS3", "B3SA3", "ABEV3", "WEGE3"]
 
 
 def number(value):
@@ -46,31 +47,47 @@ def ticker(row: dict) -> str:
     return str(row.get("ticker") or row.get("symbol") or "").strip().upper()
 
 
-def volume(row: dict) -> float:
-    value = number(row.get("volume"))
-    return value if value is not None else -1.0
-
-
 def choose_universe() -> list[str]:
-    stocks = load_rows(DATA / "b3-fundamentals.json")
-    fiis = load_rows(DATA / "fii-catalog.json")
-    stock_tickers = [ticker(row) for row in sorted(stocks, key=volume, reverse=True) if ticker(row)][:MAX_STOCKS]
-    fii_tickers = [ticker(row) for row in sorted(fiis, key=volume, reverse=True) if ticker(row)][:MAX_FIIS]
-    # Keep core test/liquid assets in the universe even if source volume is missing.
-    priority = ["PETR4", "VALE3", "ITUB4", "BBDC4", "BBAS3", "B3SA3", "ABEV3", "WEGE3"]
+    rows = load_rows(DATA / "b3-fundamentals.json") + load_rows(DATA / "fii-catalog.json")
     seen = set()
-    result = []
-    for item in priority + stock_tickers + fii_tickers:
-        if item and item not in seen:
-            seen.add(item)
-            result.append(item)
-    return result
+    universe = []
+    for symbol in PRIORITY + [ticker(row) for row in rows]:
+        if symbol and symbol not in seen:
+            seen.add(symbol)
+            universe.append(symbol)
+    return universe
+
+
+def cache_age_key(symbol: str):
+    path = OUTPUT / f"{symbol}.json"
+    if not path.exists():
+        return (0, "")
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        generated = str(payload.get("generatedAt") or "")
+        latest = str((payload.get("series") or [{}])[-1].get("date") or "")
+        return (1, generated or latest)
+    except (OSError, json.JSONDecodeError, IndexError, AttributeError):
+        return (0, "")
+
+
+def choose_batch(universe: list[str]) -> list[str]:
+    priority_rank = {symbol: index for index, symbol in enumerate(PRIORITY)}
+    ordered = sorted(
+        universe,
+        key=lambda symbol: (
+            cache_age_key(symbol),
+            priority_rank.get(symbol, len(PRIORITY)),
+            symbol,
+        ),
+    )
+    return ordered[: min(BATCH_SIZE, len(ordered))]
 
 
 def fetch_history(symbol: str) -> dict:
     query = urllib.parse.urlencode({"range": "1y", "interval": "1d"})
     url = f"https://brapi.dev/api/quote/{urllib.parse.quote(symbol)}?{query}"
-    headers = {"Accept": "application/json", "User-Agent": "B3ScoreHistoryCache/1.0"}
+    headers = {"Accept": "application/json", "User-Agent": "B3ScoreHistoryCache/2.0"}
     if TOKEN:
         headers["Authorization"] = f"Bearer {TOKEN}"
     request = urllib.request.Request(url, headers=headers)
@@ -78,7 +95,7 @@ def fetch_history(symbol: str) -> dict:
         return json.load(response)
 
 
-def normalize(symbol: str, payload: dict) -> list[dict]:
+def normalize(payload: dict) -> list[dict]:
     result = (payload.get("results") or [{}])[0]
     rows = result.get("historicalDataPrice") or []
     normalized = []
@@ -104,52 +121,116 @@ def normalize(symbol: str, payload: dict) -> list[dict]:
     return [unique[key] for key in sorted(unique)]
 
 
+def existing_series(symbol: str) -> list[dict]:
+    path = OUTPUT / f"{symbol}.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        series = payload.get("series") or []
+        return series if isinstance(series, list) else []
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
+def merge_series(old: list[dict], new: list[dict]) -> list[dict]:
+    merged = {}
+    for row in old + new:
+        day = str(row.get("date") or "")
+        close = number(row.get("close"))
+        if day and close is not None and close > 0:
+            merged[day] = {
+                "date": day,
+                "open": number(row.get("open")),
+                "high": number(row.get("high")),
+                "low": number(row.get("low")),
+                "close": close,
+                "volume": number(row.get("volume")),
+            }
+    rows = [merged[key] for key in sorted(merged)]
+    return rows[-270:]
+
+
+def cache_coverage(universe: list[str]) -> tuple[int, list[str]]:
+    covered = []
+    missing = []
+    for symbol in universe:
+        path = OUTPUT / f"{symbol}.json"
+        if path.exists():
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                if len(payload.get("series") or []) >= 20:
+                    covered.append(symbol)
+                    continue
+            except (OSError, json.JSONDecodeError):
+                pass
+        missing.append(symbol)
+    return len(covered), missing
+
+
 def main() -> None:
     if not TOKEN:
         raise SystemExit("BRAPI_TOKEN is required for the production history cache")
     OUTPUT.mkdir(parents=True, exist_ok=True)
     universe = choose_universe()
+    if not universe:
+        raise SystemExit("No tickers found in app data files")
+    batch = choose_batch(universe)
     ok = 0
     failed = []
     latest = None
-    for index, symbol in enumerate(universe, start=1):
+
+    print(f"Universe={len(universe)}; batch={len(batch)}; policy=missing-first then oldest-cache")
+    for index, symbol in enumerate(batch, start=1):
         try:
             payload = fetch_history(symbol)
-            rows = normalize(symbol, payload)
-            if len(rows) < 20:
-                raise ValueError(f"only {len(rows)} valid rows")
+            incoming = normalize(payload)
+            if len(incoming) < 20:
+                raise ValueError(f"only {len(incoming)} valid rows")
+            rows = merge_series(existing_series(symbol), incoming)
             document = {
                 "ticker": symbol,
                 "source": "brapi.dev",
                 "interval": "1d",
                 "range": "1y",
                 "generatedAt": datetime.now(UTC).isoformat(),
+                "latestDate": rows[-1]["date"],
                 "series": rows,
             }
-            (OUTPUT / f"{symbol}.json").write_text(json.dumps(document, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+            (OUTPUT / f"{symbol}.json").write_text(
+                json.dumps(document, ensure_ascii=False, separators=(",", ":")) + "\n",
+                encoding="utf-8",
+            )
             ok += 1
             latest = max(latest or rows[-1]["date"], rows[-1]["date"])
-            print(f"[{index}/{len(universe)}] {symbol}: {len(rows)} candles")
+            print(f"[{index}/{len(batch)}] {symbol}: {len(rows)} candles; latest={rows[-1]['date']}")
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
             failed.append({"ticker": symbol, "error": str(error)[:180]})
-            print(f"[{index}/{len(universe)}] {symbol}: FAILED {error}")
+            print(f"[{index}/{len(batch)}] {symbol}: FAILED {error}")
         time.sleep(0.08)
 
+    covered, missing = cache_coverage(universe)
     status = {
         "generatedAt": datetime.now(UTC).isoformat(),
         "source": "brapi.dev",
         "range": "1y",
         "interval": "1d",
-        "requested": len(universe),
-        "updated": ok,
-        "failed": len(failed),
+        "policy": "full-universe rotating batch; missing first, then oldest cache",
+        "universe": len(universe),
+        "batchSize": len(batch),
+        "updatedThisRun": ok,
+        "failedThisRun": len(failed),
+        "covered": covered,
+        "missing": len(missing),
+        "coveragePct": round(covered / len(universe) * 100, 2),
         "latestDate": latest,
+        "nextMissing": missing[:50],
         "failures": failed[:50],
     }
     (OUTPUT / "status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    if ok < max(20, int(len(universe) * 0.7)):
-        raise SystemExit(f"history cache unhealthy: {ok}/{len(universe)} assets updated")
-    print(f"History cache OK: {ok}/{len(universe)} assets; latest={latest}")
+
+    minimum_success = max(10, int(len(batch) * 0.6))
+    if ok < minimum_success:
+        raise SystemExit(f"history batch unhealthy: {ok}/{len(batch)} assets updated")
+    print(f"History cache OK: run={ok}/{len(batch)}; coverage={covered}/{len(universe)} ({status['coveragePct']}%)")
 
 
 if __name__ == "__main__":
