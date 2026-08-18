@@ -8,9 +8,9 @@ on:
       - "scripts/refresh-intraday-v2.py"
       - ".github/workflows/update-intraday.yml"
   schedule:
-    # A cada 10 minutos em dias úteis, deslocado dos horários redondos para
-    # reduzir atrasos da fila de jobs agendados do GitHub Actions.
-    - cron: "7,17,27,37,47,57 13-20 * * 1-5"
+    # Um worker por hora durante o pregão. Cada worker atualiza várias vezes,
+    # evitando depender da pontualidade do scheduler do GitHub a cada 10 min.
+    - cron: "2 13-20 * * 1-5"
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ concurrency:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 58
     env:
       INTRADAY_SOURCE_URL: ${{ secrets.INTRADAY_SOURCE_URL }}
       BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
@@ -34,22 +34,24 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Atualizar cotações e book quando disponível
+      - name: Atualizar durante a janela intradiária
         shell: bash
         run: |
-          for tentativa in 1 2 3; do
-            if python scripts/refresh-intraday-v2.py; then
-              exit 0
-            fi
-            echo "Falha na tentativa ${tentativa}/3; nova tentativa em 20 segundos."
-            sleep 20
-          done
-          echo "A fonte intradiária falhou após três tentativas."
-          exit 1
+          set -u
+          for ciclo in 1 2 3 4 5 6; do
+            echo "=== ciclo intradiário ${ciclo}/6 ==="
+            sucesso=0
+            for tentativa in 1 2 3; do
+              if python scripts/refresh-intraday-v2.py; then
+                sucesso=1
+                break
+              fi
+              echo "Falha ${tentativa}/3 no ciclo ${ciclo}; nova tentativa em 20 segundos."
+              sleep 20
+            done
 
-      - name: Validar fotografia antes de publicar
-        run: |
-          python - <<'PY'
+            if [ "$sucesso" -eq 1 ]; then
+              python - <<'PY'
           import json
           from pathlib import Path
           from datetime import UTC, datetime
@@ -66,19 +68,62 @@ jobs:
           print(f"Fotografia OK: {len(quotes)} cotações; idade {age:.0f}s")
           PY
 
-      - name: Publicar fotografia válida
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add data/intraday.json
+              if ! git diff --cached --quiet; then
+                git commit -m "Atualizar fotografia intradiária"
+                publicado=0
+                for envio in 1 2 3; do
+                  git fetch origin main
+                  if git rebase origin/main && git push origin HEAD:main; then
+                    publicado=1
+                    break
+                  fi
+                  git rebase --abort >/dev/null 2>&1 || true
+                  echo "Branch avançou; repetindo publicação ${envio}/3."
+                done
+                if [ "$publicado" -ne 1 ]; then
+                  echo "Não foi possível publicar o ciclo ${ciclo}; seguindo para o próximo."
+                  git reset --hard origin/main
+                fi
+              else
+                echo "Ciclo ${ciclo}: fotografia sem alteração material."
+              fi
+            else
+              echo "Ciclo ${ciclo}: fonte indisponível; mantendo último snapshot válido."
+            fi
+
+            if [ "$ciclo" -lt 6 ]; then
+              echo "Próxima coleta em 8 minutos."
+              sleep 480
+            fi
+          done
+
+      - name: Registrar saúde do worker
+        if: always()
+        shell: bash
         run: |
+          mkdir -p .build-status
+          {
+            echo "commit=$GITHUB_SHA"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            if [ -f data/intraday.json ]; then
+              python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('data/intraday.json').read_text(encoding='utf-8'))
+          print(f"intraday_generated_at={p.get('generatedAt')}")
+          print(f"quotes={len(p.get('quotes') or [])}")
+          print(f"source={p.get('source')}")
+          PY
+            fi
+          } > .build-status/intraday-build.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/intraday.json
+          git add .build-status/intraday-build.txt
           git diff --cached --quiet && exit 0
-          git commit -m "Atualizar fotografia intradiária"
-          for tentativa in 1 2 3; do
-            git fetch origin main
-            git rebase origin/main
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-            echo "Branch avançou; repetindo publicação ${tentativa}/3."
-          done
-          exit 1
+          git commit -m "chore: registrar diagnostico intradiario"
+          git pull --rebase origin main
+          git push origin HEAD:main
