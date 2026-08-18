@@ -20,5 +20,16 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "dist",
     sourcemap: false,
+    chunkSizeWarningLimit: 420,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) return "react-vendor";
+          if (id.includes("FinancialChart") || id.includes("OptionsLab") || id.includes("QuantPage")) return "analysis-tools";
+          if (id.includes("PortfolioManager") || id.includes("ComparisonPage") || id.includes("SimulatorPage")) return "workspace-tools";
+          return undefined;
+        },
+      },
+    },
   },
 }));
