@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { formatCompactMoney } from "./formatters";
+import "./usability-v3.css";
 
 const QUICK_ACTIONS = [
   ["radar", "◉", "Ver o mercado agora", "Altas, quedas e movimentos que merecem atenção."],
