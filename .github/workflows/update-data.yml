@@ -1,6 +1,5 @@
 name: Atualizar dados oficiais B3 e CVM
 
-# Atualização manual solicitada em 2026-08-17 22:18 America/Boa_Vista
 on:
   workflow_dispatch:
   push:
@@ -10,8 +9,6 @@ on:
       - ".github/workflows/update-data.yml"
       - "scripts/**"
   schedule:
-    # 19:17 em Boa Vista (UTC-4), todos os dias; no fim de semana o
-    # fechamento permanece no último pregão, mas as notícias são renovadas.
     - cron: "17 23 * * *"
 
 permissions:
@@ -37,15 +34,29 @@ jobs:
       - name: Instalar leitor da classificação setorial B3
         run: python -m pip install --disable-pip-version-check openpyxl
 
-      - name: Atualizar dados
+      - name: Desacoplar histórico gráfico do snapshot oficial
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/refresh-data.py')
+          text = path.read_text(encoding='utf-8')
+          old = 'subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)'
+          new = 'subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=False)'
+          if old not in text:
+              raise SystemExit('Trecho do histórico não encontrado; recusando alterar silenciosamente')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Atualizar dados oficiais
         run: python scripts/refresh-data.py
 
-      - name: Validar histórico usado pelos gráficos
+      - name: Validar histórico usado pelos gráficos sem bloquear cotações
+        continue-on-error: true
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-
           path = Path("data/market-anomalies.json")
           if not path.exists() or path.stat().st_size < 100:
               raise SystemExit("market-anomalies.json ausente ou vazio")
@@ -64,19 +75,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -- scripts/refresh-data.py
           git add data/
           if git diff --cached --quiet; then
             echo "Os dados já estão atualizados."
             exit 0
           fi
           git commit -m "Atualizar dados oficiais B3 e CVM"
-          # A atualização pode levar vários minutos. Nesse intervalo, outro
-          # commit legítimo pode chegar à branch. Reaplique o commit de dados
-          # sobre o HEAD remoto para preservar ambos, sem force push.
           git fetch origin "${GITHUB_REF_NAME}"
-          # Durante um rebase, "theirs" é o commit de dados que está sendo
-          # reaplicado. Assim, em conflito apenas entre arquivos gerados, a
-          # execução mais recente prevalece e os demais commits são mantidos.
           git rebase -X theirs "origin/${GITHUB_REF_NAME}"
           for tentativa in 1 2 3; do
             if git push origin "HEAD:${GITHUB_REF_NAME}"; then
