@@ -36,12 +36,12 @@ def z_score(value: float, sample: list[float]) -> float | None:
 
 
 def read_history(folder: Path | None, universe: set[str]) -> dict[str, list[dict]]:
-    history: dict[str, list[dict]] = {}
-    paths = sorted(folder.glob("COTAHIST_A*.ZIP")) if folder else []
+    history: dict[str, dict[str, dict]] = {}
+    if not folder:
+        return {}
+    paths = sorted({*folder.glob("COTAHIST_A*.ZIP"), *folder.glob("COTAHIST_D*.ZIP")})
     if not paths:
-        return history
-    # Every archive available is read. refresh-data.py controls the official
-    # 10-year download window, avoiding an arbitrary short lookback here.
+        return {}
     for path in paths:
         with zipfile.ZipFile(path) as archive:
             text = archive.read(archive.namelist()[0]).decode("latin1")
@@ -61,17 +61,16 @@ def read_history(folder: Path | None, universe: set[str]) -> dict[str, list[dict
                 continue
             if close <= 0:
                 continue
-            history.setdefault(ticker, []).append({
-                "date": f"{line[2:6]}-{line[6:8]}-{line[8:10]}",
+            date_value = f"{line[2:6]}-{line[6:8]}-{line[8:10]}"
+            history.setdefault(ticker, {})[date_value] = {
+                "date": date_value,
                 "open": open_price,
                 "high": high,
                 "low": low,
                 "close": close,
                 "volume": max(0, volume),
-            })
-    for rows in history.values():
-        rows.sort(key=lambda row: row["date"])
-    return history
+            }
+    return {ticker: sorted(rows.values(), key=lambda row: row["date"]) for ticker, rows in history.items()}
 
 
 def classify(score: int) -> dict:
@@ -137,6 +136,8 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
         flags.append({"code": "event", "label": "Verificar evento corporativo", "severity": "context", "explanation": "Oscilação muito ampla pode refletir grupamento, desdobramento, provento ou outro evento."})
     if gap is not None and abs(gap) >= 4:
         flags.append({"code": "gap", "label": "Gap relevante", "severity": "medium", "explanation": f"Abertura a {gap:+.1f}% do fechamento anterior."})
+    recent = rows[-HISTORY_SESSIONS:]
+    start_index = len(rows) - len(recent)
     result = {
         "ticker": ticker,
         "score": score,
@@ -159,7 +160,7 @@ def analyse(ticker: str, rows: list[dict]) -> dict | None:
         "flags": flags,
         "sessions": len(rows),
         "lastDate": rows[-1]["date"],
-        "series": [{**row, "returnPct": round(returns[index - 1], 2) if index > 0 else None} for index, row in enumerate(rows[-HISTORY_SESSIONS:], start=len(rows) - len(rows[-HISTORY_SESSIONS:]))],
+        "series": [{**row, "returnPct": round(returns[index - 1], 2) if index > 0 else None} for index, row in enumerate(recent, start=start_index)],
     }
     return result
 
@@ -177,10 +178,10 @@ def build() -> dict:
     return {
         "generatedAt": datetime.now(UTC).isoformat(),
         "quoteDate": max((row["lastDate"] for row in assets.values()), default=None),
-        "modelVersion": "3.1.0",
+        "modelVersion": "3.2.0",
         "universe": len(universe),
         "analysed": len(assets),
-        "methodology": "Retornos de 1, 5 e 20 pregões, z-scores de retorno e log-volume, volume contra média de 20 pregões, gaps, aceleração, repetição de extremos, reversão e contexto de liquidez. Série auditável de até 2.520 pregões (aproximadamente 10 anos); os z-scores usam até 60 pregões anteriores.",
+        "methodology": "Retornos de 1, 5 e 20 pregões, z-scores de retorno e log-volume, volume contra média de 20 pregões, gaps, aceleração, repetição de extremos, reversão e contexto de liquidez. Usa arquivos anuais COTAHIST quando disponíveis e completa com pregões diários oficiais; série auditável de até 2.520 pregões.",
         "disclaimer": "Anomalia estatística não comprova fraude, manipulação, intenção ou irregularidade. Verifique eventos corporativos, fatos relevantes e notícias antes de interpretar o movimento.",
         "sources": ["B3 COTAHIST", "CVM Resolução 62", "CVM documentos periódicos e eventuais"],
         "assets": assets,
@@ -189,5 +190,7 @@ def build() -> dict:
 
 if __name__ == "__main__":
     payload = build()
+    if len(payload["assets"]) < 50:
+        raise SystemExit(f"Historical build refused: only {len(payload['assets'])} assets have 30+ sessions")
     OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {len(payload['assets'])} anomaly analyses to {OUTPUT}")
