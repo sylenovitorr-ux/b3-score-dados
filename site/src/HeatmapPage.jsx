@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { formatMoney, formatPercent } from "./formatters";
+import "./usability-v3.css";
 
 const label = (asset) => asset.sector || asset.segment || asset.group || (asset.kind === "fii" ? "FIIs" : "Sem setor classificado");
 const tone = (value) => value == null ? "unknown" : value >= 2 ? "strong-up" : value > 0 ? "up" : value <= -2 ? "strong-down" : value < 0 ? "down" : "flat";
