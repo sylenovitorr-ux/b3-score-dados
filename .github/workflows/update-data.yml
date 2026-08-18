@@ -39,6 +39,23 @@ jobs:
       - name: Atualizar dados
         run: python scripts/refresh-data.py
 
+      - name: Validar histórico usado pelos gráficos
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("data/market-anomalies.json")
+          if not path.exists() or path.stat().st_size < 100:
+              raise SystemExit("market-anomalies.json ausente ou vazio")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          assets = payload.get("assets") or {}
+          with_series = sum(1 for item in assets.values() if isinstance(item.get("series"), list) and len(item["series"]) >= 30)
+          if len(assets) < 50 or with_series < 50:
+              raise SystemExit(f"Histórico insuficiente: assets={len(assets)} series_validas={with_series}")
+          print(f"Histórico OK: {len(assets)} ativos; {with_series} séries com 30+ pregões")
+          PY
+
       - name: Validar motores de dados
         run: python -m unittest discover -s scripts -p 'test_*.py' -v
 
