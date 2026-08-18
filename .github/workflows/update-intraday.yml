@@ -18,13 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       INTRADAY_SOURCE_URL: ${{ secrets.INTRADAY_SOURCE_URL }}
+      BOOK_SOURCE_URL: ${{ secrets.BOOK_SOURCE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Atualizar quando houver fonte autorizada
-        run: python scripts/refresh-intraday.py
+      - name: Atualizar cotações e book quando disponível
+        run: python scripts/refresh-intraday-v2.py
       - name: Publicar fotografia válida
         run: |
           git config user.name "github-actions[bot]"
