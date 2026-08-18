@@ -3,6 +3,7 @@ import AssetIntelligencePanelCore from "./AssetIntelligencePanelCore.jsx";
 import TradeSignalPanel from "./TradeSignalPanel.jsx";
 import { buildQuantAnalysis } from "./quant/quant-engine.js";
 import "./trade-signal.css";
+import "./theme-premium.css";
 
 export default function AssetIntelligencePanel(props) {
   const { asset, assets, anomaly } = props;
