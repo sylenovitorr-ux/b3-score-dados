@@ -1,0 +1,68 @@
+name: Atualizar cache histórico diário
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/refresh-history-cache.py"
+      - ".github/workflows/update-history-cache.yml"
+  schedule:
+    # Após o fechamento, em dias úteis. A brapi pode refletir o candle do dia
+    # com atraso, mas o cache será renovado automaticamente no próximo ciclo.
+    - cron: "35 22 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-history-cache
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
+      HISTORY_MAX_STOCKS: "250"
+      HISTORY_MAX_FIIS: "100"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Gerar cache histórico diário
+        run: python scripts/refresh-history-cache.py
+      - name: Validar ativos principais
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for ticker in ("PETR4", "VALE3", "ITUB4"):
+              path = Path("data/history") / f"{ticker}.json"
+              if not path.exists():
+                  raise SystemExit(f"{ticker}: cache ausente")
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              rows = payload.get("series") or []
+              if len(rows) < 20:
+                  raise SystemExit(f"{ticker}: apenas {len(rows)} candles")
+              print(f"{ticker}: {len(rows)} candles, último={rows[-1].get('date')}")
+          PY
+      - name: Publicar cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/history/
+          git diff --cached --quiet && exit 0
+          git commit -m "Atualizar cache histórico diário"
+          for tentativa in 1 2 3; do
+            git fetch origin main
+            git rebase -X theirs origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Branch avançou; repetindo publicação ${tentativa}/3."
+          done
+          exit 1
