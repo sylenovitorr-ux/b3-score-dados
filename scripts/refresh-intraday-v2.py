@@ -2,7 +2,7 @@
 
 Fontes:
 - INTRADAY_SOURCE_URL: endpoint JSON próprio/autorizado no formato B3 Score.
-- Sem INTRADAY_SOURCE_URL, tenta brapi.dev como fonte atrasada; BRAPI_TOKEN é usado quando configurado.
+- Sem INTRADAY_SOURCE_URL, usa brapi.dev como fonte atrasada; BRAPI_TOKEN é obrigatório em produção.
 - BOOK_SOURCE_URL: endpoint L2 autorizado. Nunca é simulado quando ausente.
 
 Saída: data/intraday.json
@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,7 +29,7 @@ def numeric(value):
         return None
 
 
-def fetch_json(url, user_agent="B3ScoreIntraday/2.2", bearer_token=None):
+def fetch_json(url, user_agent="B3ScoreIntraday/2.3", bearer_token=None):
     headers = {"User-Agent": user_agent, "Accept": "application/json"}
     if bearer_token:
         headers["Authorization"] = f"Bearer {bearer_token}"
@@ -102,17 +103,24 @@ def normalize_brapi(payload, books):
 def main():
     books, book_source = fetch_books()
     intraday_url = os.environ.get("INTRADAY_SOURCE_URL")
-    brapi_token = os.environ.get("BRAPI_TOKEN")
+    brapi_token = (os.environ.get("BRAPI_TOKEN") or "").strip()
     if intraday_url:
         payload = fetch_json(intraday_url)
         data = normalize_native(payload, books)
     else:
+        if not brapi_token:
+            raise RuntimeError(
+                "BRAPI_TOKEN não configurado. A brapi.dev exige autenticação no endpoint /api/quote/list; "
+                "recusando manter fotografia antiga como se estivesse atualizada."
+            )
         try:
-            payload = fetch_json(BRAPI_LIST_URL, "B3ScoreIntraday/2.2", brapi_token)
+            payload = fetch_json(BRAPI_LIST_URL, "B3ScoreIntraday/2.3", brapi_token)
         except urllib.error.HTTPError as error:
-            if error.code in (401, 403) and not brapi_token:
-                print("brapi.dev exige BRAPI_TOKEN neste endpoint: mantendo a última fotografia válida.")
-                return 0
+            if error.code in (401, 403):
+                raise RuntimeError(
+                    "BRAPI_TOKEN ausente, expirado ou sem permissão para /api/quote/list. "
+                    "Atualize o secret BRAPI_TOKEN no repositório."
+                ) from error
             raise
         data = normalize_brapi(payload, books)
     data["bookSource"] = book_source
