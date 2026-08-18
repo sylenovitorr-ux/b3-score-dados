@@ -8,8 +8,8 @@ on:
       - "scripts/refresh-history-cache.py"
       - ".github/workflows/update-history-cache.yml"
   schedule:
-    # Após o fechamento, em dias úteis. A brapi pode refletir o candle do dia
-    # com atraso, mas o cache será renovado automaticamente no próximo ciclo.
+    # Um lote por dia útil após o fechamento. Com 120 chamadas/dia útil,
+    # o consumo mensal típico fica muito abaixo de 15 mil chamadas.
     - cron: "35 22 * * 1-5"
 
 permissions:
@@ -22,34 +22,40 @@ concurrency:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     env:
       BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
-      HISTORY_MAX_STOCKS: "250"
-      HISTORY_MAX_FIIS: "100"
+      HISTORY_BATCH_SIZE: "120"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Gerar cache histórico diário
+
+      - name: Gerar lote rotativo do histórico diário
         run: python scripts/refresh-history-cache.py
-      - name: Validar ativos principais
+
+      - name: Validar cache e cobertura
         shell: bash
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          for ticker in ("PETR4", "VALE3", "ITUB4"):
-              path = Path("data/history") / f"{ticker}.json"
-              if not path.exists():
-                  raise SystemExit(f"{ticker}: cache ausente")
-              payload = json.loads(path.read_text(encoding="utf-8"))
-              rows = payload.get("series") or []
-              if len(rows) < 20:
-                  raise SystemExit(f"{ticker}: apenas {len(rows)} candles")
-              print(f"{ticker}: {len(rows)} candles, último={rows[-1].get('date')}")
+          status_path = Path("data/history/status.json")
+          if not status_path.exists():
+              raise SystemExit("status do cache histórico ausente")
+          status = json.loads(status_path.read_text(encoding="utf-8"))
+          if int(status.get("universe") or 0) < 100:
+              raise SystemExit(f"universo histórico inesperadamente pequeno: {status.get('universe')}")
+          if int(status.get("updatedThisRun") or 0) < 10:
+              raise SystemExit(f"lote histórico insuficiente: {status.get('updatedThisRun')}")
+          print(
+              f"universo={status.get('universe')} lote={status.get('batchSize')} "
+              f"cobertos={status.get('covered')} faltando={status.get('missing')} "
+              f"cobertura={status.get('coveragePct')}%"
+          )
           PY
+
       - name: Publicar cache
         run: |
           git config user.name "github-actions[bot]"
