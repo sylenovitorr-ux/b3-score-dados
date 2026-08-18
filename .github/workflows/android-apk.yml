@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-apk-${{ github.ref }}
@@ -43,10 +43,22 @@ jobs:
           npx cap sync android
       - name: Compilar APK instalável
         run: cd android && ./gradlew assembleDebug
-      - name: Disponibilizar APK
+      - name: Preparar APK com nome estável
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/b3-score.apk
+      - name: Disponibilizar APK como artefato
         uses: actions/upload-artifact@v4
         with:
           name: b3-score-android-debug-apk
-          path: site/android/app/build/outputs/apk/debug/app-debug.apk
+          path: site/android/app/build/outputs/apk/debug/b3-score.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Publicar APK em release fixa
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd ..
+          if gh release view b3-score-latest >/dev/null 2>&1; then
+            gh release upload b3-score-latest site/android/app/build/outputs/apk/debug/b3-score.apk --clobber
+          else
+            gh release create b3-score-latest site/android/app/build/outputs/apk/debug/b3-score.apk --title "B3 Score Android - Última versão" --notes "APK de teste gerado automaticamente a partir da branch main."
+          fi
