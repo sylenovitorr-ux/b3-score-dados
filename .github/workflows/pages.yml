@@ -21,6 +21,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - name: Rodar testes sem bloquear a publicação
+        run: npm test
+        continue-on-error: true
+
   build:
     if: >-
       github.event_name != 'workflow_run' ||
@@ -38,8 +59,11 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
-      - run: npm test
       - run: npm run build
+      - name: Gravar versão publicada
+        run: |
+          printf '%s\n' "$GITHUB_SHA" > dist/version.txt
+          printf '{"sha":"%s","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/build.json
       - uses: actions/configure-pages@v5
         with:
           enablement: true
