@@ -2,6 +2,11 @@ name: Atualizar fotografia intradiária
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/refresh-intraday-v2.py"
+      - ".github/workflows/update-intraday.yml"
   schedule:
     # A cada 15 minutos, em dias úteis, dentro da janela aproximada do pregão B3 em UTC.
     - cron: "*/15 13-20 * * 1-5"
