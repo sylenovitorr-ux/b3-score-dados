@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FinancialChart from "./FinancialChart.jsx";
 import DailyHistoryPanel from "./DailyHistoryPanel.jsx";
 import TradeSignalPanel from "./TradeSignalPanel.jsx";
@@ -75,21 +75,97 @@ function BookTab({ asset }) {
   </section>;
 }
 
+function normalizeRemoteHistory(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => {
+    const timestamp = Number(row.date);
+    const date = Number.isFinite(timestamp) ? new Date(timestamp * 1000).toISOString().slice(0, 10) : String(row.date ?? "").slice(0, 10);
+    const open = Number(row.open);
+    const high = Number(row.high);
+    const low = Number(row.low);
+    const close = Number(row.close ?? row.adjustedClose);
+    const volume = Number(row.volume);
+    if (!date || !Number.isFinite(close) || close <= 0) return null;
+    return {
+      date,
+      open: Number.isFinite(open) ? open : close,
+      high: Number.isFinite(high) ? high : close,
+      low: Number.isFinite(low) ? low : close,
+      close,
+      volume: Number.isFinite(volume) ? Math.max(0, volume) : 0,
+    };
+  }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function useHistoryFallback(ticker, officialSeries, active) {
+  const [fallbackSeries, setFallbackSeries] = useState([]);
+  const [state, setState] = useState("idle");
+
+  useEffect(() => {
+    setFallbackSeries([]);
+    setState("idle");
+  }, [ticker]);
+
+  useEffect(() => {
+    if (!active || officialSeries.length >= 2 || fallbackSeries.length >= 2 || state === "loading" || state === "failed") return;
+    let cancelled = false;
+    const cacheKey = `b3-score-history-v1:${ticker}`;
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) ?? "null");
+      if (cached && Date.now() - Number(cached.time) < 6 * 60 * 60 * 1000 && Array.isArray(cached.series) && cached.series.length >= 2) {
+        setFallbackSeries(cached.series);
+        setState("ready");
+        return;
+      }
+    } catch {
+      localStorage.removeItem(cacheKey);
+    }
+
+    setState("loading");
+    fetch(`https://brapi.dev/api/quote/${encodeURIComponent(ticker)}?range=1y&interval=1d`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("history unavailable")))
+      .then((payload) => normalizeRemoteHistory(payload?.results?.[0]?.historicalDataPrice))
+      .then((rows) => {
+        if (cancelled) return;
+        if (rows.length < 2) throw new Error("empty history");
+        setFallbackSeries(rows);
+        setState("ready");
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ time: Date.now(), series: rows }));
+        } catch {
+          // Cache é apenas otimização; falha de armazenamento não bloqueia o gráfico.
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setState("failed");
+      });
+    return () => { cancelled = true; };
+  }, [active, ticker, officialSeries.length, fallbackSeries.length, state]);
+
+  return {
+    series: officialSeries.length >= 2 ? officialSeries : fallbackSeries,
+    source: officialSeries.length >= 2 ? "B3 COTAHIST" : fallbackSeries.length >= 2 ? "brapi.dev fallback" : null,
+    loading: state === "loading",
+  };
+}
+
 export default function AssetAnalysisTabs({ asset, analysis, anomaly, coreProps }) {
   const [tab, setTab] = useState("overview");
   const book = asset?.book ?? null;
   const fair = analysis?.levels?.fair ?? null;
   const events = useMemo(() => [], []);
-  const series = Array.isArray(anomaly?.series) ? anomaly.series : [];
+  const officialSeries = Array.isArray(anomaly?.series) ? anomaly.series : [];
+  const history = useHistoryFallback(asset.ticker, officialSeries, tab === "chart" || tab === "history");
+  const series = history.series;
   const hasSeries = series.length >= 2;
   return <div className="asset-tabs-shell">
     <nav className="asset-tabs" role="tablist" aria-label="Análise do ativo">{TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "active" : ""} onClick={() => setTab(id)}>{label}</button>)}</nav>
     <div className="asset-tab-content">
       {tab === "overview" && <TradeSignalPanel asset={asset} analysis={analysis} book={book} />}
-      {tab === "chart" && <section className="tab-section"><header><span>GRÁFICO</span><h2>Preço e tendência</h2><p>Escolha período, candles ou linha. Médias móveis ajudam a enxergar tendência sem esconder o preço.</p></header>{hasSeries ? <FinancialChart series={series} fairValue={fair} events={events} ticker={asset.ticker} /> : <div className="book-unavailable"><b>Histórico ainda não disponível para {asset.ticker}</b><p>O gráfico depende da série COTAHIST processada. O pipeline agora bloqueia publicação de histórico vazio; assim que a próxima atualização oficial gerar uma série válida, o gráfico aparecerá automaticamente.</p></div>}</section>}
+      {tab === "chart" && <section className="tab-section"><header><span>GRÁFICO</span><h2>Preço e tendência</h2><p>Escolha período, candles ou linha. Médias móveis ajudam a enxergar tendência sem esconder o preço.</p></header>{hasSeries ? <><FinancialChart series={series} fairValue={fair} events={events} ticker={asset.ticker} /><div className="tab-note"><b>Fonte do histórico: {history.source}</b><p>O COTAHIST oficial tem prioridade. O fallback online só é usado quando a série oficial ainda não está disponível.</p></div></> : <div className="book-unavailable"><b>{history.loading ? `Carregando histórico de ${asset.ticker}…` : `Histórico indisponível para ${asset.ticker}`}</b><p>{history.loading ? "Buscando uma série diária alternativa sem bloquear o restante da análise." : "Nenhuma série válida foi recebida. O restante da análise continua disponível sem inventar preços."}</p></div>}</section>}
       {tab === "fundamentals" && <FundamentalsTab asset={asset} analysis={analysis} coreProps={coreProps} />}
       {tab === "dividends" && <DividendsTab asset={asset} />}
-      {tab === "history" && (hasSeries ? <DailyHistoryPanel series={series} ticker={asset.ticker} /> : <section className="tab-section"><div className="book-unavailable"><b>Histórico diário indisponível</b><p>A série COTAHIST deste ativo ainda não foi publicada nesta versão dos dados.</p></div></section>)}
+      {tab === "history" && (hasSeries ? <><DailyHistoryPanel series={series} ticker={asset.ticker} /><div className="tab-note"><b>Fonte do histórico: {history.source}</b></div></> : <section className="tab-section"><div className="book-unavailable"><b>{history.loading ? "Carregando histórico diário…" : "Histórico diário indisponível"}</b><p>Sem série válida, o app não preenche datas ou preços artificialmente.</p></div></section>)}
       {tab === "book" && <BookTab asset={asset} />}
     </div>
   </div>;
