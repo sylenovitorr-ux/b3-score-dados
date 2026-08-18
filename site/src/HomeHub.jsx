@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatCompactMoney } from "./formatters";
 import "./usability-v3.css";
 
@@ -17,6 +17,22 @@ const MORE = [
 
 export default function HomeHub({ assets, market, statusText, asOf, loading, onNavigate, onOpenAsset }) {
   const [ticker, setTicker] = useState("");
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [lastUpdateSeconds, setLastUpdateSeconds] = useState(null);
+
+  useEffect(() => {
+    if (!loading) return undefined;
+    const startedAt = Date.now();
+    setElapsedSeconds(0);
+    const timer = window.setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 250);
+    return () => {
+      window.clearInterval(timer);
+      setLastUpdateSeconds(Math.max(0, Math.round((Date.now() - startedAt) / 1000)));
+    };
+  }, [loading]);
+
   const matches = useMemo(() => {
     const term = ticker.trim().toUpperCase();
     return term ? assets.filter((asset) => asset.ticker.includes(term) || asset.name?.toUpperCase().includes(term)).slice(0, 6) : [];
@@ -26,12 +42,17 @@ export default function HomeHub({ assets, market, statusText, asOf, loading, onN
     if (exact) onOpenAsset(exact.ticker);
   };
   const shown = (value) => loading && !assets.length ? "—" : value;
+  const updateText = loading
+    ? `Atualizando… ${elapsedSeconds} ${elapsedSeconds === 1 ? "seg" : "segs"}`
+    : lastUpdateSeconds == null
+      ? statusText
+      : `${statusText} • ${lastUpdateSeconds}s`;
 
   return <div className="v2-home simple-home">
     <div className="ux-build-badge">UX 4 • NOVO LAYOUT</div>
     <section className="simple-hero">
       <div><span className="v2-kicker">B3 SCORE</span><h1>O que você quer fazer?</h1><p>Pesquise uma ação ou escolha uma das quatro tarefas principais.</p></div>
-      <aside><b>{loading ? "Atualizando…" : statusText}</b><span>{shown(assets.length)} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
+      <aside><b>{updateText}</b><span>{shown(assets.length)} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
     </section>
 
     <section className="simple-search">
