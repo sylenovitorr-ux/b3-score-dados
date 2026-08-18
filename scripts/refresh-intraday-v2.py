@@ -2,7 +2,7 @@
 
 Fontes:
 - INTRADAY_SOURCE_URL: endpoint JSON próprio/autorizado no formato B3 Score.
-- Sem INTRADAY_SOURCE_URL, usa a listagem pública da brapi.dev como fonte atrasada.
+- Sem INTRADAY_SOURCE_URL, usa brapi.dev como fonte atrasada quando BRAPI_TOKEN estiver configurado.
 - BOOK_SOURCE_URL: endpoint L2 autorizado. Nunca é simulado quando ausente.
 
 Saída: data/intraday.json
@@ -10,7 +10,6 @@ Saída: data/intraday.json
 import json
 import os
 import sys
-import urllib.parse
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,8 +27,11 @@ def numeric(value):
         return None
 
 
-def fetch_json(url, user_agent="B3ScoreIntraday/2.0"):
-    request = urllib.request.Request(url, headers={"User-Agent": user_agent, "Accept": "application/json"})
+def fetch_json(url, user_agent="B3ScoreIntraday/2.1", bearer_token=None):
+    headers = {"User-Agent": user_agent, "Accept": "application/json"}
+    if bearer_token:
+        headers["Authorization"] = f"Bearer {bearer_token}"
+    request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=40) as response:
         return json.load(response)
 
@@ -119,7 +121,7 @@ def normalize_brapi(payload, books):
         "generatedAt": datetime.now(UTC).isoformat(),
         "updatedAt": requested_at,
         "delayMinutes": 30,
-        "source": "brapi.dev (cotação atrasada, plano público)",
+        "source": "brapi.dev (cotação atrasada)",
         "quotes": rows,
     }
 
@@ -127,12 +129,16 @@ def normalize_brapi(payload, books):
 def main():
     books, book_source = fetch_books()
     intraday_url = os.environ.get("INTRADAY_SOURCE_URL")
+    brapi_token = os.environ.get("BRAPI_TOKEN")
     if intraday_url:
         payload = fetch_json(intraday_url)
         data = normalize_native(payload, books)
-    else:
-        payload = fetch_json(BRAPI_LIST_URL)
+    elif brapi_token:
+        payload = fetch_json(BRAPI_LIST_URL, "B3ScoreIntraday/2.1", brapi_token)
         data = normalize_brapi(payload, books)
+    else:
+        print("Sem INTRADAY_SOURCE_URL ou BRAPI_TOKEN: mantendo a última fotografia válida.")
+        return 0
     data["bookSource"] = book_source
     data["bookStatus"] = "ATUALIZADO" if books else "INDISPONIVEL_SEM_FONTE_L2"
     OUTPUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
