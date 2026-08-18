@@ -1,6 +1,6 @@
-commit=e3c65f62044fab20302c6228296e0e5261bcdac9
+commit=f83e17d9566b2accda9676d85cfc05f5031c93d1
 exit_code=0
-generated_at=2026-08-18T02:09:58Z
+generated_at=2026-08-18T02:10:20Z
 --- last build lines ---
 
 > b3-score-github-pages@1.0.0 build
@@ -10,13 +10,13 @@ generated_at=2026-08-18T02:09:58Z
 [2Ktransforming...✓ 71 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                   1.83 kB │ gzip:   0.68 kB
-dist/assets/index-BtlRH67W.css  221.89 kB │ gzip:  39.63 kB
-dist/assets/index-CGnoStU8.js   581.33 kB │ gzip: 171.26 kB
+dist/index.html                             2.33 kB │ gzip:  0.78 kB
+dist/assets/workspace-tools-DVyeSLha.css    4.43 kB │ gzip:  1.24 kB
+dist/assets/index-BRRYWM04.css            221.54 kB │ gzip: 39.65 kB
+dist/assets/rolldown-runtime-Bh1tDfsg.js    0.56 kB │ gzip:  0.36 kB
+dist/assets/workspace-tools-DhIahPqw.js    30.75 kB │ gzip: 10.25 kB
+dist/assets/analysis-tools-BZUM5ewk.js     96.43 kB │ gzip: 30.88 kB
+dist/assets/react-vendor-D45DkNho.js      181.79 kB │ gzip: 57.19 kB
+dist/assets/index-DPrXoEO_.js             271.54 kB │ gzip: 75.27 kB
 
-[32m✓ built in 259ms[39m
-[33m[plugin builtin:vite-reporter] 
-(!) Some chunks are larger than 500 kB after minification. Consider:
-- Using dynamic import() to code-split the application
-- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
-- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 272ms[39m
