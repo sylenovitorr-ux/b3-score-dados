@@ -67,9 +67,11 @@ function BookTab({ asset }) {
   const askVolume = book?.askVolume ?? book?.totalAskVolume ?? book?.sellVolume ?? null;
   const pressure = book?.pressure ?? book?.imbalance ?? book?.bookPressure ?? (bidVolume != null && askVolume != null && Number(bidVolume) + Number(askVolume) > 0 ? ((Number(bidVolume) - Number(askVolume)) / (Number(bidVolume) + Number(askVolume))) * 100 : null);
   const spread = bestBid != null && bestAsk != null ? Number(bestAsk) - Number(bestBid) : null;
+  const source = book?.source ?? asset?.bookSource ?? null;
+  const status = asset?.bookStatus ?? (book ? "ATUALIZADO" : "SEM FONTE L2");
   return <section className="tab-section book-tab" id="livro-ofertas">
     <header><span>LIVRO DE OFERTAS</span><h2>Pressão compradora e vendedora</h2><p>Ordens pendentes no livro não são negócios executados.</p></header>
-    {book ? <><div className="tab-metric-grid"><Metric label="Melhor compra" value={money(bestBid)} /><Metric label="Melhor venda" value={money(bestAsk)} /><Metric label="Spread" value={money(spread)} /><Metric label="Pressão" value={pressure == null ? "N/D" : `${pressure > 0 ? "+" : ""}${number(pressure, 0)}`} /><Metric label="Volume comprador" value={number(bidVolume, 0)} /><Metric label="Volume vendedor" value={number(askVolume, 0)} /></div><div className="book-pressure-bar"><i style={{ width: `${pressure == null ? 50 : Math.max(0, Math.min(100, (Number(pressure) + 100) / 2))}%` }} /></div></> : <div className="book-unavailable"><b>Book L2 indisponível no momento</b><p>Quando uma fonte L2 autorizada estiver conectada, bid, ask, spread, volumes e pressão aparecerão automaticamente aqui.</p></div>}
+    {book ? <><div className="tab-metric-grid"><Metric label="Melhor compra" value={money(bestBid)} /><Metric label="Melhor venda" value={money(bestAsk)} /><Metric label="Spread" value={money(spread)} /><Metric label="Pressão" value={pressure == null ? "N/D" : `${pressure > 0 ? "+" : ""}${number(pressure, 0)}%`} /><Metric label="Volume comprador" value={number(bidVolume, 0)} /><Metric label="Volume vendedor" value={number(askVolume, 0)} /></div><div className="book-pressure-bar"><i style={{ width: `${pressure == null ? 50 : Math.max(0, Math.min(100, (Number(pressure) + 100) / 2))}%` }} /></div><div className="tab-note"><b>{status}</b><p>{source ? `Fonte: ${source}` : "Fonte L2 identificada pelo feed intradiário."}</p></div></> : <div className="book-unavailable"><b>Book L2 sem dados reais</b><p>O app está funcionando, mas a fonte intradiária atual não fornece livro de ofertas. Bid, ask, volumes e pressão permanecerão vazios até uma fonte L2 autorizada ser conectada.</p><small>Status: {status}{source ? ` • fonte: ${source}` : ""}</small></div>}
   </section>;
 }
 
@@ -78,14 +80,16 @@ export default function AssetAnalysisTabs({ asset, analysis, anomaly, coreProps 
   const book = asset?.book ?? null;
   const fair = analysis?.levels?.fair ?? null;
   const events = useMemo(() => [], []);
+  const series = Array.isArray(anomaly?.series) ? anomaly.series : [];
+  const hasSeries = series.length >= 2;
   return <div className="asset-tabs-shell">
     <nav className="asset-tabs" role="tablist" aria-label="Análise do ativo">{TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "active" : ""} onClick={() => setTab(id)}>{label}</button>)}</nav>
     <div className="asset-tab-content">
       {tab === "overview" && <TradeSignalPanel asset={asset} analysis={analysis} book={book} />}
-      {tab === "chart" && <section className="tab-section"><header><span>GRÁFICO</span><h2>Preço e tendência</h2><p>Escolha período, candles ou linha. Médias móveis ajudam a enxergar tendência sem esconder o preço.</p></header><FinancialChart series={anomaly?.series ?? []} fairValue={fair} events={events} ticker={asset.ticker} /></section>}
+      {tab === "chart" && <section className="tab-section"><header><span>GRÁFICO</span><h2>Preço e tendência</h2><p>Escolha período, candles ou linha. Médias móveis ajudam a enxergar tendência sem esconder o preço.</p></header>{hasSeries ? <FinancialChart series={series} fairValue={fair} events={events} ticker={asset.ticker} /> : <div className="book-unavailable"><b>Histórico ainda não disponível para {asset.ticker}</b><p>O gráfico depende da série COTAHIST processada. O pipeline agora bloqueia publicação de histórico vazio; assim que a próxima atualização oficial gerar uma série válida, o gráfico aparecerá automaticamente.</p></div>}</section>}
       {tab === "fundamentals" && <FundamentalsTab asset={asset} analysis={analysis} coreProps={coreProps} />}
       {tab === "dividends" && <DividendsTab asset={asset} />}
-      {tab === "history" && <DailyHistoryPanel series={anomaly?.series ?? []} ticker={asset.ticker} />}
+      {tab === "history" && (hasSeries ? <DailyHistoryPanel series={series} ticker={asset.ticker} /> : <section className="tab-section"><div className="book-unavailable"><b>Histórico diário indisponível</b><p>A série COTAHIST deste ativo ainda não foi publicada nesta versão dos dados.</p></div></section>)}
       {tab === "book" && <BookTab asset={asset} />}
     </div>
   </div>;
