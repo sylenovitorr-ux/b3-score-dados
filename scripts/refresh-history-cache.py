@@ -2,9 +2,10 @@
 """Build a zero-cost rotating daily OHLCV cache for the whole B3 Score universe.
 
 First generation is seeded from the official B3 COTAHIST series already stored
-in data/market-anomalies.json. brapi.dev then refreshes a bounded rotating batch
-when BRAPI_TOKEN is available. End-user devices read GitHub Raw and do not
-consume provider quota.
+in data/market-anomalies.json. brapi.dev then refreshes a bounded rotating batch.
+A token is used when configured, but the public free endpoint is also attempted
+without one so the cache does not depend on a paid credential. End-user devices
+read GitHub Raw and do not consume provider quota.
 """
 from __future__ import annotations
 
@@ -143,7 +144,7 @@ def choose_batch(universe: list[str]) -> list[str]:
 def fetch_history(symbol: str) -> dict:
     query = urllib.parse.urlencode({"range": "1y", "interval": "1d"})
     url = f"https://brapi.dev/api/quote/{urllib.parse.quote(symbol)}?{query}"
-    headers = {"Accept": "application/json", "User-Agent": "B3ScoreHistoryCache/3.0"}
+    headers = {"Accept": "application/json", "User-Agent": "B3ScoreHistoryCache/3.1"}
     if TOKEN:
         headers["Authorization"] = f"Bearer {TOKEN}"
     request = urllib.request.Request(url, headers=headers)
@@ -201,33 +202,30 @@ def main() -> None:
     failed = []
     latest = None
 
-    print(f"Universe={len(universe)}; seeded={seeded}; batch={len(batch)}; token={'yes' if TOKEN else 'no'}")
-    if TOKEN:
-        for index, symbol in enumerate(batch, start=1):
-            try:
-                incoming = normalize_remote(fetch_history(symbol))
-                if len(incoming) < 20:
-                    raise ValueError(f"only {len(incoming)} valid rows")
-                rows = merge_series(existing_series(symbol), incoming)
-                write_cache(symbol, rows, "brapi.dev + B3 COTAHIST seed")
-                remote_ok += 1
-                latest = max(latest or rows[-1]["date"], rows[-1]["date"])
-                print(f"[{index}/{len(batch)}] {symbol}: {len(rows)} candles; latest={rows[-1]['date']}")
-            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
-                failed.append({"ticker": symbol, "error": str(error)[:180]})
-                print(f"[{index}/{len(batch)}] {symbol}: FAILED {error}")
-            time.sleep(0.08)
-    else:
-        print("BRAPI_TOKEN unavailable; publishing official B3 seed now and leaving remote rotation for a later run.")
+    print(f"Universe={len(universe)}; seeded={seeded}; batch={len(batch)}; token={'yes' if TOKEN else 'no/public'}")
+    for index, symbol in enumerate(batch, start=1):
+        try:
+            incoming = normalize_remote(fetch_history(symbol))
+            if len(incoming) < 20:
+                raise ValueError(f"only {len(incoming)} valid rows")
+            rows = merge_series(existing_series(symbol), incoming)
+            write_cache(symbol, rows, "brapi.dev free + B3 COTAHIST seed")
+            remote_ok += 1
+            latest = max(latest or rows[-1]["date"], rows[-1]["date"])
+            print(f"[{index}/{len(batch)}] {symbol}: {len(rows)} candles; latest={rows[-1]['date']}")
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
+            failed.append({"ticker": symbol, "error": str(error)[:180]})
+            print(f"[{index}/{len(batch)}] {symbol}: FAILED {error}")
+        time.sleep(0.08)
 
     covered, missing = cache_coverage(universe)
     updated_this_run = seeded + remote_ok
     status = {
         "generatedAt": datetime.now(UTC).isoformat(),
-        "source": "B3 COTAHIST seed + brapi.dev rotation",
+        "source": "B3 COTAHIST seed + brapi.dev free rotation",
         "range": "1y",
         "interval": "1d",
-        "policy": "full-universe seed from official B3; rotating brapi batch missing-first then oldest-cache",
+        "policy": "full-universe seed from official B3; rotating public brapi batch missing-first then oldest-cache",
         "universe": len(universe),
         "batchSize": len(batch),
         "seededThisRun": seeded,
