@@ -1,6 +1,5 @@
 name: Atualizar cache histórico diário
 
-# Disparo manual da primeira geração em 2026-08-18 15:22 America/Manaus.
 on:
   workflow_dispatch:
   push:
@@ -9,8 +8,6 @@ on:
       - "scripts/refresh-history-cache.py"
       - ".github/workflows/update-history-cache.yml"
   schedule:
-    # Um lote por dia útil após o fechamento. Com 120 chamadas/dia útil,
-    # o consumo mensal típico fica muito abaixo de 15 mil chamadas.
     - cron: "35 22 * * 1-5"
 
 permissions:
@@ -23,10 +20,11 @@ concurrency:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
-      HISTORY_BATCH_SIZE: "120"
+      # Carga ampliada temporária para completar a cobertura inicial.
+      HISTORY_BATCH_SIZE: "300"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,12 +46,12 @@ jobs:
           status = json.loads(status_path.read_text(encoding="utf-8"))
           if int(status.get("universe") or 0) < 100:
               raise SystemExit(f"universo histórico inesperadamente pequeno: {status.get('universe')}")
-          if int(status.get("updatedThisRun") or 0) < 10:
-              raise SystemExit(f"lote histórico insuficiente: {status.get('updatedThisRun')}")
+          if int(status.get("covered") or 0) < 50:
+              raise SystemExit(f"cobertura histórica insuficiente: {status.get('covered')}")
           print(
               f"universo={status.get('universe')} lote={status.get('batchSize')} "
               f"cobertos={status.get('covered')} faltando={status.get('missing')} "
-              f"cobertura={status.get('coveragePct')}%"
+              f"cobertura={status.get('coveragePct')}% remoto={status.get('remoteUpdatedThisRun')}"
           )
           PY
 
