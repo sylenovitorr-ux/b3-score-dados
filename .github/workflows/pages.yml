@@ -1,5 +1,6 @@
 name: Publicar B3 Score no GitHub Pages
 
+# Redeploy forçado após correção do cache PWA em 2026-08-21.
 on:
   push:
     branches: [main]
