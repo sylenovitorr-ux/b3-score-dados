@@ -129,8 +129,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
 
     sessions = 0
     cursor = date.today()
-    # Além dos dois pregões necessários ao snapshot, tente manter uma janela
-    # curta suficiente para os gráficos mesmo quando o ZIP anual falhar.
     for _ in range(75):
         name = f"COTAHIST_D{cursor.strftime('%d%m%Y')}.ZIP"
         if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{name}", work / name):
@@ -138,10 +136,12 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
             if sessions >= 45:
                 break
         cursor -= timedelta(days=1)
-    if sessions < 30 and annual_history:
+
+    if annual_history:
         created = materialize_daily_sessions_from_annual(work, limit=45)
         sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
-        print(f"B3 daily endpoint incomplete; recovered {created} official sessions from COTAHIST annual.")
+        print(f"B3 annual COTAHIST complemented daily sessions with {created} files; total sessions={sessions}.")
+
     if sessions < 2:
         raise SystemExit("Could not obtain two recent B3 trading sessions")
 
@@ -160,8 +160,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-options.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
 
-    # O histórico agora aceita tanto anuais quanto diários. O próprio gerador
-    # se recusa a sobrescrever o arquivo se houver menos de 50 séries válidas.
     subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
     if annual_history:
         subprocess.run([sys.executable, str(ROOT / "scripts/build-benchmarks.py"), str(work)], check=True)
