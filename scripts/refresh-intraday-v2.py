@@ -2,7 +2,8 @@
 
 Fontes:
 - INTRADAY_SOURCE_URL: endpoint JSON próprio/autorizado no formato B3 Score.
-- Sem INTRADAY_SOURCE_URL, usa brapi.dev como fonte atrasada; BRAPI_TOKEN é obrigatório em produção.
+- Sem INTRADAY_SOURCE_URL, usa brapi.dev como fonte atrasada. O endpoint público
+  /api/quote/list é tentado sem token; BRAPI_TOKEN é usado quando configurado.
 - BOOK_SOURCE_URL: endpoint L2 autorizado. Nunca é simulado quando ausente.
 
 Saída: data/intraday.json
@@ -29,7 +30,7 @@ def numeric(value):
         return None
 
 
-def fetch_json(url, user_agent="B3ScoreIntraday/2.3", bearer_token=None):
+def fetch_json(url, user_agent="B3ScoreIntraday/2.4", bearer_token=None):
     headers = {"User-Agent": user_agent, "Accept": "application/json"}
     if bearer_token:
         headers["Authorization"] = f"Bearer {bearer_token}"
@@ -87,7 +88,7 @@ def normalize_native(payload, books):
     return {"status": "ATUALIZADO", "generatedAt": datetime.now(UTC).isoformat(), "updatedAt": payload.get("updatedAt") or datetime.now(UTC).isoformat(), "delayMinutes": numeric(payload.get("delayMinutes")), "source": str(payload.get("source") or "Fonte intradiária configurada"), "quotes": rows}
 
 
-def normalize_brapi(payload, books):
+def normalize_brapi(payload, books, authenticated=False):
     requested_at = payload.get("requestedAt") or datetime.now(UTC).isoformat()
     rows = []
     for row in payload.get("stocks", []):
@@ -97,7 +98,8 @@ def normalize_brapi(payload, books):
             rows.append({"ticker": ticker, "price": price, "changePct": numeric(row.get("change")), "volume": numeric(row.get("volume")), "asOf": requested_at, "book": books.get(ticker)})
     if not rows:
         raise ValueError("brapi.dev não forneceu cotações válidas.")
-    return {"status": "ATUALIZADO", "generatedAt": datetime.now(UTC).isoformat(), "updatedAt": requested_at, "delayMinutes": 30, "source": "brapi.dev (cotação atrasada)", "quotes": rows}
+    source = "brapi.dev autenticada (cotação atrasada)" if authenticated else "brapi.dev pública (cotação atrasada)"
+    return {"status": "ATUALIZADO", "generatedAt": datetime.now(UTC).isoformat(), "updatedAt": requested_at, "delayMinutes": 30, "source": source, "quotes": rows}
 
 
 def main():
@@ -108,21 +110,15 @@ def main():
         payload = fetch_json(intraday_url)
         data = normalize_native(payload, books)
     else:
-        if not brapi_token:
-            raise RuntimeError(
-                "BRAPI_TOKEN não configurado. A brapi.dev exige autenticação no endpoint /api/quote/list; "
-                "recusando manter fotografia antiga como se estivesse atualizada."
-            )
         try:
-            payload = fetch_json(BRAPI_LIST_URL, "B3ScoreIntraday/2.3", brapi_token)
+            payload = fetch_json(BRAPI_LIST_URL, "B3ScoreIntraday/2.4", brapi_token or None)
         except urllib.error.HTTPError as error:
+            if error.code in (401, 403) and brapi_token:
+                raise RuntimeError("BRAPI_TOKEN configurado, mas foi recusado pelo endpoint /api/quote/list.") from error
             if error.code in (401, 403):
-                raise RuntimeError(
-                    "BRAPI_TOKEN ausente, expirado ou sem permissão para /api/quote/list. "
-                    "Atualize o secret BRAPI_TOKEN no repositório."
-                ) from error
+                raise RuntimeError("Endpoint público /api/quote/list recusou a chamada sem token.") from error
             raise
-        data = normalize_brapi(payload, books)
+        data = normalize_brapi(payload, books, authenticated=bool(brapi_token))
     data["bookSource"] = book_source
     data["bookStatus"] = "ATUALIZADO" if books else "INDISPONIVEL_SEM_FONTE_L2"
     OUTPUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
