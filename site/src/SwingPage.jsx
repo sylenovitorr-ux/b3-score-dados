@@ -10,8 +10,14 @@ const ten = (value) => value == null ? "N/D" : `${Math.round(value / 10)}/10`;
 
 const classify = (candidate, valuationScore) => {
   if (candidate.score == null) return { label: "DADOS INSUFICIENTES", tone: "neutral" };
-  if (candidate.quality < 45 || candidate.risk < 35 || candidate.timing.trend.tone === "negative") return { label: "EVITAR", tone: "avoid" };
-  if (candidate.score >= 72 && candidate.quality >= 65 && candidate.timing.score >= 55 && (valuationScore == null || valuationScore >= 55)) return { label: "CANDIDATA", tone: "candidate" };
+  const weakQuality = candidate.quality != null && candidate.quality < 45;
+  const highRisk = candidate.risk != null && candidate.risk < 35;
+  const negativeTrend = candidate.timing?.trend?.tone === "negative";
+  if (weakQuality || highRisk || negativeTrend) return { label: "EVITAR", tone: "avoid" };
+  const goodQuality = candidate.quality != null && candidate.quality >= 65;
+  const goodTiming = candidate.timing?.score != null && candidate.timing.score >= 55;
+  const goodValuation = valuationScore == null || valuationScore >= 55;
+  if (candidate.score >= 72 && goodQuality && goodTiming && goodValuation) return { label: "CANDIDATA", tone: "candidate" };
   return { label: "ACOMPANHAR", tone: "watch" };
 };
 
@@ -71,6 +77,6 @@ export default function SwingPage({ assets, anomalies, onBack, onOpen }) {
 
     {!rows.length && <p className="quant-empty">Nenhum ativo atende a este filtro com os dados disponíveis.</p>}
 
-    <details className="decision-method"><summary>Como a nota é formada</summary><p>Qualidade filtra empresas frágeis; valuation procura desconto; timing evita entrar cedo demais; risco reduz a prioridade de operações assimétricas ruins. Métricas ausentes não são convertidas em zero.</p></details>
+    <details className="decision-method"><summary>Como a nota é formada</summary><p>Qualidade filtra empresas frágeis; valuation procura desconto; timing evita entrar cedo demais; risco reduz a prioridade de operações assimétricas ruins. Métricas ausentes permanecem como N/D e não viram nota zero.</p></details>
   </div>;
 }
