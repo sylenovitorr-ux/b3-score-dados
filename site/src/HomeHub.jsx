@@ -1,69 +1,48 @@
 import { useEffect, useMemo, useState } from "react";
-import { formatCompactMoney } from "./formatters";
 import "./usability-v3.css";
 
-const QUICK_ACTIONS = [
-  ["radar", "◉", "Ver o mercado agora", "Altas, quedas e movimentos que merecem atenção."],
-  ["analyze", "⌕", "Analisar uma ação", "Histórico diário, COMPRA/VENDA, níveis e fundamentos."],
-  ["heatmap", "▦", "Abrir mapa de calor", "Encontre rapidamente os setores e ativos em movimento."],
-  ["portfolio", "▤", "Minha carteira", "Acompanhe posições, concentração e desempenho."],
-];
-
-const MORE = [
-  ["compare", "Comparar ativos"], ["opportunities", "Oportunidades"], ["swing", "Candidatas 3–6 meses"],
-  ["options", "Opções"], ["simulator", "Simuladores"], ["quant", "Central Quant"],
-  ["integrity", "Integridade"], ["methodology", "Metodologia"], ["advanced", "Todas as ferramentas"],
-];
-
-export default function HomeHub({ assets, market, statusText, asOf, loading, onNavigate, onOpenAsset }) {
+export default function HomeHub({ assets, statusText, asOf, loading, onNavigate, onOpenAsset }) {
   const [ticker, setTicker] = useState("");
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [lastUpdateSeconds, setLastUpdateSeconds] = useState(null);
-
-  useEffect(() => {
-    if (!loading) return undefined;
-    const startedAt = Date.now();
-    setElapsedSeconds(0);
-    const timer = window.setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
-    }, 250);
-    return () => {
-      window.clearInterval(timer);
-      setLastUpdateSeconds(Math.max(0, Math.round((Date.now() - startedAt) / 1000)));
-    };
-  }, [loading]);
-
   const matches = useMemo(() => {
     const term = ticker.trim().toUpperCase();
     return term ? assets.filter((asset) => asset.ticker.includes(term) || asset.name?.toUpperCase().includes(term)).slice(0, 6) : [];
   }, [assets, ticker]);
+
+  useEffect(() => {
+    if (!loading) return undefined;
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000)), 250);
+    return () => window.clearInterval(timer);
+  }, [loading]);
+
   const open = (value = ticker) => {
     const exact = assets.find((asset) => asset.ticker === value.trim().toUpperCase());
     if (exact) onOpenAsset(exact.ticker);
   };
-  const shown = (value) => loading && !assets.length ? "—" : value;
-  const updateText = loading
-    ? `Atualizando… ${elapsedSeconds} ${elapsedSeconds === 1 ? "seg" : "segs"}`
-    : lastUpdateSeconds == null
-      ? statusText
-      : `${statusText} • ${lastUpdateSeconds}s`;
 
-  return <div className="v2-home simple-home">
-    <div className="ux-build-badge">UX 4 • NOVO LAYOUT</div>
-    <section className="simple-hero">
-      <div><span className="v2-kicker">B3 SCORE</span><h1>O que você quer fazer?</h1><p>Pesquise uma ação ou escolha uma das quatro tarefas principais.</p></div>
-      <aside><b>{updateText}</b><span>{shown(assets.length)} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
+  const status = loading ? `Atualizando… ${elapsedSeconds}s` : statusText;
+
+  return <div className="v2-home simple-home decision-home">
+    <section className="simple-hero decision-home-hero">
+      <div>
+        <span className="v2-kicker">B3 SCORE • ATÉ 6 MESES</span>
+        <h1>Comprar melhor.<br/>Sair melhor.</h1>
+        <p>O app filtra qualidade, valuation, timing e risco. Você vê só o que importa para decidir.</p>
+      </div>
+      <aside><b>{status}</b><span>{assets.length || "—"} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
     </section>
 
     <section className="simple-search">
-      <label><span>Digite o código da ação</span><div><input aria-label="Pesquisar ativo" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="Ex.: PETR4" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Abrir análise</button></div></label>
+      <label><span>Analisar um ativo</span><div><input aria-label="Pesquisar ativo" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="Ex.: PETR4" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Abrir</button></div></label>
       {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{asset.ticker}</b><span>{asset.name}</span><em>{asset.price?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</em></button>)}</div>}
     </section>
 
-    <section className="simple-actions">{QUICK_ACTIONS.map(([page, icon, title, text]) => <button key={page} onClick={() => onNavigate(page)}><i>{icon}</i><span><b>{title}</b><small>{text}</small></span><em>→</em></button>)}</section>
+    <section className="decision-home-actions">
+      <button className="primary" onClick={() => onNavigate("swing")}><span><small>1</small><b>Radar 6M</b><em>Veja candidatas, acompanhar e evitar.</em></span><strong>→</strong></button>
+      <button onClick={() => onNavigate("portfolio")}><span><small>2</small><b>Minha carteira</b><em>Preço médio, resultado e tempo na posição.</em></span><strong>→</strong></button>
+    </section>
 
-    <section className="simple-market"><article><span>Ações/units</span><b>{shown(market.stocks)}</b></article><article><span>FIIs</span><b>{shown(market.fiis)}</b></article><article><span>Com dados CVM</span><b>{shown(market.covered)}</b></article><article><span>Volume monitorado</span><b>{shown(formatCompactMoney(assets.reduce((sum, asset) => sum + (asset.volume || 0), 0)))}</b></article></section>
-
-    <details className="simple-more"><summary>Mais ferramentas <span>⌄</span></summary><div>{MORE.map(([page, title]) => <button key={page} onClick={() => onNavigate(page)}>{title}<span>→</span></button>)}</div></details>
+    <details className="decision-home-more"><summary>Ferramentas avançadas</summary><div><button onClick={() => onNavigate("analyze")}>Análise completa</button><button onClick={() => onNavigate("compare")}>Comparar ativos</button><button onClick={() => onNavigate("methodology")}>Metodologia</button><button onClick={() => onNavigate("advanced")}>Outras ferramentas</button></div></details>
   </div>;
 }
