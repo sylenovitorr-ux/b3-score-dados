@@ -1,4 +1,4 @@
-const CACHE = "b3-score-github-pages-v43";
+const CACHE = "b3-score-github-pages-v44";
 const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./app-icon.svg"];
 
 const isSameOrigin = (request) => new URL(request.url).origin === self.location.origin;
@@ -11,26 +11,6 @@ const isMarketData = (request) => {
   return (url.hostname === "raw.githubusercontent.com" && url.pathname.includes("/sylenovitorr-ux/b3-score-dados/") && url.pathname.includes("/data/")) ||
     (isSameOrigin(request) && url.pathname.includes("/data/"));
 };
-const isIntradayData = (request) => {
-  const url = new URL(request.url);
-  return url.pathname.endsWith("/data/intraday.json");
-};
-
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE);
-  const cached = await cache.match(request);
-  const refresh = fetch(request).then((response) => {
-    if (response.ok || response.type === "opaque") cache.put(request, response.clone());
-    return response;
-  }).catch(() => null);
-  if (cached) {
-    void refresh;
-    return cached;
-  }
-  const fresh = await refresh;
-  if (fresh) return fresh;
-  return new Response("", { status: 503, statusText: "Offline" });
-}
 
 async function networkFirst(request) {
   const cache = await caches.open(CACHE);
@@ -46,16 +26,12 @@ async function networkFirst(request) {
 
 async function navigationResponse(request) {
   const cache = await caches.open(CACHE);
-  const cached = await cache.match("./index.html");
   try {
-    const response = await Promise.race([
-      fetch(request),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("navigation-timeout")), 1200)),
-    ]);
-    if (response?.ok) cache.put("./index.html", response.clone());
+    const response = await fetch(request, { cache: "no-store" });
+    if (response?.ok) await cache.put("./index.html", response.clone());
     return response;
   } catch {
-    return cached || fetch(request);
+    return (await cache.match("./index.html")) || fetch(request);
   }
 }
 
@@ -77,15 +53,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(navigationResponse(event.request));
     return;
   }
-  if (isIntradayData(event.request)) {
+  if (isAsset(event.request) || isMarketData(event.request)) {
     event.respondWith(networkFirst(event.request));
     return;
   }
-  if (isAsset(event.request) || isMarketData(event.request)) {
-    event.respondWith(staleWhileRevalidate(event.request));
-    return;
-  }
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))),
+    fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))),
   );
 });
