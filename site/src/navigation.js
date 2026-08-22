@@ -8,6 +8,7 @@ const LEGACY = {
   graficos: "analyze",
   gráfico: "analyze",
   grafico: "analyze",
+  disputa: "battle",
   "painel-grafico-ativo": "analyze",
 };
 
@@ -37,6 +38,9 @@ export function parseRoute(hash = "") {
     simuladores: "simulator",
     opcoes: "options",
     carteira: "portfolio",
+    disputa: "battle",
+    batalha: "battle",
+    battle: "battle",
     metodologia: "methodology",
     avancadas: "advanced",
     ferramentas: "advanced",
@@ -46,12 +50,12 @@ export function parseRoute(hash = "") {
     ativo: "asset",
   };
   const normalized = aliases[page] ?? page;
-  const allowed = new Set(["home", "radar", "opportunities", "swing", "heatmap", "analyze", "asset", "compare", "quant", "simulator", "options", "portfolio", "methodology", "integrity", "advanced"]);
+  const allowed = new Set(["home", "radar", "opportunities", "swing", "heatmap", "analyze", "asset", "compare", "quant", "simulator", "options", "portfolio", "battle", "methodology", "integrity", "advanced"]);
   return allowed.has(normalized) ? { page: normalized, ticker: ticker?.toUpperCase() || null } : { page: "home", ticker: null };
 }
 
 export function routeHash(page, ticker = null) {
-  const paths = { home: "", radar: "radar", opportunities: "oportunidades", swing: "candidatas-6m", heatmap: "mapa-calor", analyze: "analisar", asset: "ativo", compare: "comparador", quant: "quant", simulator: "simulador", options: "opcoes", portfolio: "carteira", methodology: "metodologia", integrity: "alertas", advanced: "ferramentas-avancadas" };
+  const paths = { home: "", radar: "radar", opportunities: "oportunidades", swing: "candidatas-6m", heatmap: "mapa-calor", analyze: "analisar", asset: "ativo", compare: "comparador", quant: "quant", simulator: "simulador", options: "opcoes", portfolio: "carteira", battle: "disputa", methodology: "metodologia", integrity: "alertas", advanced: "ferramentas-avancadas" };
   const path = paths[page] ?? "";
   return `#/${path}${ticker ? `/${String(ticker).toUpperCase()}` : ""}`;
 }
@@ -60,4 +64,5 @@ export const PRIMARY_NAV = [
   ["home", "Início"],
   ["swing", "Radar"],
   ["portfolio", "Carteira"],
+  ["battle", "Disputa"],
 ];
