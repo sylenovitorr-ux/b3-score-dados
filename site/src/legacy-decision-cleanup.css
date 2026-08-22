@@ -1,0 +1,10 @@
+/* Legacy three-way decision cleanup.
+   The official decision UI now lives in the unified COMPRA / VENDA / NÃO AVALIÁVEL score.
+   Keep the old component mounted temporarily for compatibility, but never render its duplicated
+   COMPRAR / MANTER / VENDER presentation or navigation anchor. */
+.action-reading#leitura-ativo{
+  display:none!important;
+}
+.detail-jump-nav a[href="#leitura-ativo"]{
+  display:none!important;
+}
