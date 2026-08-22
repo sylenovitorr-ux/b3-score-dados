@@ -10,8 +10,8 @@ const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("p
 const pct = (value) => value == null ? "N/D" : `${Number(value) > 0 ? "+" : ""}${Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 function Delta({ value }) {
-  if (value == null || value === 0) return <span className="pulse-delta neutral">sem comparação</span>;
-  return <span className={`pulse-delta ${value > 0 ? "positive" : "negative"}`}>{value > 0 ? "↑" : "↓"} {Math.abs(value)} pts</span>;
+  if (value == null || value === 0) return <span className="delta neutral">sem comparação</span>;
+  return <span className={`delta ${value > 0 ? "positive" : "negative"}`}>{value > 0 ? "+" : ""}{value} pts</span>;
 }
 
 export default function HomeHub({ assets, statusText, asOf, loading, onNavigate, onOpenAsset }) {
@@ -28,9 +28,9 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   }, [assets, ticker]);
 
   useEffect(() => {
-    fetch(ANOMALY_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then(setAnomalies).catch(() => void 0);
-    fetch(MODEL_PULSE_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload) => payload?.history && setOfficialPulse(payload)).catch(() => void 0);
-    fetch(MODEL_PERFORMANCE_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload) => payload?.strategies && setModelPerformance(payload)).catch(() => void 0);
+    fetch(ANOMALY_URL, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then(setAnomalies).catch(() => void 0);
+    fetch(MODEL_PULSE_URL, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((p) => p?.history && setOfficialPulse(p)).catch(() => void 0);
+    fetch(MODEL_PERFORMANCE_URL, { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((p) => p?.strategies && setModelPerformance(p)).catch(() => void 0);
   }, []);
 
   useEffect(() => {
@@ -43,12 +43,11 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   const pulse = useMemo(() => assets.length ? buildModelPulse(assets, anomalies, officialPulse) : null, [assets, anomalies, officialPulse]);
   const current = pulse?.changes?.[strategy] ?? { newBuys: [], newSells: [], movers: [], top4: [], buys: 0, sells: 0, enteredTop4: [], leftTop4: [] };
   const evaluated = current.buys + current.sells;
-  const eventHeadlines = [
-    ...current.newBuys.slice(0, 2).map((row) => ({ ...row, eventLabel: "Virou COMPRA", eventIcon: "↗" })),
-    ...current.newSells.slice(0, 2).map((row) => ({ ...row, eventLabel: "Virou VENDA", eventIcon: "↘" })),
+  const eventRows = [
+    ...current.newBuys.slice(0, 2).map((row) => ({ ...row, eventLabel: "Virou COMPRA" })),
+    ...current.newSells.slice(0, 2).map((row) => ({ ...row, eventLabel: "Virou VENDA" })),
   ];
-  const moverHeadlines = current.movers.slice(0, 4).map((row) => ({ ...row, eventLabel: "Score mudou", eventIcon: row.delta > 0 ? "↑" : "↓" }));
-  const visibleHeadlines = eventHeadlines.length ? eventHeadlines : moverHeadlines;
+  const visibleChanges = eventRows.length ? eventRows : current.movers.slice(0, 4).map((row) => ({ ...row, eventLabel: "Score mudou" }));
   const validation = modelPerformance?.strategies?.[strategy] ?? {};
   const validationRows = [20, 60, 120].map((sessions) => ({ sessions, ...(validation[`${sessions}s`] ?? {}) }));
 
@@ -56,85 +55,82 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
     const exact = assets.find((asset) => asset.ticker === value.trim().toUpperCase());
     if (exact) onOpenAsset(exact.ticker);
   };
-
   const selectStrategy = (next) => {
     localStorage.setItem("b3-score-radar-strategy-v1", next);
     setStrategy(next);
   };
-
   const openStrategy = (next) => {
     selectStrategy(next);
     onNavigate("swing");
   };
 
-  const status = loading ? `Atualizando… ${elapsedSeconds}s` : statusText;
+  const status = loading ? `Atualizando ${elapsedSeconds}s` : statusText;
   const stocks = assets.filter((asset) => asset.kind !== "fii").length;
   const pulseSource = officialPulse?.referenceDate ? `Diário ${officialPulse.referenceDate}` : "Memória local";
 
-  return <div className="v2-home terminal-home terminal-home-v2">
-    <section className="terminal-brand-stage">
-      <div className="brand-lockup compact-brand"><span className="brand-orbit" aria-hidden="true"><i /><i /><i /></span><div><b>B3 SCORE</b><small>DECISION DESK · 4.0</small></div></div>
-      <div className="terminal-status-line"><span className="market-status-pill"><i className={loading ? "loading" : "live"} />{status}</span><span className="data-source-chip">{pulseSource}</span></div>
+  return <div className="v2-home clean-home">
+    <section className="clean-home-topbar">
+      <div className="clean-brand"><b>B3 SCORE</b><span>Radar inteligente de ações</span></div>
+      <div className="clean-status"><span>{status}</span><small>{pulseSource}</small></div>
     </section>
 
-    <section className="command-intro">
-      <div><span className="v2-kicker">VISÃO DO DIA</span><h1>O que merece sua atenção <em>agora.</em></h1><p>O terminal prioriza mudanças de sinal, deterioração e força relativa. Sem dados suficientes, não existe palpite.</p></div>
-      <nav className="terminal-strategy-tabs" aria-label="Estratégia do radar">
-        {["swing", "long", "dividends"].map((id) => <button key={id} className={strategy === id ? "active" : ""} onClick={() => selectStrategy(id)}>{id === "swing" ? "⚡" : id === "long" ? "🧭" : "💰"}<span>{strategyLabel(id)}</span></button>)}
-      </nav>
+    <section className="clean-search-hero">
+      <div>
+        <span className="section-kicker">VISÃO DO DIA</span>
+        <h1>Encontre rapidamente o que merece atenção.</h1>
+        <p>O modelo organiza COMPRA, VENDA e N/D sem transformar ausência de informação em opinião.</p>
+      </div>
+      <div className="hero-search-box">
+        <label>Buscar ação</label>
+        <div><input aria-label="Pesquisar ativo" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Abrir análise</button></div>
+        {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{asset.ticker}</b><span>{asset.name}</span><em>{money(asset.price)}</em></button>)}</div>}
+      </div>
     </section>
 
-    <section className="command-grid">
-      <article className="command-feed">
-        <header><div><span>⚡ PULSO DO MODELO</span><h2>{pulse?.baseline ? "Primeira fotografia em formação" : "Mudanças desde a leitura anterior"}</h2></div><button onClick={() => openStrategy(strategy)}>Radar completo <b>→</b></button></header>
-        {(current.enteredTop4?.length > 0 || current.leftTop4?.length > 0) && <div className="terminal-top4-events">
-          {current.enteredTop4?.map((row) => <button key={`in-${row.ticker}`} className="positive" onClick={() => row.ticker && onOpenAsset(row.ticker)}>🏆 {row.ticker} entrou no Top 4</button>)}
-          {current.leftTop4?.map((item) => <span key={`out-${typeof item === "string" ? item : item.ticker}`} className="negative">↘ {typeof item === "string" ? item : item.ticker} saiu do Top 4</span>)}
-        </div>}
-        <div className="signal-feed-list">
-          {visibleHeadlines.map((row) => <button key={`${row.ticker}-${row.signal}-${row.eventLabel}`} className={`signal-feed-row ${row.signal}`} onClick={() => onOpenAsset(row.ticker)}>
-            <span className="feed-icon">{row.eventIcon}</span>
-            <span className="feed-asset"><b>{row.ticker}</b><small>{row.name || row.eventLabel}</small></span>
-            <span className={`signal-balloon ${row.signal}`}>{row.signal === "buy" ? "COMPRA" : "VENDA"}</span>
-            <strong>{row.score}<small>/100</small></strong>
-            <Delta value={row.delta} />
-          </button>)}
-          {!visibleHeadlines.length && current.top4.slice(0, 4).map((row, index) => <button key={row.ticker} className="signal-feed-row buy" onClick={() => onOpenAsset(row.ticker)}><span className="feed-icon">{index === 0 ? "🏆" : "•"}</span><span className="feed-asset"><b>{row.ticker}</b><small>Top #{index + 1} · base atual</small></span><span className="signal-balloon buy">COMPRA</span><strong>{row.score}<small>/100</small></strong><span className="pulse-delta neutral">sem histórico</span></button>)}
-          {!visibleHeadlines.length && !current.top4.length && <p className="terminal-empty">Ainda não há ativos avaliáveis nesta estratégia.</p>}
-        </div>
-      </article>
+    <nav className="clean-strategy-tabs" aria-label="Estratégia">
+      {["swing", "long", "dividends"].map((id) => <button key={id} className={strategy === id ? "active" : ""} onClick={() => selectStrategy(id)}>{strategyLabel(id)}</button>)}
+    </nav>
 
-      <aside className="command-scoreboard">
-        <header><span>📡 MODELO AGORA</span><small>{strategyLabel(strategy)}</small></header>
-        <div className="scoreboard-numbers"><article className="positive"><span>COMPRA</span><b>{current.buys || 0}</b></article><article className="negative"><span>VENDA</span><b>{current.sells || 0}</b></article></div>
-        <dl><div><dt>Avaliadas</dt><dd>{evaluated || "N/D"}</dd></div><div><dt>Universo de ações</dt><dd>{stocks || "N/D"}</dd></div><div><dt>Pregão</dt><dd>{asOf.stockPriceAsOf ?? "N/D"}</dd></div><div><dt>Fundamentos CVM</dt><dd>{asOf.cvmFilesAsOf ?? "N/D"}</dd></div></dl>
-        <button className="scoreboard-action" onClick={() => openStrategy(strategy)}>Abrir {strategyLabel(strategy)} →</button>
-      </aside>
+    <section className="market-summary-strip">
+      <article><span>Pregão</span><b>{asOf.stockPriceAsOf ?? "N/D"}</b></article>
+      <article><span>Ações avaliadas</span><b>{evaluated || "N/D"}</b></article>
+      <article className="buy"><span>COMPRA</span><b>{current.buys || 0}</b></article>
+      <article className="sell"><span>VENDA</span><b>{current.sells || 0}</b></article>
+      <article><span>Universo</span><b>{stocks || "N/D"}</b></article>
+      <article><span>Fundamentos</span><b>{asOf.cvmFilesAsOf ?? "N/D"}</b></article>
     </section>
 
-    <section className="model-validation-panel">
-      <header><div><span>🧪 PLACAR PROSPECTIVO</span><h2>O modelo será cobrado pelo que acontecer depois.</h2></div><small>{modelPerformance ? `${modelPerformance.snapshotCount ?? 0} fotografia(s) · ${modelPerformance.evaluatedObservations ?? 0} observações maduras` : "amostra em formação"}</small></header>
-      <div className="model-validation-grid">{validationRows.map((row) => <article key={row.sessions}><span>{row.sessions} pregões</span><b>{row.buyPositiveRatePct == null ? "N/D" : `${row.buyPositiveRatePct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</b><small>COMPRA com retorno positivo</small><em>{row.buyAverageReturnPct == null ? "retorno médio ainda sem amostra" : `retorno médio ${pct(row.buyAverageReturnPct)} · n=${row.buySample}`}</em></article>)}</div>
-      <p>Este placar é prospectivo: só mede sinais que foram realmente registrados. Não reconstrói sinais antigos com dados futuros.</p>
+    <section className="clean-section">
+      <header><div><span className="section-kicker">TOP 4</span><h2>Melhores leituras em {strategyLabel(strategy)}</h2></div><button className="text-action" onClick={() => openStrategy(strategy)}>Ver Radar completo</button></header>
+      <div className="clean-top4-grid">
+        {current.top4.map((row, index) => <button className="top4-card" key={row.ticker} onClick={() => onOpenAsset(row.ticker)}>
+          <span className="rank">#{index + 1}</span><div className="ticker-block"><b>{row.ticker}</b><small>{row.name}</small></div><strong>{row.score}<small>/100</small></strong><span className="buy-badge">COMPRA</span>
+        </button>)}
+        {!current.top4.length && <div className="clean-empty">Nenhuma ação atingiu 70 pontos com dados suficientes.</div>}
+      </div>
     </section>
 
-    <section className="terminal-top4 terminal-top4-v2">
-      <header><div><span>🏆 TOP 4 · {strategyLabel(strategy).toUpperCase()}</span><h2>As quatro leituras mais fortes agora</h2></div><small>score ≥ 70</small></header>
-      <div>{current.top4.map((row, index) => <button key={row.ticker} onClick={() => onOpenAsset(row.ticker)}><em>{String(index + 1).padStart(2, "0")}</em><span><b>{row.ticker}</b><small>{row.name}</small></span><strong>{row.score}</strong><i>COMPRA</i></button>)}{!current.top4.length && <p>Nenhuma ação atingiu 70 pontos com dados suficientes.</p>}</div>
+    <section className="clean-section changes-section">
+      <header><div><span className="section-kicker">O QUE MUDOU</span><h2>Alterações desde a leitura anterior</h2></div></header>
+      <div className="change-list">
+        {visibleChanges.map((row) => <button key={`${row.ticker}-${row.eventLabel}`} className="change-row" onClick={() => onOpenAsset(row.ticker)}>
+          <div><b>{row.ticker}</b><small>{row.name || row.eventLabel}</small></div><span>{row.eventLabel}</span><strong>{row.score}/100</strong><Delta value={row.delta} /><i className={row.signal}>{row.signal === "buy" ? "COMPRA" : "VENDA"}</i>
+        </button>)}
+        {!visibleChanges.length && <div className="clean-empty">O histórico comparável ainda está em formação.</div>}
+      </div>
     </section>
 
-    <section className="quick-tools">
-      <button onClick={() => openStrategy(strategy)}><span>📊</span><div><b>Radar</b><small>Top 20 → Top 4</small></div><i>→</i></button>
-      <button onClick={() => onNavigate("portfolio")}><span>💼</span><div><b>Carteira</b><small>Teses, alertas e desempenho</small></div><i>→</i></button>
-      <button onClick={() => onNavigate("compare")}><span>⚖️</span><div><b>Comparar</b><small>Coloque duas teses lado a lado</small></div><i>→</i></button>
+    <section className="clean-section validation-section">
+      <header><div><span className="section-kicker">VALIDAÇÃO DO MODELO</span><h2>Resultados após 20, 60 e 120 pregões</h2></div><small>{modelPerformance ? `${modelPerformance.snapshotCount ?? 0} fotografia(s)` : "amostra em formação"}</small></header>
+      <div className="validation-cards">{validationRows.map((row) => <article key={row.sessions}><span>{row.sessions} pregões</span><b>{row.buyPositiveRatePct == null ? "N/D" : `${row.buyPositiveRatePct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</b><small>compras com retorno positivo</small><em>{row.buyAverageReturnPct == null ? "Amostra ainda insuficiente" : `retorno médio ${pct(row.buyAverageReturnPct)} · n=${row.buySample}`}</em></article>)}</div>
+      <p className="validation-note">O placar é prospectivo: mede apenas sinais realmente registrados e nunca reconstrói o passado com dados futuros.</p>
     </section>
 
-    <section className="simple-search terminal-search-v2">
-      <div className="search-title"><span>🔎</span><div><b>Analisar uma ação</b><small>Abra a ficha de decisão completa</small></div></div>
-      <label><input aria-label="Pesquisar ativo" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4, BBAS3, WEGE3…" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Abrir análise</button></label>
-      {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{asset.ticker}</b><span>{asset.name}</span><em>{money(asset.price)}</em></button>)}</div>}
+    <section className="clean-shortcuts">
+      <button onClick={() => openStrategy(strategy)}><b>Radar</b><span>Top 20 e Top 4</span></button>
+      <button onClick={() => onNavigate("portfolio")}><b>Carteira</b><span>Teses, alertas e desempenho</span></button>
+      <button onClick={() => onNavigate("compare")}><b>Comparar</b><span>Compare duas ações</span></button>
+      <button onClick={() => onNavigate("analyze")}><b>Análise completa</b><span>Ferramentas avançadas</span></button>
     </section>
-
-    <details className="decision-home-more"><summary>Ferramentas avançadas</summary><div><button onClick={() => onNavigate("analyze")}>Análise completa</button><button onClick={() => onNavigate("methodology")}>Metodologia</button><button onClick={() => onNavigate("advanced")}>Outras ferramentas</button></div></details>
   </div>;
 }
