@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import PortfolioCore from "./PortfolioCore.jsx";
 import BattleArena from "./BattleArena.jsx";
 import "./PortfolioManager.css";
+import "./PortfolioWorkspace.css";
 
 const KEY = "b3-score-portfolios-v6";
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
