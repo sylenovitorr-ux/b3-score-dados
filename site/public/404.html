@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>B3 Score</title>
+  <script>
+    (function () {
+      var base = "/b3-score-dados/";
+      var path = window.location.pathname.replace(/^\/b3-score-dados\/?/, "").replace(/^\/+|\/+$/g, "");
+      var aliases = {
+        "graficos": "analisar",
+        "grafico": "analisar",
+        "gráfico": "analisar",
+        "analise": "analisar",
+        "análise": "analisar",
+        "radar": "candidatas-6m",
+        "swing": "candidatas-6m",
+        "carteira": "carteira",
+        "comparador": "comparador",
+        "metodologia": "metodologia",
+        "ferramentas": "ferramentas-avancadas"
+      };
+      var segments = path ? path.split("/") : [];
+      if (segments.length && aliases[segments[0]]) segments[0] = aliases[segments[0]];
+      var route = segments.length ? "#/" + segments.join("/") : "#/";
+      window.location.replace(base + route + window.location.search);
+    })();
+  </script>
+</head>
+<body></body>
+</html>
