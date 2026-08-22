@@ -60,12 +60,13 @@ export function buildBuySellScore({ asset, analysis, strategy = "swing" }) {
   const score = requiredValue === null || !availableWeight
     ? null
     : Math.round(clamp(valid.reduce((sum, part) => sum + part.value * part.weight, 0) / availableWeight));
-  const signal = score !== null && score >= 70 ? "buy" : "sell";
+  const signal = score === null ? "unavailable" : score >= 70 ? "buy" : "sell";
+  const label = signal === "buy" ? "COMPRA" : signal === "sell" ? "VENDA" : "NÃO AVALIÁVEL";
 
   return {
     score,
     signal,
-    label: signal === "buy" ? "COMPRA" : "VENDA",
+    label,
     tone: signal,
     strategy,
     strategyLabel: config.label,
