@@ -8,10 +8,16 @@ test("rotas novas preservam ticker e funcionam no GitHub Pages", () => {
   assert.equal(routeHash("compare"), "#/comparador");
 });
 
-test("links legados continuam válidos", () => {
+test("links legados continuam válidos e falham com segurança", () => {
   assert.deepEqual(parseRoute("#radar-diario"), { page: "radar", ticker: null });
   assert.deepEqual(parseRoute("#opcoes"), { page: "options", ticker: null });
-  assert.deepEqual(parseRoute("#qualquer-coisa"), { page: "not-found", ticker: null });
+  assert.deepEqual(parseRoute("#qualquer-coisa"), { page: "home", ticker: null });
+});
+
+test("gráficos e âncoras antigas nunca viram página não encontrada", () => {
+  for (const hash of ["#graficos", "#grafico", "#gráfico", "#/graficos", "#painel-grafico-ativo"]) {
+    assert.equal(parseRoute(hash).page, "analyze");
+  }
 });
 
 test("rota simuladores é aceita como alias do simulador", () => {
