@@ -8,6 +8,9 @@ on:
     paths:
       - ".github/workflows/update-data.yml"
       - "scripts/**"
+      - "site/src/analysis/**"
+      - "site/src/quant/**"
+      - "site/src/scoring/**"
   schedule:
     - cron: "17 12 * * *"
     - cron: "17 18 * * *"
@@ -33,8 +36,17 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
       - name: Instalar dependências
-        run: python -m pip install --disable-pip-version-check openpyxl
+        run: |
+          python -m pip install --disable-pip-version-check openpyxl
+          cd site && npm ci
 
       - name: Desacoplar histórico gráfico do snapshot oficial
         shell: bash
@@ -69,7 +81,10 @@ jobs:
             exit 1
           fi
 
-      - name: Validar snapshot principal
+      - name: Gerar diário automático do modelo
+        run: node scripts/build-model-pulse.mjs
+
+      - name: Validar snapshot principal e diário
         shell: bash
         run: |
           python - <<'PY'
@@ -84,7 +99,15 @@ jobs:
               raise SystemExit(f"cobertura CVM insuficiente: {status.get('stockCvmCount')}")
           if int(status.get('fiiCount') or 0) < 150:
               raise SystemExit(f"FIIs insuficientes: {status.get('fiiCount')}")
+          pulse = json.loads(Path('data/model-pulse.json').read_text(encoding='utf-8'))
+          if not pulse.get('referenceDate') or not pulse.get('history'):
+              raise SystemExit('diário do modelo não foi gerado corretamente')
+          for strategy in ('swing', 'long', 'dividends'):
+              info = (pulse.get('events') or {}).get(strategy) or {}
+              if int(info.get('evaluated') or 0) < 100:
+                  raise SystemExit(f'diário insuficiente em {strategy}: {info.get("evaluated")}')
           print(status)
+          print('Diário:', pulse.get('referenceDate'), {k: v.get('evaluated') for k, v in pulse['events'].items()})
           PY
 
       - name: Validar histórico dos gráficos sem bloquear snapshot
@@ -104,8 +127,10 @@ jobs:
           print(f'Histórico OK: {len(assets)} ativos; {with_series} séries com 30+ pregões')
           PY
 
-      - name: Validar motores de dados
-        run: python -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Validar motores de dados e frontend
+        run: |
+          python -m unittest discover -s scripts -p 'test_*.py' -v
+          cd site && npm test
 
       - name: Salvar nova versão
         shell: bash
@@ -118,7 +143,7 @@ jobs:
             echo "Os dados já estão atualizados."
             exit 0
           fi
-          git commit -m "Atualizar dados oficiais B3 e CVM"
+          git commit -m "Atualizar dados oficiais e diário do modelo"
           for tentativa in 1 2 3; do
             git fetch origin "${GITHUB_REF_NAME}"
             git rebase -X theirs "origin/${GITHUB_REF_NAME}"
