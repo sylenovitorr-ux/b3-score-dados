@@ -1,40 +1,91 @@
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 
-export function buildBuySellScore({ asset, analysis }) {
-  const fundamentals = asset?.kind === "fii" ? asset?.fund ?? {} : asset?.fundamentals ?? {};
-  const fundamentalScore = finite(fundamentals?.scores?.overall);
-  const valuation = finite(analysis?.components?.valuation?.value ?? fundamentals?.scores?.price);
-  const momentum = finite(analysis?.components?.momentum?.value);
-  const risk = finite(analysis?.components?.risk?.value);
-  const confidence = finite(analysis?.confidence ?? fundamentals?.scores?.confidence);
+const STRATEGIES = {
+  swing: {
+    label: "Swing Trade",
+    horizon: "2–6 meses",
+    parts: [
+      ["fundamentals", "Fundamentos", 35],
+      ["valuation", "Valuation", 20],
+      ["momentum", "Momentum / timing", 30],
+      ["risk", "Risco", 10],
+      ["confidence", "Confiança dos dados", 5],
+    ],
+    required: "fundamentals",
+  },
+  long: {
+    label: "Longo Prazo",
+    horizon: "anos",
+    parts: [
+      ["fundamentals", "Fundamentos", 50],
+      ["valuation", "Valuation", 20],
+      ["growth", "Crescimento", 15],
+      ["risk", "Risco", 10],
+      ["confidence", "Confiança dos dados", 5],
+    ],
+    required: "fundamentals",
+  },
+  dividends: {
+    label: "Dividendos",
+    horizon: "renda recorrente",
+    parts: [
+      ["quality", "Qualidade financeira", 35],
+      ["dividends", "Dividendos", 35],
+      ["valuation", "Valuation", 15],
+      ["risk", "Risco", 10],
+      ["confidence", "Confiança dos dados", 5],
+    ],
+    required: "dividends",
+  },
+};
 
-  const parts = [
-    { key: "fundamentals", label: "Fundamentos", value: fundamentalScore, weight: 50 },
-    { key: "valuation", label: "Valuation", value: valuation, weight: 20 },
-    { key: "momentum", label: "Momentum / timing", value: momentum, weight: 15 },
-    { key: "risk", label: "Risco", value: risk, weight: 10 },
-    { key: "confidence", label: "Confiança dos dados", value: confidence, weight: 5 },
-  ];
+export function buildBuySellScore({ asset, analysis, strategy = "swing" }) {
+  const fundamentals = asset?.kind === "fii" ? asset?.fund ?? {} : asset?.fundamentals ?? {};
+  const values = {
+    fundamentals: finite(fundamentals?.scores?.overall),
+    quality: finite(fundamentals?.scores?.quality),
+    growth: finite(fundamentals?.scores?.growth),
+    dividends: finite(fundamentals?.scores?.dividends),
+    valuation: finite(analysis?.components?.valuation?.value ?? fundamentals?.scores?.price),
+    momentum: finite(analysis?.components?.momentum?.value),
+    risk: finite(analysis?.components?.risk?.value),
+    confidence: finite(analysis?.confidence ?? fundamentals?.scores?.confidence),
+  };
+  const config = STRATEGIES[strategy] ?? STRATEGIES.swing;
+  const parts = config.parts.map(([key, label, weight]) => ({ key, label, value: values[key], weight }));
   const valid = parts.filter((part) => part.value !== null);
   const availableWeight = valid.reduce((sum, part) => sum + part.weight, 0);
-  const score = fundamentalScore === null || !availableWeight
+  const requiredValue = values[config.required];
+  const score = requiredValue === null || !availableWeight
     ? null
     : Math.round(clamp(valid.reduce((sum, part) => sum + part.value * part.weight, 0) / availableWeight));
+  const signal = score !== null && score >= 70 ? "buy" : "sell";
 
   return {
     score,
-    signal: score !== null && score >= 70 ? "buy" : "sell",
-    label: score !== null && score >= 70 ? "COMPRA" : "VENDA",
-    tone: score !== null && score >= 70 ? "buy" : "sell",
-    fundamentalScore,
-    valuation,
-    momentum,
-    risk,
-    confidence,
+    signal,
+    label: signal === "buy" ? "COMPRA" : "VENDA",
+    tone: signal,
+    strategy,
+    strategyLabel: config.label,
+    horizon: config.horizon,
+    fundamentalScore: values.fundamentals,
+    quality: values.quality,
+    growth: values.growth,
+    dividends: values.dividends,
+    valuation: values.valuation,
+    momentum: values.momentum,
+    risk: values.risk,
+    confidence: values.confidence,
+    coreScore: strategy === "dividends"
+      ? (values.dividends == null ? null : Math.round((values.dividends * .55) + ((values.quality ?? values.dividends) * .45)))
+      : values.fundamentals,
     availableWeight,
     parts: valid,
-    formula: "Nota = Fundamentos 50% + Valuation 20% + Momentum/Timing 15% + Risco 10% + Confiança 5%. Pesos ausentes são renormalizados; fundamentos ausentes impedem nota numérica.",
+    formula: parts.map((part) => `${part.label} ${part.weight}%`).join(" + "),
     threshold: 70,
   };
 }
+
+export const BUY_SELL_STRATEGIES = STRATEGIES;
