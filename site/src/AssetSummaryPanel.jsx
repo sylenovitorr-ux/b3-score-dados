@@ -42,10 +42,10 @@ export default function AssetSummaryPanel({ asset, analysis }) {
     </div>
 
     {unified.score != null ? <div className="decision-explain-grid">
-      <article className="decision-explain positive-block"><header><span>✅</span><div><b>Por que agora</b><small>maiores forças do score</small></div></header>{strongest.map((item) => <p key={item.label}><span>{item.label}</span><b>{item.value}/100</b></p>)}</article>
-      <article className="decision-explain negative-block"><header><span>⚠️</span><div><b>O que pesa contra</b><small>pontos que pedem atenção</small></div></header>{weakest.map((item) => <p key={item.label}><span>{item.label}</span><b>{item.value}/100</b></p>)}</article>
-      <article className="decision-explain neutral-block"><header><span>🎯</span><div><b>{unified.signal === "buy" ? "O que faria virar VENDA" : "O que faria voltar a COMPRA"}</b><small>gatilhos objetivos do modelo</small></div></header>{invalidators.map((item) => <p key={item}><span>{item}</span></p>)}</article>
-    </div> : <div className="decision-unavailable"><span>ℹ️</span><div><b>Modelo sem opinião</b><p>Os dados mínimos exigidos por {unified.strategyLabel} não estão disponíveis. O terminal mantém N/D em vez de inventar um sinal.</p></div></div>}
+      <article className="decision-explain positive-block"><header><span>+</span><div><b>Por que agora</b><small>maiores forças do score</small></div></header>{strongest.map((item) => <p key={item.label}><span>{item.label}</span><b>{item.value}/100</b></p>)}</article>
+      <article className="decision-explain negative-block"><header><span>!</span><div><b>O que pesa contra</b><small>pontos que pedem atenção</small></div></header>{weakest.map((item) => <p key={item.label}><span>{item.label}</span><b>{item.value}/100</b></p>)}</article>
+      <article className="decision-explain neutral-block"><header><span>•</span><div><b>{unified.signal === "buy" ? "O que faria virar VENDA" : "O que faria voltar a COMPRA"}</b><small>gatilhos objetivos do modelo</small></div></header>{invalidators.map((item) => <p key={item}><span>{item}</span></p>)}</article>
+    </div> : <div className="decision-unavailable"><div><b>Modelo sem opinião</b><p>Os dados mínimos exigidos por {unified.strategyLabel} não estão disponíveis. O terminal mantém N/D em vez de inventar um sinal.</p></div></div>}
 
     <footer><span>{asset.intraday ? "Cotação intradiária" : "Último fechamento disponível"}</span><small>{unified.score == null ? "Sem dados mínimos, o modelo não emite COMPRA/VENDA." : "A decisão final é do usuário."}</small></footer>
   </section>;
