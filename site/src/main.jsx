@@ -5,6 +5,7 @@ import "./runtime-autoupdate.js";
 import "./styles.css";
 import "./v2.css";
 import "./model-validation.css";
+import "./legacy-decision-cleanup.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
