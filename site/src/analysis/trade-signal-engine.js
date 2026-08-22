@@ -1,26 +1,16 @@
+import { buildBuySellScore } from "./buy-sell-score.js";
+
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const round = (value, digits = 2) => value == null ? null : Number(value.toFixed(digits));
 
 function inferBookPressure(book) {
   if (!book) return null;
   const direct = finite(book.pressure ?? book.imbalance ?? book.bookPressure);
-  if (direct != null) return clamp(direct, -100, 100);
+  if (direct != null) return Math.max(-100, Math.min(100, direct));
   const bidVolume = finite(book.bidVolume ?? book.totalBidVolume ?? book.buyVolume);
   const askVolume = finite(book.askVolume ?? book.totalAskVolume ?? book.sellVolume);
   if (bidVolume == null || askVolume == null || bidVolume + askVolume <= 0) return null;
-  return clamp(((bidVolume - askVolume) / (bidVolume + askVolume)) * 100, -100, 100);
-}
-
-function chooseSignal({ score, momentum, risk, valuation, changePct, bookPressure, confidence }) {
-  const weighted = [[score, .30], [momentum, .25], [risk, .15], [valuation, .15], [confidence, .15]].filter(([value]) => value != null);
-  const totalWeight = weighted.reduce((sum, [, weight]) => sum + weight, 0);
-  let strength = totalWeight ? weighted.reduce((sum, [value, weight]) => sum + value * weight, 0) / totalWeight : 0;
-  if (bookPressure != null) strength += clamp(bookPressure / 8, -12, 12);
-  if (changePct != null) strength += clamp(changePct * 1.5, -6, 6);
-  strength = clamp(strength, 0, 100);
-  const buy = strength >= 60 && !(momentum != null && momentum < 40) && !(bookPressure != null && bookPressure <= -30);
-  return { id: buy ? "buy" : "sell", label: buy ? "COMPRA" : "VENDA", tone: buy ? "excellent" : "bad", confidence: Math.round(strength) };
+  return Math.max(-100, Math.min(100, ((bidVolume - askVolume) / (bidVolume + askVolume)) * 100));
 }
 
 function buildLevels(asset, analysis, book) {
@@ -51,21 +41,34 @@ function buildLevels(asset, analysis, book) {
 }
 
 export function buildTradeSignal({ asset, analysis, book = null }) {
-  const fundamentals = asset?.kind === "fii" ? asset?.fund ?? {} : asset?.fundamentals ?? {};
-  const score = finite(fundamentals?.scores?.overall);
-  const momentum = finite(analysis?.components?.momentum?.value);
-  const risk = finite(analysis?.components?.risk?.value);
-  const valuation = finite(analysis?.components?.valuation?.value);
-  const confidence = finite(analysis?.confidence ?? fundamentals?.scores?.confidence);
-  const changePct = finite(asset?.changepct);
+  const unified = buildBuySellScore({ asset, analysis });
   const bookPressure = inferBookPressure(book);
-  const signal = chooseSignal({ score, momentum, risk, valuation, changePct, bookPressure, confidence });
   const levels = buildLevels(asset, analysis, book);
-  const reasons = [];
-  if (score != null) reasons.push({ kind: score >= 60 ? "positive" : "negative", label: `Fundamentos ${Math.round(score)}/100` });
-  if (momentum != null) reasons.push({ kind: momentum >= 55 ? "positive" : "negative", label: `Momentum ${Math.round(momentum)}/100` });
-  if (valuation != null) reasons.push({ kind: valuation >= 55 ? "positive" : "negative", label: `Valuation ${Math.round(valuation)}/100` });
-  if (bookPressure != null) reasons.push({ kind: bookPressure >= 0 ? "positive" : "negative", label: `Pressão do book ${Math.round(bookPressure)}` });
+  const reasons = unified.parts.map((part) => ({
+    kind: part.value >= 70 ? "positive" : "negative",
+    label: `${part.label} ${Math.round(part.value)}/100`,
+  }));
   reasons.push({ kind: asset?.intraday ? "positive" : "neutral", label: asset?.intraday ? `Cotação intradiária${asset.intradayAsOf ? ` • ${asset.intradayAsOf}` : ""}` : "Usando último dado disponível" });
-  return { ...signal, ...levels, price: finite(asset?.price), score, momentum, risk, valuation, dataConfidence: confidence, bookPressure, bestBid: finite(book?.bestBid ?? book?.bid), bestAsk: finite(book?.bestAsk ?? book?.ask), spread: finite(book?.spread) ?? ((finite(book?.bestBid ?? book?.bid) != null && finite(book?.bestAsk ?? book?.ask) != null) ? round(finite(book?.bestAsk ?? book?.ask) - finite(book?.bestBid ?? book?.bid), 4) : null), sourceStatus: asset?.intraday ? "intraday" : "last_available", updatedAt: asset?.intradayAsOf ?? asset?.tradetime ?? asset?.date ?? null, reasons, disclaimer: "Leitura quantitativa educacional. Não executa ordens." };
+  return {
+    id: unified.signal,
+    label: unified.label,
+    tone: unified.signal === "buy" ? "excellent" : "bad",
+    confidence: unified.score ?? 0,
+    ...levels,
+    price: finite(asset?.price),
+    score: unified.fundamentalScore,
+    combinedScore: unified.score,
+    momentum: unified.momentum,
+    risk: unified.risk,
+    valuation: unified.valuation,
+    dataConfidence: unified.confidence,
+    bookPressure,
+    bestBid: finite(book?.bestBid ?? book?.bid),
+    bestAsk: finite(book?.bestAsk ?? book?.ask),
+    spread: finite(book?.spread) ?? ((finite(book?.bestBid ?? book?.bid) != null && finite(book?.bestAsk ?? book?.ask) != null) ? round(finite(book?.bestAsk ?? book?.ask) - finite(book?.bestBid ?? book?.bid), 4) : null),
+    sourceStatus: asset?.intraday ? "intraday" : "last_available",
+    updatedAt: asset?.intradayAsOf ?? asset?.tradetime ?? asset?.date ?? null,
+    reasons,
+    disclaimer: "Sinal algorítmico educacional. Nota 70 ou mais = COMPRA; abaixo de 70 = VENDA. A decisão final é do usuário.",
+  };
 }
