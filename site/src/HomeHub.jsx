@@ -27,8 +27,8 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
     <section className="simple-hero decision-home-hero">
       <div>
         <span className="v2-kicker">B3 SCORE • ATÉ 6 MESES</span>
-        <h1>Comprar melhor.<br/>Sair melhor.</h1>
-        <p>O app filtra qualidade, valuation, timing e risco. Você vê só o que importa para decidir.</p>
+        <h1>Nota simples.<br/>Decisão clara.</h1>
+        <p>O app lê fundamentos, valuation, timing e risco, monta o Top 20 e destaca até 4 ações. Nota 70 ou mais = COMPRA. Abaixo de 70 = VENDA.</p>
       </div>
       <aside><b>{status}</b><span>{assets.length || "—"} ativos monitorados</span><small>Ações {asOf.stockPriceAsOf ?? "N/D"} • FIIs {asOf.fiiPriceAsOf ?? "N/D"}</small></aside>
     </section>
@@ -39,7 +39,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
     </section>
 
     <section className="decision-home-actions">
-      <button className="primary" onClick={() => onNavigate("swing")}><span><small>1</small><b>Radar 6M</b><em>Veja candidatas, acompanhar e evitar.</em></span><strong>→</strong></button>
+      <button className="primary" onClick={() => onNavigate("swing")}><span><small>1</small><b>Radar 6M</b><em>Top 20 fundamentalistas, Top 4 e sinal COMPRA/VENDA.</em></span><strong>→</strong></button>
       <button onClick={() => onNavigate("portfolio")}><span><small>2</small><b>Minha carteira</b><em>Preço médio, resultado e tempo na posição.</em></span><strong>→</strong></button>
     </section>
 
