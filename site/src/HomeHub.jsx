@@ -4,6 +4,7 @@ import "./usability-v3.css";
 import "./terminal-v4.css";
 
 const ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
+const MODEL_PULSE_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/model-pulse.json";
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 function Delta({ value }) {
@@ -16,6 +17,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [strategy, setStrategy] = useState(() => localStorage.getItem("b3-score-radar-strategy-v1") || "swing");
   const [anomalies, setAnomalies] = useState(null);
+  const [officialPulse, setOfficialPulse] = useState(null);
 
   const matches = useMemo(() => {
     const term = ticker.trim().toUpperCase();
@@ -24,6 +26,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
 
   useEffect(() => {
     fetch(ANOMALY_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then(setAnomalies).catch(() => void 0);
+    fetch(MODEL_PULSE_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload) => payload?.history && setOfficialPulse(payload)).catch(() => void 0);
   }, []);
 
   useEffect(() => {
@@ -33,8 +36,8 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
     return () => window.clearInterval(timer);
   }, [loading]);
 
-  const pulse = useMemo(() => assets.length ? buildModelPulse(assets, anomalies) : null, [assets, anomalies]);
-  const current = pulse?.changes?.[strategy] ?? { newBuys: [], newSells: [], movers: [], top4: [], buys: 0, sells: 0 };
+  const pulse = useMemo(() => assets.length ? buildModelPulse(assets, anomalies, officialPulse) : null, [assets, anomalies, officialPulse]);
+  const current = pulse?.changes?.[strategy] ?? { newBuys: [], newSells: [], movers: [], top4: [], buys: 0, sells: 0, enteredTop4: [], leftTop4: [] };
   const headlines = [...current.newBuys.slice(0, 2), ...current.newSells.slice(0, 2)];
   const fallbackHeadlines = current.movers.slice(0, 4);
   const visibleHeadlines = headlines.length ? headlines : fallbackHeadlines;
@@ -53,6 +56,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   const status = loading ? `Atualizando… ${elapsedSeconds}s` : statusText;
   const stocks = assets.filter((asset) => asset.kind !== "fii").length;
   const withFundamentals = assets.filter((asset) => asset.kind !== "fii" && asset.fundamentals?.scores?.overall != null).length;
+  const pulseSource = officialPulse?.referenceDate ? `Diário oficial ${officialPulse.referenceDate}` : "Memória local em formação";
 
   return <div className="v2-home simple-home decision-home premium-home terminal-home">
     <section className="brand-stage terminal-brand-stage">
@@ -74,12 +78,16 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
         <article><span>VENDA agora</span><b className="negative-number">{current.sells || 0}</b></article>
         <article><span>Ações monitoradas</span><b>{stocks || "N/D"}</b></article>
         <article><span>Com fundamentos</span><b>{withFundamentals || "N/D"}</b></article>
-        <footer>Pregão {asOf.stockPriceAsOf ?? "N/D"} · CVM {asOf.cvmFilesAsOf ?? "N/D"}</footer>
+        <footer>Pregão {asOf.stockPriceAsOf ?? "N/D"} · CVM {asOf.cvmFilesAsOf ?? "N/D"} · {pulseSource}</footer>
       </aside>
     </section>
 
     <section className="terminal-pulse">
-      <header><div><span>PULSO DO MODELO · {strategyLabel(strategy).toUpperCase()}</span><h2>{pulse?.baseline ? "Memória iniciada. A partir da próxima fotografia, veremos as viradas." : "Mudanças desde a fotografia anterior."}</h2></div><button onClick={() => openStrategy(strategy)}>Abrir radar →</button></header>
+      <header><div><span>PULSO DO MODELO · {strategyLabel(strategy).toUpperCase()}</span><h2>{pulse?.baseline ? "Memória iniciada. A próxima fotografia oficial revelará as viradas." : "Mudanças desde a fotografia anterior."}</h2></div><button onClick={() => openStrategy(strategy)}>Abrir radar →</button></header>
+      {(current.enteredTop4?.length > 0 || current.leftTop4?.length > 0) && <div className="terminal-top4-events">
+        {current.enteredTop4?.map((row) => <button key={`in-${row.ticker}`} className="positive" onClick={() => row.ticker && onOpenAsset(row.ticker)}>↑ {row.ticker} entrou no Top 4</button>)}
+        {current.leftTop4?.map((ticker) => <span key={`out-${ticker}`} className="negative">↓ {ticker} saiu do Top 4</span>)}
+      </div>}
       <div className="terminal-pulse-grid">
         {visibleHeadlines.map((row) => <button key={`${row.ticker}-${row.signal}`} className={`pulse-card ${row.signal}`} onClick={() => onOpenAsset(row.ticker)}>
           <div><strong>{row.ticker}</strong><small>{row.name}</small></div>
