@@ -26,6 +26,6 @@ export function routeHash(page, ticker = null) {
 
 export const PRIMARY_NAV = [
   ["home", "Início"],
-  ["swing", "Radar 6M"],
+  ["swing", "Radar"],
   ["portfolio", "Carteira"],
 ];
