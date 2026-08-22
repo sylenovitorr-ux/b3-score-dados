@@ -1,0 +1,88 @@
+name: Atualizar inteligência do modelo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/update-model-intelligence.yml"
+      - "scripts/build-model-pulse.mjs"
+      - "scripts/build-model-performance.mjs"
+      - "site/src/analysis/**"
+      - "site/src/quant/**"
+      - "site/src/scoring/**"
+      - "data/b3-fundamentals.json"
+      - "data/market-anomalies.json"
+  schedule:
+    - cron: "35 23 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-inteligencia-modelo
+  cancel-in-progress: true
+
+jobs:
+  modelo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Instalar dependências do frontend
+        run: cd site && npm ci
+
+      - name: Gerar diário do modelo com o último snapshot válido
+        run: node scripts/build-model-pulse.mjs
+
+      - name: Atualizar placar prospectivo 20 60 120
+        run: node scripts/build-model-performance.mjs
+
+      - name: Validar saídas
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const pulse = JSON.parse(fs.readFileSync('data/model-pulse.json', 'utf8'));
+          const performance = JSON.parse(fs.readFileSync('data/model-performance.json', 'utf8'));
+          if (!pulse.referenceDate || !Array.isArray(pulse.history) || !pulse.history.length) throw new Error('diário inválido');
+          for (const strategy of ['swing','long','dividends']) {
+            if ((pulse.events?.[strategy]?.evaluated ?? 0) < 100) throw new Error(`cobertura insuficiente: ${strategy}`);
+          }
+          if (!Number.isFinite(performance.snapshotCount)) throw new Error('placar inválido');
+          console.log(`pulse=${pulse.referenceDate} snapshots=${pulse.history.length} observations=${performance.evaluatedObservations}`);
+          NODE
+          cd site && npm test
+
+      - name: Publicar inteligência atualizada
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/model-pulse.json data/model-performance.json
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração de inteligência para publicar."
+            exit 0
+          fi
+          git commit -m "Atualizar inteligência prospectiva do modelo"
+          for tentativa in 1 2 3; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            git rebase -X theirs "origin/${GITHUB_REF_NAME}"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            sleep $((tentativa * 5))
+          done
+          exit 1
