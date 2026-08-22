@@ -5,7 +5,9 @@ import "./terminal-v4.css";
 
 const ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
 const MODEL_PULSE_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/model-pulse.json";
+const MODEL_PERFORMANCE_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/model-performance.json";
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const pct = (value) => value == null ? "N/D" : `${Number(value) > 0 ? "+" : ""}${Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 function Delta({ value }) {
   if (value == null || value === 0) return <span className="pulse-delta neutral">sem comparação</span>;
@@ -18,6 +20,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   const [strategy, setStrategy] = useState(() => localStorage.getItem("b3-score-radar-strategy-v1") || "swing");
   const [anomalies, setAnomalies] = useState(null);
   const [officialPulse, setOfficialPulse] = useState(null);
+  const [modelPerformance, setModelPerformance] = useState(null);
 
   const matches = useMemo(() => {
     const term = ticker.trim().toUpperCase();
@@ -27,6 +30,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   useEffect(() => {
     fetch(ANOMALY_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then(setAnomalies).catch(() => void 0);
     fetch(MODEL_PULSE_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload) => payload?.history && setOfficialPulse(payload)).catch(() => void 0);
+    fetch(MODEL_PERFORMANCE_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then((payload) => payload?.strategies && setModelPerformance(payload)).catch(() => void 0);
   }, []);
 
   useEffect(() => {
@@ -45,6 +49,8 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   ];
   const moverHeadlines = current.movers.slice(0, 4).map((row) => ({ ...row, eventLabel: "Score mudou", eventIcon: row.delta > 0 ? "↑" : "↓" }));
   const visibleHeadlines = eventHeadlines.length ? eventHeadlines : moverHeadlines;
+  const validation = modelPerformance?.strategies?.[strategy] ?? {};
+  const validationRows = [20, 60, 120].map((sessions) => ({ sessions, ...(validation[`${sessions}s`] ?? {}) }));
 
   const open = (value = ticker) => {
     const exact = assets.find((asset) => asset.ticker === value.trim().toUpperCase());
@@ -104,6 +110,12 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
         <dl><div><dt>Avaliadas</dt><dd>{evaluated || "N/D"}</dd></div><div><dt>Universo de ações</dt><dd>{stocks || "N/D"}</dd></div><div><dt>Pregão</dt><dd>{asOf.stockPriceAsOf ?? "N/D"}</dd></div><div><dt>Fundamentos CVM</dt><dd>{asOf.cvmFilesAsOf ?? "N/D"}</dd></div></dl>
         <button className="scoreboard-action" onClick={() => openStrategy(strategy)}>Abrir {strategyLabel(strategy)} →</button>
       </aside>
+    </section>
+
+    <section className="model-validation-panel">
+      <header><div><span>🧪 PLACAR PROSPECTIVO</span><h2>O modelo será cobrado pelo que acontecer depois.</h2></div><small>{modelPerformance ? `${modelPerformance.snapshotCount ?? 0} fotografia(s) · ${modelPerformance.evaluatedObservations ?? 0} observações maduras` : "amostra em formação"}</small></header>
+      <div className="model-validation-grid">{validationRows.map((row) => <article key={row.sessions}><span>{row.sessions} pregões</span><b>{row.buyPositiveRatePct == null ? "N/D" : `${row.buyPositiveRatePct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</b><small>COMPRA com retorno positivo</small><em>{row.buyAverageReturnPct == null ? "retorno médio ainda sem amostra" : `retorno médio ${pct(row.buyAverageReturnPct)} · n=${row.buySample}`}</em></article>)}</div>
+      <p>Este placar é prospectivo: só mede sinais que foram realmente registrados. Não reconstrói sinais antigos com dados futuros.</p>
     </section>
 
     <section className="terminal-top4 terminal-top4-v2">
