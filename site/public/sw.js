@@ -1,5 +1,5 @@
-const CACHE = "b3-score-github-pages-v44";
-const APP_SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./app-icon.svg"];
+const CACHE = "b3-score-github-pages-v45";
+const APP_SHELL = ["./", "./index.html", "./404.html", "./manifest.webmanifest", "./favicon.svg", "./app-icon.svg"];
 
 const isSameOrigin = (request) => new URL(request.url).origin === self.location.origin;
 const isAsset = (request) => {
@@ -24,14 +24,24 @@ async function networkFirst(request) {
   }
 }
 
+async function appShell(cache) {
+  return (await cache.match("./index.html")) || (await cache.match("./"));
+}
+
 async function navigationResponse(request) {
   const cache = await caches.open(CACHE);
   try {
-    const response = await fetch(request, { cache: "no-store" });
-    if (response?.ok) await cache.put("./index.html", response.clone());
-    return response;
+    const response = await fetch(request, { cache: "no-store", redirect: "follow" });
+    if (response?.ok) {
+      const url = new URL(response.url);
+      if (url.pathname.endsWith("/index.html") || url.pathname.endsWith("/b3-score-dados/")) {
+        await cache.put("./index.html", response.clone());
+      }
+      return response;
+    }
+    return (await appShell(cache)) || response;
   } catch {
-    return (await cache.match("./index.html")) || fetch(request);
+    return (await appShell(cache)) || new Response("Offline", { status: 503 });
   }
 }
 
@@ -41,9 +51,7 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))),
-  );
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))));
   self.clients.claim();
 });
 
@@ -57,7 +65,5 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirst(event.request));
     return;
   }
-  event.respondWith(
-    fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))),
-  );
+  event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))));
 });
