@@ -1,117 +1,43 @@
-/* B3 Score — Yellow & Blue Market Theme */
+/* Compatibility layer for the B3 Score 4.0 light workspace. */
 :root{
-  --b3-bg:#fff7cc;
-  --b3-surface:#fffdf0;
-  --b3-surface-soft:#fff9dd;
-  --b3-surface-accent:#fff1a8;
-  --b3-ink:#082c66;
-  --b3-ink-2:#0b3d91;
-  --b3-muted:#4a5f8a;
-  --b3-border:#f1d96b;
-  --b3-border-strong:#e7c94a;
-  --b3-primary:#0b3d91;
-  --b3-primary-strong:#082c66;
-  --b3-primary-soft:#dbeafe;
-  --b3-blue:#0b3d91;
-  --b3-blue-soft:#dbeafe;
-  --b3-positive:#0f8b4c;
-  --b3-positive-soft:#dcfce7;
-  --b3-warning:#d97706;
-  --b3-warning-soft:#fef3c7;
-  --b3-danger:#b91c1c;
-  --b3-danger-soft:#fee2e2;
-  --b3-neutral:#64748b;
-  --b3-shadow:0 12px 34px rgba(11,61,145,.10);
-  --b3-shadow-hover:0 18px 42px rgba(8,44,102,.16);
+  --b3-bg:#f5f7fa;
+  --b3-surface:#ffffff;
+  --b3-surface-soft:#f8fafc;
+  --b3-surface-accent:#eff8ff;
+  --b3-ink:#101828;
+  --b3-ink-2:#344054;
+  --b3-muted:#667085;
+  --b3-border:#d0d5dd;
+  --b3-border-strong:#98a2b3;
+  --b3-primary:#175cd3;
+  --b3-primary-strong:#004eeb;
+  --b3-primary-soft:#eff8ff;
+  --b3-blue:#175cd3;
+  --b3-blue-soft:#eff8ff;
+  --b3-positive:#16a34a;
+  --b3-positive-soft:#ecfdf3;
+  --b3-warning:#b54708;
+  --b3-warning-soft:#fffaeb;
+  --b3-danger:#dc2626;
+  --b3-danger-soft:#fef3f2;
+  --b3-neutral:#667085;
+  --b3-shadow:0 8px 24px rgba(16,24,40,.06);
+  --b3-shadow-hover:0 12px 28px rgba(16,24,40,.09);
 }
-
-html,body,#root{background:var(--b3-bg)!important;color:var(--b3-ink)!important}
-body{background:radial-gradient(circle at 15% -10%,rgba(244,196,48,.28),transparent 32%),linear-gradient(180deg,#fffbe6 0%,#fff7cc 48%,#eaf2ff 100%)!important}
-
-.v2-header{background:rgba(255,248,204,.96)!important;border-bottom-color:var(--b3-border)!important;box-shadow:0 8px 24px rgba(8,44,102,.08)!important}
+html,body,#root{background:var(--b3-bg)!important;color:var(--b3-ink)!important;color-scheme:light}
+body{background:var(--b3-bg)!important}
+.v2-header{background:rgba(255,255,255,.96)!important;border-bottom-color:#eaecf0!important;box-shadow:0 4px 16px rgba(16,24,40,.04)!important}
 .v2-brand-button,.v2-home,.v2-page,.v2-home-hero h1,.v2-page-head h1,.v2-section-title h2,.portfolio-manager h2,.portfolio-manager h3{color:var(--b3-ink)!important}
-.v2-nav button{background:transparent!important;color:var(--b3-ink-2)!important}
-.v2-nav button:hover{background:var(--b3-primary-soft)!important;color:var(--b3-primary-strong)!important}
-.v2-nav button.active{border-bottom-color:var(--b3-primary)!important;color:var(--b3-primary)!important}
-
-.v2-kicker,.v2-page-head span,.v2-section-title>span,.portfolio-manager-head>div>span,.portfolio-dashboard>span,.portfolio-editor-head span,.expected-return-panel .section-heading>div>span,.dividend-sustainability .section-heading>div>span,.eyebrow{color:var(--b3-primary)!important}
-.v2-home-hero h1 em,.v2-nav-grid>button>em,.v2-nav-grid i,.v2-method-flow li b,.v2-method-grid button,.v2-compare-row.head button,.portfolio-compare strong{color:var(--b3-primary)!important}
-
-.v2-home-hero,.v2-search,.v2-picker,.v2-chart-card,.v2-sector,.v2-method-flow,.v2-sources,.v2-limitations,.v2-method-details,.v2-simulator,.portfolio-editor,.portfolio-dashboard,.expected-return-panel,.dividend-sustainability,.heatmap-groups>section,.trade-signal-panel,.simple-hero,.simple-search,.simple-more,.daily-history-panel{
-  background:var(--b3-surface)!important;
-  border-color:var(--b3-border)!important;
-  box-shadow:var(--b3-shadow)!important;
-}
-.v2-home-hero,.simple-hero{border-color:#ecd35d!important}
-.v2-home-hero aside,.simple-hero aside{background:linear-gradient(145deg,#fff1a8,#dbeafe)!important;border-left-color:var(--b3-primary)!important;border-radius:0 16px 16px 0}
-.v2-home-hero aside b,.simple-hero aside b{color:var(--b3-primary-strong)!important}
-
-.v2-search input,.simple-search input,.v2-picker input,.v2-simulator input,.v2-simulator select,.portfolio-create input,.portfolio-manager-controls input,.portfolio-manager-controls select,.heatmap-controls select{
-  background:#fffef7!important;border-color:var(--b3-border-strong)!important;color:var(--b3-ink)!important;
-}
-.v2-search input:focus,.simple-search input:focus,.v2-picker input:focus,.v2-simulator input:focus,.v2-simulator select:focus,.portfolio-create input:focus,.portfolio-manager-controls input:focus,.portfolio-manager-controls select:focus{
-  border-color:var(--b3-primary)!important;box-shadow:0 0 0 4px rgba(11,61,145,.12)!important;outline:none!important;
-}
-.v2-search label button,.simple-search button,.v2-picker>button,.portfolio-create button,.portfolio-actions .primary{
-  background:linear-gradient(135deg,var(--b3-primary),var(--b3-primary-strong))!important;color:#fff!important;box-shadow:0 8px 18px rgba(11,61,145,.22)!important;
-}
-
-.v2-market-strip article,.simple-market article,.v2-sector article,.v2-sources article,.v2-sim-results article,.portfolio-kpis article,.expected-return-grid article{
-  background:linear-gradient(180deg,#fffdf7,var(--b3-surface-soft))!important;border-color:var(--b3-border)!important;
-}
-.v2-nav-grid>button,.simple-actions>button,.portfolio-compare>button,.simple-more button{background:var(--b3-surface)!important;border-color:var(--b3-border)!important;box-shadow:0 5px 16px rgba(8,44,102,.06)!important;transition:.18s ease!important}
-.v2-nav-grid>button:hover,.simple-actions>button:hover,.portfolio-compare>button:hover,.simple-more button:hover{background:#fff8cf!important;border-color:#0b3d91!important;box-shadow:var(--b3-shadow-hover)!important;transform:translateY(-3px)!important}
-.v2-nav-grid i,.simple-actions i{background:linear-gradient(145deg,#fff1a8,#dbeafe)!important;color:var(--b3-primary)!important}
-
-.v2-safety,.v2-benchmark-missing{background:var(--b3-warning-soft)!important;border-color:#e7c983!important;border-left-color:var(--b3-warning)!important;color:#725012!important}
-.intraday-status{background:#fff8cf!important;border-color:#e7cc57!important;border-left-color:var(--b3-warning)!important;color:#6d5a32!important}
-.intraday-status.available{background:#e8f0ff!important;border-color:#9db8e8!important;border-left-color:var(--b3-primary)!important;color:#173f78!important}
-
-.positive,.good,.excellent{--tone:var(--b3-positive)}
-.negative,.bad{--tone:var(--b3-danger)}
-.warn,.warning,.mid{--tone:var(--b3-warning)}
-.portfolio-kpis .positive b{color:var(--b3-positive)!important}
-.portfolio-kpis .negative b{color:var(--b3-danger)!important}
-.portfolio-delete,.portfolio-tickers button{color:var(--b3-danger)!important}
-
-.heatmap-tile{box-shadow:0 8px 20px rgba(8,44,102,.12)!important}
-.heatmap-tile.strong-up,.heatmap-legend .strong-up{background:#0b3d91!important}
-.heatmap-tile.up,.heatmap-legend .up{background:#3b82f6!important}
-.heatmap-tile.flat,.heatmap-legend .flat{background:#94a3b8!important}
-.heatmap-tile.down,.heatmap-legend .down{background:#f4c430!important;color:#082c66!important}
-.heatmap-tile.strong-down,.heatmap-legend .strong-down{background:#d97706!important}
-.heatmap-tile.unknown{background:#778a8f!important}
-
-.trade-signal-panel{color:var(--b3-ink)!important;background:linear-gradient(180deg,#fffdf0 0%,#f5f8ff 100%)!important}
-.trade-signal-scorebar article,.trade-level-grid article,.trade-signal-detail>article{background:#fff9dd!important;border-color:var(--b3-border)!important}
-.trade-signal-price small,.trade-signal-price em,.trade-signal-scorebar span,.trade-level-grid span,.trade-level-grid small,.trade-book-grid span,.trade-book-empty,.trade-signal-panel footer{color:var(--b3-muted)!important}
-.trade-book-grid p{background:var(--b3-blue-soft)!important}
-.trade-reason i{color:var(--b3-ink-2)!important;background:#eef3fb!important}
-.trade-reason.positive i{background:var(--b3-positive-soft)!important;color:var(--b3-positive)!important}
-.trade-reason.negative i{background:var(--b3-danger-soft)!important;color:var(--b3-danger)!important}
-.trade-excellent{box-shadow:inset 5px 0 0 var(--b3-primary),var(--b3-shadow)!important}
-.trade-good{box-shadow:inset 5px 0 0 #3b82f6,var(--b3-shadow)!important}
-.trade-mid{box-shadow:inset 5px 0 0 #f4c430,var(--b3-shadow)!important}
-.trade-warn{box-shadow:inset 5px 0 0 #d97706,var(--b3-shadow)!important}
-.trade-bad{box-shadow:inset 5px 0 0 var(--b3-danger),var(--b3-shadow)!important}
-.trade-na{box-shadow:inset 5px 0 0 var(--b3-neutral),var(--b3-shadow)!important}
-
-.v2-compare-row.head,.v2-compare-row.head>*{background:#fff1a8!important}
-.v2-risk-line{border-top-color:#e5d36f!important}
-.v2-risk-line i:before{background:var(--b3-danger)!important}
-.v2-risk-line b:before{background:var(--b3-blue)!important}
-.v2-risk-line em:before{background:#f4c430!important}
-
-.asset-card,.score-card,.metric-card,.quant-reading,.decision-summary,.movement-panel,.price-justification,.daily-history-table{border-color:var(--b3-border)!important}
-.asset-card,.score-card,.metric-card{background:#fffdf0!important}
-.quant-reading{background:linear-gradient(135deg,#fff1a8,#e8f0ff)!important;border-left-color:var(--b3-primary)!important;color:var(--b3-ink)!important}
-.daily-history-panel header h3,.daily-history-panel table th{color:var(--b3-ink)!important}
-.daily-history-panel table thead{background:#fff1a8!important}
-
-button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
-button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid rgba(11,61,145,.28)!important;outline-offset:2px!important}
-
-@media(max-width:760px){
-  .v2-home-hero,.simple-hero{box-shadow:0 8px 22px rgba(8,44,102,.08)!important}
-  .v2-nav-grid>button:hover,.simple-actions>button:hover,.portfolio-compare>button:hover{transform:none!important}
-}
+.v2-nav button{background:transparent!important;color:#475467!important}.v2-nav button:hover{background:#f2f4f7!important;color:var(--b3-ink)!important}.v2-nav button.active{border-bottom-color:var(--b3-primary)!important;color:var(--b3-primary)!important}
+.v2-kicker,.v2-page-head span,.v2-section-title>span,.eyebrow{color:var(--b3-primary)!important}
+.v2-home-hero,.v2-search,.v2-picker,.v2-chart-card,.v2-sector,.v2-method-flow,.v2-sources,.v2-limitations,.v2-method-details,.v2-simulator,.portfolio-editor,.portfolio-dashboard,.expected-return-panel,.dividend-sustainability,.heatmap-groups>section,.trade-signal-panel,.simple-hero,.simple-search,.simple-more,.daily-history-panel{background:#fff!important;border-color:var(--b3-border)!important;box-shadow:var(--b3-shadow)!important}
+.v2-search input,.simple-search input,.v2-picker input,.v2-simulator input,.v2-simulator select,.portfolio-create input,.portfolio-manager-controls input,.portfolio-manager-controls select,.heatmap-controls select{background:#fff!important;border-color:var(--b3-border)!important;color:var(--b3-ink)!important}
+.v2-search input:focus,.simple-search input:focus,.v2-picker input:focus,.v2-simulator input:focus,.v2-simulator select:focus,.portfolio-create input:focus,.portfolio-manager-controls input:focus,.portfolio-manager-controls select:focus{border-color:var(--b3-primary)!important;box-shadow:0 0 0 3px rgba(23,92,211,.1)!important;outline:none!important}
+.v2-search label button,.simple-search button,.v2-picker>button,.portfolio-create button,.portfolio-actions .primary{background:var(--b3-primary)!important;color:#fff!important;box-shadow:none!important}
+.v2-market-strip article,.simple-market article,.v2-sector article,.v2-sources article,.v2-sim-results article,.portfolio-kpis article,.expected-return-grid article,.v2-nav-grid>button,.simple-actions>button,.portfolio-compare>button,.simple-more button{background:#fff!important;border-color:var(--b3-border)!important;box-shadow:var(--b3-shadow)!important}
+.v2-nav-grid>button:hover,.simple-actions>button:hover,.portfolio-compare>button:hover,.simple-more button:hover{background:#f8fafc!important;border-color:#98a2b3!important;box-shadow:var(--b3-shadow-hover)!important;transform:none!important}
+.v2-safety,.v2-benchmark-missing{background:var(--b3-warning-soft)!important;border-color:#fedf89!important;border-left-color:var(--b3-warning)!important;color:#93370d!important}.intraday-status{background:#f8fafc!important;border-color:var(--b3-border)!important;border-left-color:var(--b3-neutral)!important;color:#475467!important}.intraday-status.available{background:var(--b3-primary-soft)!important;border-color:#b2ccff!important;border-left-color:var(--b3-primary)!important;color:#175cd3!important}
+.portfolio-kpis .positive b{color:var(--b3-positive)!important}.portfolio-kpis .negative b{color:var(--b3-danger)!important}.portfolio-delete,.portfolio-tickers button{color:var(--b3-danger)!important}
+.trade-signal-panel{color:var(--b3-ink)!important;background:#fff!important}.trade-signal-scorebar article,.trade-level-grid article,.trade-signal-detail>article{background:#f8fafc!important;border-color:#eaecf0!important}.trade-signal-price small,.trade-signal-price em,.trade-signal-scorebar span,.trade-level-grid span,.trade-level-grid small,.trade-book-grid span,.trade-book-empty,.trade-signal-panel footer{color:var(--b3-muted)!important}.trade-book-grid p{background:var(--b3-primary-soft)!important}.trade-reason i{color:#475467!important;background:#f2f4f7!important}.trade-reason.positive i{background:var(--b3-positive-soft)!important;color:var(--b3-positive)!important}.trade-reason.negative i{background:var(--b3-danger-soft)!important;color:var(--b3-danger)!important}
+.v2-compare-row.head,.v2-compare-row.head>*{background:#f2f4f7!important}.asset-card,.score-card,.metric-card,.quant-reading,.decision-summary,.movement-panel,.price-justification,.daily-history-table{border-color:var(--b3-border)!important}.asset-card,.score-card,.metric-card{background:#fff!important}.quant-reading{background:var(--b3-primary-soft)!important;border-left-color:var(--b3-primary)!important;color:var(--b3-ink)!important}.daily-history-panel table thead{background:#f2f4f7!important}
+button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid rgba(23,92,211,.18)!important;outline-offset:2px!important}
