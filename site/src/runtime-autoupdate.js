@@ -12,11 +12,12 @@ const SECTION_HASHES = new Set([
   "sinal-atual",
 ]);
 
-function migrateTerminalTheme() {
+function migrateWorkspaceTheme() {
   if (typeof localStorage === "undefined") return;
-  const migrationKey = "b3-score-v4-dark-theme-migrated";
+  const migrationKey = "b3-score-v4-light-workspace-migrated";
   if (localStorage.getItem(migrationKey) === "1") return;
-  localStorage.setItem("b3-score-theme-v1", "dark");
+  localStorage.setItem("b3-score-theme-v1", "light");
+  localStorage.removeItem("b3-score-v4-dark-theme-migrated");
   localStorage.setItem(migrationKey, "1");
 }
 
@@ -77,6 +78,6 @@ function installRuntimeAutoUpdate() {
   window.setTimeout(run, 15 * 1000);
 }
 
-migrateTerminalTheme();
+migrateWorkspaceTheme();
 installSectionNavigationGuard();
 installRuntimeAutoUpdate();
