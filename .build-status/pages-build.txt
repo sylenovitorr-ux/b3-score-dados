@@ -1,37 +1,22 @@
-commit=7587ce5b179a27c1bb2fc3d462bf3c42846be803
-exit_code=1
-generated_at=2026-08-22T04:22:02Z
+commit=c6a067d6d7774e3966f6dbebb7e9b4c7d79c773f
+exit_code=0
+generated_at=2026-08-22T04:23:05Z
 --- last build lines ---
 
 > b3-score-github-pages@1.0.0 build
 > vite build
 
 [36mvite v8.1.5 [32mbuilding client environment for production...[36m[39m
-[2Ktransforming...✓ 72 modules transformed.
-[31m✗[39m Build failed in 148ms
-[31merror during build:
-[31mBuild failed with 1 error:
+[2Ktransforming...✓ 74 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                             2.33 kB │ gzip:  0.79 kB
+dist/assets/workspace-tools-BF6zhzVY.css   12.34 kB │ gzip:  2.64 kB
+dist/assets/index-nnHKhSaN.css            241.76 kB │ gzip: 43.11 kB
+dist/assets/rolldown-runtime-Bh1tDfsg.js    0.56 kB │ gzip:  0.36 kB
+dist/assets/workspace-tools-Dgmnrx6L.js    61.52 kB │ gzip: 19.48 kB
+dist/assets/analysis-tools-CxDrwTC_.js     96.41 kB │ gzip: 30.88 kB
+dist/assets/react-vendor-CMX96zxz.js      181.79 kB │ gzip: 57.19 kB
+dist/assets/index-BTjUbuyB.js             261.88 kB │ gzip: 71.70 kB
 
-[31m[UNRESOLVED_IMPORT] [0mCould not resolve './terminal-v4.css' in src/HomeHub.jsx
-   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/HomeHub.jsx:4:8 [38;5;246m][0m
-   [38;5;246m│[0m
- [38;5;246m4 │[0m [38;5;249mi[0m[38;5;249mm[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m"./terminal-v4.css"[38;5;249m;[0m
- [38;5;240m  │[0m        ─────────┬─────────  
- [38;5;240m  │[0m                 ╰─────────── Module not found.
- [38;5;240m  │[0m 
- [38;5;240m  │[0m [38;5;115mHelp[0m: 'src/HomeHub.jsx' is imported by the following path:
- [38;5;240m  │[0m         - src/HomeHub.jsx
- [38;5;240m  │[0m         - src/App.jsx
- [38;5;240m  │[0m         - src/main.jsx
- [38;5;240m  │[0m         - index.html
-[38;5;246m───╯[0m
-[31m
-    at aggregateBindingErrorsIntoJsError (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/rolldown/dist/shared/error-BHRSI0R7.mjs:48:18)
-    at unwrapBindingResult (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/rolldown/dist/shared/error-BHRSI0R7.mjs:18:128)
-    at #build (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/rolldown/dist/shared/rolldown-build-CtPvmZgJ.mjs:3276:34)
-    at async buildEnvironment (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/vite/dist/node/chunks/node.js:33061:66)
-    at async Object.build (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/vite/dist/node/chunks/node.js:33483:19)
-    at async Object.buildApp (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/vite/dist/node/chunks/node.js:33480:153)
-    at async CAC.<anonymous> (file:///home/runner/work/b3-score-dados/b3-score-dados/site/node_modules/vite/dist/node/cli.js:776:3) {
-  errors: [Getter/Setter]
-}[39m
+[32m✓ built in 311ms[39m
