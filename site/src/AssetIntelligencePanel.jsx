@@ -8,11 +8,14 @@ import "./usability-v3.css";
 import "./ux-platform.css";
 import "./asset-tabs.css";
 
+const STRATEGY_KEY = "b3-score-radar-strategy-v1";
+
 export default function AssetIntelligencePanel(props) {
   const { asset, assets, anomaly } = props;
-  const analysis = useMemo(() => buildQuantAnalysis(asset, assets, anomaly), [asset, assets, anomaly]);
+  const strategy = typeof localStorage === "undefined" ? "swing" : localStorage.getItem(STRATEGY_KEY) || "swing";
+  const analysis = useMemo(() => buildQuantAnalysis(asset, assets, anomaly, strategy === "swing" ? "swing_3_6m" : "long_term"), [asset, assets, anomaly, strategy]);
   return <>
-    <AssetSummaryPanel asset={asset} />
+    <AssetSummaryPanel asset={asset} analysis={analysis} />
     <AssetAnalysisTabs asset={asset} analysis={analysis} anomaly={anomaly} coreProps={props} />
   </>;
 }
