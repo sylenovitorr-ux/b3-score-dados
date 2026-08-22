@@ -5,6 +5,10 @@ const LEGACY = {
   opcoes: "options",
   quant: "quant",
   top: "home",
+  graficos: "analyze",
+  gráfico: "analyze",
+  grafico: "analyze",
+  "painel-grafico-ativo": "analyze",
 };
 
 export function parseRoute(hash = "") {
@@ -12,10 +16,38 @@ export function parseRoute(hash = "") {
   if (!raw) return { page: "home", ticker: null };
   if (LEGACY[raw]) return { page: LEGACY[raw], ticker: null };
   const [page, ticker] = raw.split("/");
-  const aliases = { oportunidade: "opportunities", oportunidades: "opportunities", swing: "swing", "candidatas-6m": "swing", candidatas: "swing", radar6m: "swing", "mapa-calor": "heatmap", heatmap: "heatmap", comparar: "compare", comparador: "compare", analisar: "analyze", simulador: "simulator", simuladores: "simulator", opcoes: "options", carteira: "portfolio", metodologia: "methodology", avancadas: "advanced", ferramentas: "advanced", "ferramentas-avancadas": "advanced", alertas: "integrity", inicio: "home", ativo: "asset" };
+  const aliases = {
+    oportunidade: "opportunities",
+    oportunidades: "opportunities",
+    swing: "swing",
+    "candidatas-6m": "swing",
+    candidatas: "swing",
+    radar6m: "swing",
+    "mapa-calor": "heatmap",
+    heatmap: "heatmap",
+    comparar: "compare",
+    comparador: "compare",
+    analisar: "analyze",
+    analise: "analyze",
+    análise: "analyze",
+    graficos: "analyze",
+    grafico: "analyze",
+    gráfico: "analyze",
+    simulador: "simulator",
+    simuladores: "simulator",
+    opcoes: "options",
+    carteira: "portfolio",
+    metodologia: "methodology",
+    avancadas: "advanced",
+    ferramentas: "advanced",
+    "ferramentas-avancadas": "advanced",
+    alertas: "integrity",
+    inicio: "home",
+    ativo: "asset",
+  };
   const normalized = aliases[page] ?? page;
   const allowed = new Set(["home", "radar", "opportunities", "swing", "heatmap", "analyze", "asset", "compare", "quant", "simulator", "options", "portfolio", "methodology", "integrity", "advanced"]);
-  return allowed.has(normalized) ? { page: normalized, ticker: ticker?.toUpperCase() || null } : { page: "not-found", ticker: null };
+  return allowed.has(normalized) ? { page: normalized, ticker: ticker?.toUpperCase() || null } : { page: "home", ticker: null };
 }
 
 export function routeHash(page, ticker = null) {
