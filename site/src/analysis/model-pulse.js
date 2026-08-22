@@ -30,7 +30,7 @@ function compact(rows) {
   return Object.fromEntries(rows.map((row) => [row.ticker, { score: row.score, signal: row.signal, price: row.price }]));
 }
 
-function loadHistory() {
+function localHistory() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? "[]");
     return Array.isArray(raw) ? raw.filter((row) => row?.date && row?.strategies) : [];
@@ -40,11 +40,19 @@ function loadHistory() {
   }
 }
 
-export function buildModelPulse(assets = [], anomalies = null) {
-  const current = Object.fromEntries(STRATEGIES.map((strategy) => [strategy, rowsForStrategy(assets, anomalies, strategy)]));
-  if (typeof localStorage === "undefined") return { current, previous: null, changes: {}, baseline: true };
+function mergedHistory(remotePayload) {
+  const remote = Array.isArray(remotePayload?.history) ? remotePayload.history.filter((row) => row?.date && row?.strategies) : [];
+  const local = localHistory();
+  const byDate = new Map();
+  for (const row of [...local, ...remote]) byDate.set(row.date, row);
+  return [...byDate.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
 
-  const history = loadHistory();
+export function buildModelPulse(assets = [], anomalies = null, remotePayload = null) {
+  const current = Object.fromEntries(STRATEGIES.map((strategy) => [strategy, rowsForStrategy(assets, anomalies, strategy)]));
+  if (typeof localStorage === "undefined") return { current, previous: null, changes: remotePayload?.events ?? {}, baseline: !remotePayload?.previousReferenceDate };
+
+  const history = mergedHistory(remotePayload);
   const today = localDateKey();
   const previousSnapshot = [...history].reverse().find((row) => row.date !== today) ?? history.at(-1) ?? null;
   const todaySnapshot = history.find((row) => row.date === today) ?? null;
@@ -58,19 +66,31 @@ export function buildModelPulse(assets = [], anomalies = null) {
       const old = prior[row.ticker];
       return { ...row, previousScore: old?.score ?? null, previousSignal: old?.signal ?? null, delta: old?.score == null ? null : row.score - old.score };
     });
+    const remoteEvents = remotePayload?.events?.[strategy] ?? {};
+    const rowMap = new Map(withDelta.map((row) => [row.ticker, row]));
     changes[strategy] = {
-      newBuys: withDelta.filter((row) => row.signal === "buy" && row.previousSignal && row.previousSignal !== "buy").sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0)),
+      newBuys: withDelta.filter((row) => row.signal === "buy" && row.previousSignal === "sell").sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0)),
       newSells: withDelta.filter((row) => row.signal === "sell" && row.previousSignal === "buy").sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0)),
       movers: withDelta.filter((row) => row.delta != null && row.delta !== 0).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)),
       top4: withDelta.filter((row) => row.signal === "buy").slice(0, 4),
       buys: withDelta.filter((row) => row.signal === "buy").length,
       sells: withDelta.filter((row) => row.signal === "sell").length,
+      enteredTop4: (remoteEvents.enteredTop4 ?? []).map((ticker) => rowMap.get(ticker) ?? { ticker }),
+      leftTop4: remoteEvents.leftTop4 ?? [],
     };
   }
 
   const snapshot = { date: today, generatedAt: new Date().toISOString(), strategies: Object.fromEntries(STRATEGIES.map((strategy) => [strategy, compact(current[strategy])])) };
-  const nextHistory = [...history.filter((row) => row.date !== today), snapshot].slice(-14);
+  const nextHistory = [...history.filter((row) => row.date !== today), snapshot].slice(-30);
   try { localStorage.setItem(KEY, JSON.stringify(nextHistory)); } catch {}
 
-  return { current, previous: baselineSnapshot, changes, baseline: !baselineSnapshot || baselineSnapshot.date === today, snapshotDate: today };
+  return {
+    current,
+    previous: baselineSnapshot,
+    changes,
+    baseline: !baselineSnapshot || baselineSnapshot.date === today,
+    snapshotDate: today,
+    officialReferenceDate: remotePayload?.referenceDate ?? null,
+    officialPreviousDate: remotePayload?.previousReferenceDate ?? null,
+  };
 }
