@@ -1,4 +1,4 @@
-export const QUANT_MODEL_VERSION = "1.0.0";
+export const QUANT_MODEL_VERSION = "1.1.0";
 
 const weights = (valuation, quality, growth, profitability, debt, momentum, risk, liquidity, consistency, asymmetry) => ({
   valuation, quality, growth, profitability, debt, momentum, risk, liquidity, consistency, asymmetry,
@@ -12,6 +12,13 @@ export const PROFILE_CONFIG = Object.freeze({
     limits: { maxAssetPct: 15, maxSectorPct: 35, drawdownPct: 18, volatilityPct: 45, derivativesPct: 10, minimumDailyVolume: 500_000, minimumRiskReward: 2, safetyMarginPct: 15, holdingSessionsMin: 60, holdingSessionsMax: 126 },
     valuation: { targetPE: 12, targetPB: 1.5, discountRatePct: 12, terminalGrowthPct: 3, explicitGrowthCapPct: 12 },
     hypothesis: "Pesos iniciais para estudo de Swing Trade em 60–126 pregões; regra pendente de validação por backtest.",
+  },
+  long_term: {
+    id: "long_term", label: "Longo Prazo",
+    weights: weights(20, 20, 15, 15, 10, 3, 7, 2, 5, 3),
+    limits: { maxAssetPct: 15, maxSectorPct: 30, drawdownPct: 30, volatilityPct: 40, derivativesPct: 0, minimumDailyVolume: 300_000, minimumRiskReward: 1.8, safetyMarginPct: 20, holdingSessionsMin: 252, holdingSessionsMax: 1260 },
+    valuation: { targetPE: 12, targetPB: 1.6, discountRatePct: 12, terminalGrowthPct: 3, explicitGrowthCapPct: 12 },
+    hypothesis: "Perfil estrutural para anos: qualidade, crescimento, rentabilidade e valuation dominam; momentum tem peso apenas auxiliar.",
   },
   conservative: {
     id: "conservative", label: "Conservador",
