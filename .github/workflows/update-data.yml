@@ -84,6 +84,9 @@ jobs:
       - name: Gerar diário automático do modelo
         run: node scripts/build-model-pulse.mjs
 
+      - name: Gerar placar prospectivo do modelo
+        run: node scripts/build-model-performance.mjs
+
       - name: Validar snapshot principal e diário
         shell: bash
         run: |
@@ -106,8 +109,12 @@ jobs:
               info = (pulse.get('events') or {}).get(strategy) or {}
               if int(info.get('evaluated') or 0) < 100:
                   raise SystemExit(f'diário insuficiente em {strategy}: {info.get("evaluated")}')
+          performance = json.loads(Path('data/model-performance.json').read_text(encoding='utf-8'))
+          if performance.get('snapshotCount') is None:
+              raise SystemExit('placar prospectivo ausente')
           print(status)
           print('Diário:', pulse.get('referenceDate'), {k: v.get('evaluated') for k, v in pulse['events'].items()})
+          print('Placar:', performance.get('snapshotCount'), 'snapshots;', performance.get('evaluatedObservations'), 'observações maduras')
           PY
 
       - name: Validar histórico dos gráficos sem bloquear snapshot
@@ -143,7 +150,7 @@ jobs:
             echo "Os dados já estão atualizados."
             exit 0
           fi
-          git commit -m "Atualizar dados oficiais e diário do modelo"
+          git commit -m "Atualizar dados oficiais, diário e placar do modelo"
           for tentativa in 1 2 3; do
             git fetch origin "${GITHUB_REF_NAME}"
             git rebase -X theirs "origin/${GITHUB_REF_NAME}"
