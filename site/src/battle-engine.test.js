@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { battleEquitySeries, finite, modelPositionCount, nextTradingDate, processOrder } from "./battle-engine.js";
+import { battleEquitySeries, finite, modelPositionAllocations, modelPositionCount, nextTradingDate, processOrder } from "./battle-engine.js";
 
 test("ausência não vira zero numérico", () => {
   assert.equal(finite(null), null);
@@ -18,6 +18,12 @@ test("IA usa sempre três ativos a mais que o usuário", () => {
   assert.equal(modelPositionCount(2), 5);
   assert.equal(modelPositionCount(4), 7);
   assert.equal(modelPositionCount(0), 0);
+});
+
+test("cada ativo da IA usa integralmente o mesmo valor por ativo escolhido pelo usuário", () => {
+  assert.deepEqual(modelPositionAllocations(1, 300), [300, 300, 300, 300]);
+  assert.deepEqual(modelPositionAllocations(2, 300), [300, 300, 300, 300, 300]);
+  assert.deepEqual(modelPositionAllocations(4, 500), [500, 500, 500, 500, 500, 500, 500]);
 });
 
 test("toque simultâneo em stop e alvo usa política conservadora", () => {

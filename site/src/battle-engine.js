@@ -5,6 +5,11 @@ export const modelPositionCount = (userCount) => {
   return count > 0 ? count + 3 : 0;
 };
 
+export const modelPositionAllocations = (userCount, perAssetValue) => {
+  const value = finite(perAssetValue);
+  return value > 0 ? Array(modelPositionCount(userCount)).fill(value) : [];
+};
+
 export function localDate(date = new Date()) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
