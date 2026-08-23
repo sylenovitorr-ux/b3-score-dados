@@ -64,7 +64,10 @@ export function processOrder(order, battle, assetMap, anomalies) {
     const entryRow = series[entryIndex];
     const entryPrice = finite(working.plannedEntry);
     const allocation = finite(working.allocation) ?? battle.capital;
-    const quantity = entryPrice > 0 ? Math.floor(allocation / entryPrice) : 0;
+    const lotSize = Math.max(1, Math.floor(finite(working.lotSize) ?? 1));
+    const availableQuantity = entryPrice > 0 ? Math.floor(allocation / (entryPrice * lotSize)) * lotSize : 0;
+    const maxQuantity = finite(working.maxQuantity);
+    const quantity = maxQuantity != null ? Math.min(availableQuantity, Math.max(0, Math.floor(maxQuantity))) : availableQuantity;
     if (!quantity) return working;
     working = { ...working, status: "open", entryPrice, entryDate: entryRow.date, quantity, updatedAt: new Date().toISOString() };
     const hitStop = touches(entryRow, working.stop);

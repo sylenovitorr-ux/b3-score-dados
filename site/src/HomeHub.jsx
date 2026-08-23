@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildModelPulse, strategyLabel } from "./analysis/model-pulse.js";
+import { assetKindLabel, marketSymbol, matchesAssetSearch, underlyingTicker } from "./battle-market.js";
 import "./usability-v3.css";
 import "./terminal-v4.css";
 
@@ -24,7 +25,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
 
   const matches = useMemo(() => {
     const term = ticker.trim().toUpperCase();
-    return term ? assets.filter((asset) => asset.ticker.includes(term) || asset.name?.toUpperCase().includes(term)).slice(0, 6) : [];
+    return term ? assets.filter((asset) => matchesAssetSearch(asset, term, "fractional")).slice(0, 8) : [];
   }, [assets, ticker]);
 
   useEffect(() => {
@@ -52,7 +53,8 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   const validationRows = [20, 60, 120].map((sessions) => ({ sessions, ...(validation[`${sessions}s`] ?? {}) }));
 
   const open = (value = ticker) => {
-    const exact = assets.find((asset) => asset.ticker === value.trim().toUpperCase());
+    const resolved = underlyingTicker(value, assets);
+    const exact = assets.find((asset) => asset.ticker === resolved);
     if (exact) onOpenAsset(exact.ticker);
   };
   const selectStrategy = (next) => {
@@ -70,7 +72,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
 
   return <div className="v2-home clean-home">
     <section className="clean-home-topbar">
-      <div className="clean-brand"><b>B3 SCORE</b><span>Radar inteligente de ações</span></div>
+      <div className="clean-brand"><b>B3 SCORE</b><span>Radar de ações, units e FIIs</span></div>
       <div className="clean-status"><span>{status}</span><small>{pulseSource}</small></div>
     </section>
 
@@ -81,9 +83,9 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
         <p>O modelo organiza COMPRA, VENDA e N/D sem transformar ausência de informação em opinião.</p>
       </div>
       <div className="hero-search-box">
-        <label>Buscar ação</label>
-        <div><input aria-label="Pesquisar ativo" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === ticker.trim().toUpperCase())}>Abrir análise</button></div>
-        {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{asset.ticker}</b><span>{asset.name}</span><em>{money(asset.price)}</em></button>)}</div>}
+        <label>Buscar ativo</label>
+        <div><input aria-label="Pesquisar ação, unit ou FII" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4F, BPAC11F ou HGLG11" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === underlyingTicker(ticker, assets))}>Abrir análise</button></div>
+        {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{marketSymbol(asset, "fractional")}</b><span>{asset.name} · {assetKindLabel(asset)}</span><em>{money(asset.price)}</em></button>)}</div>}
       </div>
     </section>
 
