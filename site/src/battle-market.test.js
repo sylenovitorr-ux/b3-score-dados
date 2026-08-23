@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { lotSizeFor, marketSymbol, matchesAssetSearch, maxQuantityFor, underlyingTicker } from "./battle-market.js";
+import { lotSizeFor, marketSymbol, marketVariants, matchesAssetSearch, maxQuantityFor, underlyingTicker } from "./battle-market.js";
 
 const assets = [
   { ticker: "PETR4", name: "Petrobras PN", kind: "stock" },
@@ -26,4 +26,14 @@ test("busca aceita o código fracionário e resolve para o ativo-base", () => {
   assert.equal(underlyingTicker("petr4f", assets), "PETR4");
   assert.equal(underlyingTicker("HGLG11", assets), "HGLG11");
   assert.equal(matchesAssetSearch(assets[0], "PETR4F", "fractional"), true);
+});
+
+test("busca da carteira oferece ação inteira, fracionária e FII sem código inventado", () => {
+  assert.deepEqual(marketVariants(assets[0]), [
+    { marketMode: "standard", displayTicker: "PETR4", label: "AÇÃO · LOTE PADRÃO" },
+    { marketMode: "fractional", displayTicker: "PETR4F", label: "AÇÃO · FRACIONÁRIO" },
+  ]);
+  assert.deepEqual(marketVariants(assets[2]), [
+    { marketMode: "standard", displayTicker: "HGLG11", label: "FII · COTA" },
+  ]);
 });

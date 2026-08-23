@@ -17,6 +17,15 @@ export function marketSymbol(asset, marketMode = "fractional") {
   return ticker.endsWith("F") ? ticker : `${ticker}F`;
 }
 
+export function marketVariants(asset) {
+  const kind = assetKindLabel(asset);
+  if (asset?.kind === "fii") return [{ marketMode: "standard", displayTicker: marketSymbol(asset, "standard"), label: "FII · COTA" }];
+  return [
+    { marketMode: "standard", displayTicker: marketSymbol(asset, "standard"), label: `${kind} · LOTE PADRÃO` },
+    { marketMode: "fractional", displayTicker: marketSymbol(asset, "fractional"), label: `${kind} · FRACIONÁRIO` },
+  ];
+}
+
 export function underlyingTicker(value, assets = []) {
   const term = clean(value);
   if (!term) return "";

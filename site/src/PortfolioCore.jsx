@@ -4,6 +4,7 @@ import { buildQuantAnalysis } from "./quant/quant-engine.js";
 import { buildBuySellScore } from "./analysis/buy-sell-score.js";
 import { fairValueRange } from "./opportunity-engine.js";
 import { enrichTradeBenchmarks, learningCalibration, localDateKey, partsObject } from "./analysis/portfolio-learning.js";
+import { assetKindLabel, lotSizeFor, marketSymbol, maxQuantityFor } from "./battle-market.js";
 import AssetSearch from "./AssetSearch.jsx";
 import "./PortfolioManager.css";
 
@@ -25,7 +26,8 @@ function normalize(raw) {
     ...item,
     strategy: item.strategy ?? "swing",
     tickers: item.tickers ?? [],
-    holdings: (item.holdings ?? []).map((holding) => ({ thesis: "", invalidation: "", reviewBy: holding.entryDate ? addMonths(holding.entryDate, 6) : null, fairValueAtEntry: null, entryParts: null, entryScore: null, ...holding })),
+    marketModes: item.marketModes ?? Object.fromEntries((item.tickers ?? []).map((ticker) => [ticker, "fractional"])),
+    holdings: (item.holdings ?? []).map((holding) => ({ thesis: "", invalidation: "", reviewBy: holding.entryDate ? addMonths(holding.entryDate, 6) : null, fairValueAtEntry: null, entryParts: null, entryScore: null, marketMode: "fractional", displayTicker: holding.ticker, lotSize: 1, ...holding })),
     closedTrades: item.closedTrades ?? [],
     snapshots: item.snapshots ?? [],
   }));
@@ -115,9 +117,11 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
   const [portfolios, setPortfolios] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [name, setName] = useState("");
+  const [notice, setNotice] = useState("");
   const [ready, setReady] = useState(false);
   const [benchmarks, setBenchmarks] = useState(null);
   const eligible = useMemo(() => assets.filter((asset) => Number.isFinite(asset.price) && asset.price > 0).sort((a, b) => a.ticker.localeCompare(b.ticker)), [assets]);
+  const eligibleMap = useMemo(() => new Map(eligible.map((asset) => [asset.ticker, asset])), [eligible]);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/benchmarks.json`, { cache: "no-store" }).then((response) => response.ok ? response.json() : Promise.reject()).then(setBenchmarks).catch(() => setBenchmarks(null));
@@ -135,7 +139,7 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
       else {
         const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? "null");
         if (legacy?.tickers?.length) {
-          const imported = { id: uid(), name: "Carteira principal", strategy: "swing", capital: legacy.capital ?? 5000, tickers: legacy.tickers, holdings: [], closedTrades: [], snapshots: [], createdAt: new Date().toISOString(), imported: true };
+          const imported = { id: uid(), name: "Carteira principal", strategy: "swing", capital: legacy.capital ?? 5000, tickers: legacy.tickers, marketModes: Object.fromEntries(legacy.tickers.map((ticker) => [ticker, "fractional"])), holdings: [], closedTrades: [], snapshots: [], createdAt: new Date().toISOString(), imported: true };
           setPortfolios([imported]); setActiveId(imported.id);
         }
       }
@@ -159,29 +163,45 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
 
   const create = () => {
     const label = name.trim() || `Carteira ${portfolios.length + 1}`;
-    const item = { id: uid(), name: label, strategy: "swing", capital: 5000, tickers: [], holdings: [], closedTrades: [], snapshots: [], createdAt: new Date().toISOString() };
+    const item = { id: uid(), name: label, strategy: "swing", capital: 5000, tickers: [], marketModes: {}, holdings: [], closedTrades: [], snapshots: [], createdAt: new Date().toISOString() };
     setPortfolios((current) => [...current, item]); setActiveId(item.id); setName("");
   };
   const update = (patch) => setPortfolios((current) => current.map((item) => item.id === activeId ? { ...item, ...patch } : item));
   const updateHolding = (ticker, patch) => update({ holdings: active.holdings.map((holding) => holding.ticker === ticker ? { ...holding, ...patch } : holding) });
-  const addTicker = (ticker) => { if (active && ticker && !active.tickers.includes(ticker)) update({ tickers: [...active.tickers, ticker] }); };
-  const removeTicker = (ticker) => update({ tickers: active.tickers.filter((value) => value !== ticker), holdings: active.holdings.filter((value) => value.ticker !== ticker) });
+  const addAsset = (asset, option) => {
+    if (!active || !asset?.ticker || active.tickers.includes(asset.ticker)) return;
+    const marketMode = asset.kind === "fii" ? "standard" : option?.marketMode === "standard" ? "standard" : "fractional";
+    update({ tickers: [...active.tickers, asset.ticker], marketModes: { ...(active.marketModes ?? {}), [asset.ticker]: marketMode } });
+    setNotice("");
+  };
+  const removeTicker = (ticker) => {
+    const marketModes = { ...(active.marketModes ?? {}) }; delete marketModes[ticker];
+    update({ tickers: active.tickers.filter((value) => value !== ticker), marketModes, holdings: active.holdings.filter((value) => value.ticker !== ticker) });
+  };
   const initialize = () => {
     if (!active?.tickers.length || !(active.capital > 0)) return;
     const target = active.capital / active.tickers.length;
     const date = today();
     const existing = new Map(active.holdings.map((holding) => [holding.ticker, holding]));
     const strategy = active.strategy ?? "swing";
+    const skipped = [];
     const holdings = active.tickers.map((ticker) => {
       if (existing.has(ticker)) return existing.get(ticker);
       const asset = eligible.find((item) => item.ticker === ticker);
-      const quantity = asset ? Math.floor(target / asset.price) : 0;
+      const marketMode = asset?.kind === "fii" ? "standard" : active.marketModes?.[ticker] ?? "fractional";
+      const lotSize = asset ? lotSizeFor(asset, marketMode) : 1;
+      const rawQuantity = asset ? Math.floor(target / (asset.price * lotSize)) * lotSize : 0;
+      const maximum = asset ? maxQuantityFor(asset, marketMode) : null;
+      const quantity = maximum == null ? rawQuantity : Math.min(rawQuantity, maximum);
+      const displayTicker = asset ? marketSymbol(asset, marketMode) : ticker;
       const fair = asset ? fairValueRange(asset)?.base ?? null : null;
       const analysis = asset ? buildQuantAnalysis(asset, eligible, null, quantProfile(strategy)) : null;
       const score = asset && analysis ? buildBuySellScore({ asset, analysis, strategy }) : null;
-      return quantity > 0 ? { ticker, quantity, entryPrice: asset.price, entryDate: date, fairValueAtEntry: fair, entryScore: score?.score ?? null, entrySignal: score?.label ?? null, entryParts: partsObject(score), thesis: "", invalidation: "", reviewBy: addMonths(date, strategy === "swing" ? 6 : 12) } : null;
+      if (quantity <= 0) { skipped.push(`${displayTicker} exige pelo menos ${lotSize} unidade(s)`); return null; }
+      return { ticker, displayTicker, marketMode, lotSize, quantity, entryPrice: asset.price, entryDate: date, fairValueAtEntry: fair, entryScore: score?.score ?? null, entrySignal: score?.label ?? null, entryParts: partsObject(score), thesis: "", invalidation: "", reviewBy: addMonths(date, strategy === "swing" ? 6 : 12) };
     }).filter(Boolean);
     update({ holdings });
+    setNotice(skipped.length ? `Capital insuficiente: ${skipped.join(" · ")}.` : "Posições registradas com o mercado e o lote escolhidos.");
   };
   const closePosition = (row) => {
     if (!active || row.price == null) return;
@@ -189,6 +209,9 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
     const trade = enrichTradeBenchmarks({
       id: `trade-${row.ticker}-${Date.now()}`,
       ticker: row.ticker,
+      displayTicker: row.displayTicker ?? row.ticker,
+      marketMode: row.marketMode ?? "fractional",
+      lotSize: row.lotSize ?? 1,
       strategy: active.strategy ?? "swing",
       quantity: row.quantity,
       entryPrice: row.entryPrice,
@@ -213,6 +236,11 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
     update({ holdings: active.holdings.filter((holding) => holding.ticker !== row.ticker), tickers: active.tickers.filter((ticker) => ticker !== row.ticker), closedTrades: [...(active.closedTrades ?? []), trade] });
   };
   const remove = () => { if (!active) return; const remaining = portfolios.filter((item) => item.id !== active.id); setPortfolios(remaining); setActiveId(remaining[0]?.id ?? null); };
+  const selectedMarket = (ticker) => {
+    const asset = eligibleMap.get(ticker);
+    const marketMode = asset?.kind === "fii" ? "standard" : active?.marketModes?.[ticker] ?? "fractional";
+    return { symbol: marketSymbol(asset ?? { ticker }, marketMode), label: asset?.kind === "fii" ? "FII" : marketMode === "standard" ? `${assetKindLabel(asset)} INTEIRA` : `${assetKindLabel(asset)} FRACIONADA` };
+  };
 
   const strategyName = active?.strategy === "long" ? "Longo Prazo" : active?.strategy === "dividends" ? "Dividendos" : "Swing Trade";
   return <section className="portfolio-manager portfolio-v6">
@@ -223,16 +251,16 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
     {active && <>
       {!!metrics?.alerts.length && <section className="portfolio-alert-center"><header><span>REVISAR AGORA</span><h3>Alertas da carteira</h3></header><div>{metrics.alerts.slice(0, 12).map((alert, index) => <article className={alert.tone} key={`${alert.ticker}-${alert.text}-${index}`}><b>{alert.ticker}</b><span>{alert.text}</span></article>)}</div></section>}
 
-      <div className="portfolio-workspace"><div className="portfolio-editor"><div className="portfolio-editor-head"><div><span>CONFIGURAÇÃO</span><h3>{active.name}</h3></div><button className="portfolio-delete" onClick={remove}>Excluir carteira</button></div><div className="portfolio-manager-controls"><label>Nome<input value={active.name} onChange={(event) => update({ name: event.target.value || "Carteira sem nome" })} /></label><label>Estratégia<select value={active.strategy ?? "swing"} onChange={(event) => update({ strategy: event.target.value })}><option value="swing">Swing Trade</option><option value="long">Longo Prazo</option><option value="dividends">Dividendos</option></select></label><label>Capital inicial<input type="number" min="0" step="100" value={active.capital} onChange={(event) => update({ capital: Math.max(0, Number(event.target.value)) })} /></label><AssetSearch assets={eligible} excludeTickers={active.tickers} onSelect={(asset) => addTicker(asset.ticker)} label="Adicionar ativo" placeholder="Digite ticker ou nome" fractionalSymbols /></div><div className="portfolio-tickers">{active.tickers.map((ticker) => <span key={ticker}>{ticker}<button onClick={() => removeTicker(ticker)}>×</button></span>)}</div><div className="portfolio-actions"><button className="primary" disabled={!active.tickers.length} onClick={initialize}>Registrar posições novas</button><small>A entrada registra score e componentes da estratégia selecionada.</small></div></div>
+      <div className="portfolio-workspace"><div className="portfolio-editor"><div className="portfolio-editor-head"><div><span>CONFIGURAÇÃO</span><h3>{active.name}</h3></div><button className="portfolio-delete" onClick={remove}>Excluir carteira</button></div><div className="portfolio-manager-controls"><label>Nome<input value={active.name} onChange={(event) => update({ name: event.target.value || "Carteira sem nome" })} /></label><label>Estratégia<select value={active.strategy ?? "swing"} onChange={(event) => update({ strategy: event.target.value })}><option value="swing">Swing Trade</option><option value="long">Longo Prazo</option><option value="dividends">Dividendos</option></select></label><label>Capital inicial<input type="number" min="0" step="100" value={active.capital} onChange={(event) => update({ capital: Math.max(0, Number(event.target.value)) })} /></label><AssetSearch assets={eligible} excludeTickers={active.tickers} onSelect={addAsset} label="Adicionar ativo" placeholder="PETR4, PETR4F, HGLG11 ou nome" marketOptions limit={12} /></div><p className="portfolio-market-help">Ação inteira usa lote de 100; fracionária aparece com F e aceita de 1 a 99; FII usa cota de 1.</p><div className="portfolio-tickers">{active.tickers.map((ticker) => { const selection = selectedMarket(ticker); return <span key={ticker}><b>{selection.symbol}</b><small>{selection.label}</small><button onClick={() => removeTicker(ticker)}>×</button></span>; })}</div>{notice && <div className="portfolio-notice" role="status">{notice}</div>}<div className="portfolio-actions"><button className="primary" disabled={!active.tickers.length} onClick={initialize}>Registrar posições novas</button><small>A entrada registra score, mercado e lote da opção selecionada.</small></div></div>
       <aside className="portfolio-dashboard"><span>RESUMO</span><div className="portfolio-kpis"><article><small>Custo</small><b>{money(metrics?.cost)}</b></article><article><small>Valor atual</small><b>{metrics?.coverage === 100 ? money(metrics.value) : "N/D"}</b></article><article className={metrics?.pnl >= 0 ? "positive" : "negative"}><small>Resultado</small><b>{pct(metrics?.returnPct)}</b></article><article><small>Cobertura</small><b>{Math.round(metrics?.coverage ?? 0)}%</b></article></div><div className="portfolio-history"><h4>Evolução registrada</h4>{active.snapshots?.length > 1 ? <svg viewBox="0 0 100 42" preserveAspectRatio="none"><polyline points={points(active.snapshots.map((snapshot) => snapshot.value))} /></svg> : <p>A curva aparecerá após pelo menos duas fotografias em dias diferentes.</p>}<small>{active.snapshots?.length ?? 0} fotografia(s)</small></div><p className="portfolio-data-note">Preços: ações em {asOf.stockPriceAsOf ?? "N/D"}; FIIs em {asOf.fiiPriceAsOf ?? "N/D"}.</p></aside></div>
 
-      <section className="position-list"><header><span>POSIÇÕES ABERTAS</span><h3>O que você possui agora</h3><p>O score atual é comparado ao score da entrada para detectar deterioração.</p></header>{metrics?.rows.length ? metrics.rows.map((row) => <article className={`position-card ${row.score?.signal ?? "unavailable"}`} key={row.ticker}><div className="position-main"><div><strong>{row.ticker}</strong><span>{row.asset?.name ?? "Ativo B3"}</span></div><div className="position-signal"><em>{row.score?.label ?? "NÃO AVALIÁVEL"}</em><b>{row.score?.score == null ? "N/D" : `${row.score.score}/100`}</b><small>entrada: {row.entryScore == null ? "N/D" : `${row.entryScore}/100`}</small></div></div>{row.alerts.length > 0 && <div className="position-alerts">{row.alerts.map((alert, index) => <span className={alert.tone} key={`${alert.text}-${index}`}>{alert.text}</span>)}</div>}<div className="position-numbers"><div><span>Preço médio</span><b>{money(row.entryPrice)}</b></div><div><span>Preço atual</span><b>{money(row.price)}</b></div><div><span>Resultado</span><b className={row.returnPct == null ? "" : row.returnPct >= 0 ? "positive" : "negative"}>{pct(row.returnPct)}</b></div><div><span>Dias</span><b>{row.daysHeld ?? "N/D"}</b></div><div><span>Valor justo</span><b>{money(row.currentFair)}</b></div><div><span>Assimetria atual</span><b>{pct(row.currentGap)}</b></div></div><details className="position-details"><summary>Tese e revisão</summary><div className="position-contract"><label>Por que comprei?<textarea value={row.thesis ?? ""} onChange={(event) => updateHolding(row.ticker, { thesis: event.target.value })} placeholder="Ex.: lucro crescendo, desconto e catalisador..." /></label><label>O que invalida a tese?<textarea value={row.invalidation ?? ""} onChange={(event) => updateHolding(row.ticker, { invalidation: event.target.value })} placeholder="Ex.: dívida sobe, margem cai, tese regulatória muda..." /></label><label>Revisar até<input type="date" value={row.reviewBy ?? ""} onChange={(event) => updateHolding(row.ticker, { reviewBy: event.target.value })} /></label></div></details><footer><div><span>{row.reviewDue ? "REVISÃO VENCIDA" : `Revisão: ${row.reviewBy ?? "N/D"}`}</span><b>{row.consumedRatio == null ? "Assimetria inicial N/D" : `${Math.round(row.consumedRatio)}% da assimetria consumida`}</b></div><button disabled={row.price == null} onClick={() => closePosition(row)}>Encerrar posição</button></footer></article>) : <p className="portfolio-empty-state">Adicione ativos e registre as posições para começar o acompanhamento.</p>}</section>
+      <section className="position-list"><header><span>POSIÇÕES ABERTAS</span><h3>O que você possui agora</h3><p>O score atual é comparado ao score da entrada para detectar deterioração.</p></header>{metrics?.rows.length ? metrics.rows.map((row) => <article className={`position-card ${row.score?.signal ?? "unavailable"}`} key={row.ticker}><div className="position-main"><div><strong>{row.displayTicker ?? row.ticker}</strong><span>{row.asset?.name ?? "Ativo B3"} · lote {row.lotSize ?? 1}</span></div><div className="position-signal"><em>{row.score?.label ?? "NÃO AVALIÁVEL"}</em><b>{row.score?.score == null ? "N/D" : `${row.score.score}/100`}</b><small>entrada: {row.entryScore == null ? "N/D" : `${row.entryScore}/100`}</small></div></div>{row.alerts.length > 0 && <div className="position-alerts">{row.alerts.map((alert, index) => <span className={alert.tone} key={`${alert.text}-${index}`}>{alert.text}</span>)}</div>}<div className="position-numbers"><div><span>Preço médio</span><b>{money(row.entryPrice)}</b></div><div><span>Preço atual</span><b>{money(row.price)}</b></div><div><span>Resultado</span><b className={row.returnPct == null ? "" : row.returnPct >= 0 ? "positive" : "negative"}>{pct(row.returnPct)}</b></div><div><span>Dias</span><b>{row.daysHeld ?? "N/D"}</b></div><div><span>Valor justo</span><b>{money(row.currentFair)}</b></div><div><span>Assimetria atual</span><b>{pct(row.currentGap)}</b></div></div><details className="position-details"><summary>Tese e revisão</summary><div className="position-contract"><label>Por que comprei?<textarea value={row.thesis ?? ""} onChange={(event) => updateHolding(row.ticker, { thesis: event.target.value })} placeholder="Ex.: lucro crescendo, desconto e catalisador..." /></label><label>O que invalida a tese?<textarea value={row.invalidation ?? ""} onChange={(event) => updateHolding(row.ticker, { invalidation: event.target.value })} placeholder="Ex.: dívida sobe, margem cai, tese regulatória muda..." /></label><label>Revisar até<input type="date" value={row.reviewBy ?? ""} onChange={(event) => updateHolding(row.ticker, { reviewBy: event.target.value })} /></label></div></details><footer><div><span>{row.reviewDue ? "REVISÃO VENCIDA" : `Revisão: ${row.reviewBy ?? "N/D"}`}</span><b>{row.consumedRatio == null ? "Assimetria inicial N/D" : `${Math.round(row.consumedRatio)}% da assimetria consumida`}</b></div><button disabled={row.price == null} onClick={() => closePosition(row)}>Encerrar posição</button></footer></article>) : <p className="portfolio-empty-state">Adicione ativos e registre as posições para começar o acompanhamento.</p>}</section>
 
       <details className="portfolio-secondary"><summary>Desempenho e aprendizado do método</summary><div className="portfolio-secondary-body"><section className="portfolio-scorecard"><header><div><span>PLACAR DO MÉTODO</span><h3>Operações encerradas</h3></div><em>{performance.sampleLabel}</em></header><div className="performance-grid"><article><span>Operações</span><b>{performance.count}</b><small>20 · 50 · 100 são marcos</small></article><article><span>Taxa de acerto</span><b>{pct(performance.winRate)}</b><small>{performance.wins} ganhos · {performance.losses} perdas</small></article><article><span>Retorno líquido</span><b className={performance.netReturn == null ? "" : performance.netReturn >= 0 ? "positive" : "negative"}>{pct(performance.netReturn)}</b><small>{money(performance.totalPnl)} realizado</small></article><article><span>Alpha vs IBOV</span><b>{pct(performance.avgAlphaIbov)}</b><small>{performance.benchmarkedIbov} comparável(is)</small></article><article><span>Alpha vs CDI</span><b>{pct(performance.avgAlphaCdi)}</b><small>{performance.benchmarkedCdi} comparável(is)</small></article><article><span>Ganho médio</span><b>{pct(performance.avgWin)}</b></article><article><span>Perda média</span><b>{pct(performance.avgLoss)}</b></article><article><span>Payoff</span><b>{performance.payoff == null ? "N/D" : `${performance.payoff.toFixed(2)}x`}</b></article><article><span>Tempo médio</span><b>{performance.avgDays == null ? "N/D" : `${Math.round(performance.avgDays)} dias`}</b></article><article><span>Drawdown</span><b>{performance.count ? pct(-performance.maxDrawdown) : "N/D"}</b></article></div><p className="performance-note">Benchmarks só aparecem quando a série cobre entrada e saída. Dados ausentes nunca viram zero.</p></section>
 
       <section className={`learning-panel ${calibration.ready ? "ready" : "waiting"}`}><header><div><span>CALIBRAÇÃO</span><h3>{strategyName}: aprendizado com operações reais</h3></div><em>{calibration.sample} operações úteis</em></header><div className="learning-weights">{Object.entries(calibration.weights).map(([key, value]) => <article key={key}><span>{key}</span><b>{value}%</b><small>padrão: {calibration.defaults[key]}%</small></article>)}</div><p>{calibration.message}</p>{calibration.ready && <strong>Os pesos são uma sugestão experimental. O score oficial não é alterado automaticamente.</strong>}</section>
 
-      <section className="closed-trades"><header><span>HISTÓRICO REAL</span><h3>Operações encerradas</h3></header>{enrichedTrades.length ? <div className="closed-trade-list">{[...enrichedTrades].reverse().map((trade) => <article key={trade.id}><div><strong>{trade.ticker}</strong><span>{trade.strategy === "long" ? "Longo Prazo" : trade.strategy === "dividends" ? "Dividendos" : "Swing Trade"}</span></div><div><span>Entrada</span><b>{money(trade.entryPrice)}</b></div><div><span>Saída</span><b>{money(trade.exitPrice)}</b></div><div><span>Resultado</span><b className={trade.returnPct == null ? "" : trade.returnPct >= 0 ? "positive" : "negative"}>{pct(trade.returnPct)}</b></div><div><span>vs IBOV</span><b>{pct(trade.alphaIbov)}</b></div><div><span>vs CDI</span><b>{pct(trade.alphaCdi)}</b></div><div><span>Tempo</span><b>{trade.daysHeld ?? "N/D"} dias</b></div></article>)}</div> : <p className="portfolio-empty-state">Nenhuma operação encerrada ainda.</p>}</section></div></details>
+      <section className="closed-trades"><header><span>HISTÓRICO REAL</span><h3>Operações encerradas</h3></header>{enrichedTrades.length ? <div className="closed-trade-list">{[...enrichedTrades].reverse().map((trade) => <article key={trade.id}><div><strong>{trade.displayTicker ?? trade.ticker}</strong><span>{trade.strategy === "long" ? "Longo Prazo" : trade.strategy === "dividends" ? "Dividendos" : "Swing Trade"}</span></div><div><span>Entrada</span><b>{money(trade.entryPrice)}</b></div><div><span>Saída</span><b>{money(trade.exitPrice)}</b></div><div><span>Resultado</span><b className={trade.returnPct == null ? "" : trade.returnPct >= 0 ? "positive" : "negative"}>{pct(trade.returnPct)}</b></div><div><span>vs IBOV</span><b>{pct(trade.alphaIbov)}</b></div><div><span>vs CDI</span><b>{pct(trade.alphaCdi)}</b></div><div><span>Tempo</span><b>{trade.daysHeld ?? "N/D"} dias</b></div></article>)}</div> : <p className="portfolio-empty-state">Nenhuma operação encerrada ainda.</p>}</section></div></details>
     </>}
   </section>;
 }
