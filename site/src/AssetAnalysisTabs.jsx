@@ -3,12 +3,13 @@ import FinancialChart from "./FinancialChart.jsx";
 import DailyHistoryPanel from "./DailyHistoryPanel.jsx";
 import TradeSignalPanel from "./TradeSignalPanel.jsx";
 import AssetIntelligencePanelCore from "./AssetIntelligencePanelCore.jsx";
+import IntradayChart from "./IntradayChart.jsx";
 
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const number = (value, digits = 2) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { maximumFractionDigits: digits });
 const pct = (value) => value == null ? "N/D" : `${Number(value) > 0 ? "+" : ""}${number(value)}%`;
 
-const TABS = [["overview", "Decisão"], ["chart", "Gráfico diário"], ["details", "Detalhes"]];
+const TABS = [["overview", "Decisão"], ["chart", "Gráficos"], ["details", "Detalhes"]];
 
 function Metric({ label, value, note }) {
   return <article><span>{label}</span><b>{value}</b>{note && <small>{note}</small>}</article>;
@@ -95,18 +96,19 @@ function useHistoryFallback(ticker, officialSeries, active) {
 
 export default function AssetAnalysisTabs({ asset, analysis, anomaly, coreProps, strategy = "swing" }) {
   const [tab, setTab] = useState("overview");
+  const [chartMode, setChartMode] = useState("intraday");
   const book = asset?.book ?? null;
   const fair = analysis?.levels?.fair ?? null;
   const events = useMemo(() => [], []);
   const officialSeries = Array.isArray(anomaly?.series) ? anomaly.series : [];
-  const history = useHistoryFallback(asset.ticker, officialSeries, tab === "chart" || tab === "details");
+  const history = useHistoryFallback(asset.ticker, officialSeries, (tab === "chart" && chartMode === "daily") || tab === "details");
   const series = history.series;
   const hasSeries = series.length >= 2;
   return <div className="asset-tabs-shell premium-asset-tabs">
     <nav className="asset-tabs" role="tablist" aria-label="Análise do ativo">{TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "active" : ""} onClick={() => setTab(id)}>{label}</button>)}</nav>
     <div className="asset-tab-content">
       {tab === "overview" && <TradeSignalPanel asset={asset} analysis={analysis} book={book} strategy={strategy} />}
-      {tab === "chart" && <section className="tab-section"><header><span>GRÁFICO DIÁRIO</span><h2>Preço, tendência e valor por pregão</h2><p>Candles diários, volume, médias e valor justo ficam juntos para reduzir troca de telas.</p></header>{hasSeries ? <><FinancialChart series={series} fairValue={fair} events={events} ticker={asset.ticker} /><div className="tab-note"><b>Fonte: {history.source}</b></div></> : <div className="book-unavailable"><b>{history.loading ? `Carregando histórico de ${asset.ticker}…` : `Histórico indisponível para ${asset.ticker}`}</b><p>O app mantém o restante da análise sem inventar preços.</p></div>}</section>}
+      {tab === "chart" && <section className="tab-section"><header><span>{chartMode === "intraday" ? "PREGÃO COMPLETO" : "HISTÓRICO DIÁRIO"}</span><h2>{chartMode === "intraday" ? "Movimentação ao longo de todo o dia" : "Preço, tendência e valor por pregão"}</h2><p>{chartMode === "intraday" ? "Acompanhe a trajetória do preço em candles de cinco minutos, da abertura ao último ponto disponível." : "Candles diários, volume, médias e valor justo ficam juntos para reduzir troca de telas."}</p></header><div className="intraday-mode-switch"><button type="button" className={chartMode === "intraday" ? "active" : ""} onClick={() => setChartMode("intraday")}>Hoje · 5 min</button><button type="button" className={chartMode === "daily" ? "active" : ""} onClick={() => setChartMode("daily")}>Histórico · diário</button></div>{chartMode === "intraday" ? <IntradayChart asset={asset} /> : hasSeries ? <><FinancialChart series={series} fairValue={fair} events={events} ticker={asset.ticker} /><div className="tab-note"><b>Fonte: {history.source}</b></div></> : <div className="book-unavailable"><b>{history.loading ? `Carregando histórico de ${asset.ticker}…` : `Histórico indisponível para ${asset.ticker}`}</b><p>O app mantém o restante da análise sem inventar preços.</p></div>}</section>}
       {tab === "details" && <section className="asset-details-stack"><FundamentalsBlock asset={asset} analysis={analysis} coreProps={coreProps} /><DividendsBlock asset={asset} />{hasSeries && <section className="asset-detail-block"><header><span>HISTÓRICO</span><h3>Pregões recentes</h3></header><DailyHistoryPanel series={series} ticker={asset.ticker} /><small>Fonte: {history.source}</small></section>}<BookBlock asset={asset} /></section>}
     </div>
   </div>;

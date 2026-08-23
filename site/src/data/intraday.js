@@ -28,6 +28,15 @@ function normalizeBook(book) {
   return hasData ? normalized : null;
 }
 
+function normalizeSeries(series) {
+  if (!Array.isArray(series)) return [];
+  return series.map((row) => ({
+    asOf: row?.asOf ? String(row.asOf) : null,
+    price: number(row?.price),
+    volume: number(row?.volume),
+  })).filter((row) => row.asOf && row.price !== null);
+}
+
 // Só sobrepõe a fotografia diária quando a fonte externa declarar dados válidos.
 // Assim, um arquivo ausente/defasado nunca vira uma "cotação ao vivo" fictícia.
 export function normalizeIntraday(payload) {
@@ -40,6 +49,7 @@ export function normalizeIntraday(payload) {
     volume: number(quote.volume),
     asOf: quote.asOf ? String(quote.asOf) : null,
     book: normalizeBook(quote.book),
+    series: normalizeSeries(quote.series),
   }]).filter(([ticker, quote]) => ticker && quote.price !== null));
   return {
     available: quotes.size > 0,
@@ -70,6 +80,7 @@ export function applyIntradayQuotes(assets, intraday) {
       intradayAsOf,
       intradaySource: intraday.source,
       intradayDelayMinutes: intraday.delayMinutes,
+      intradaySeries: quote.series,
       bookStatus: quote.book ? "ATUALIZADO" : intraday.bookStatus,
       bookSource: quote.book?.source ?? intraday.bookSource,
     };

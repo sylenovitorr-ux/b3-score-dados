@@ -16,10 +16,12 @@ import urllib.parse
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "data" / "intraday.json"
 BRAPI_LIST_URL = "https://brapi.dev/api/quote/list?limit=9999"
+MARKET_TIMEZONE = ZoneInfo("America/Sao_Paulo")
 
 
 def numeric(value):
@@ -102,7 +104,36 @@ def normalize_brapi(payload, books, authenticated=False):
     return {"status": "ATUALIZADO", "generatedAt": datetime.now(UTC).isoformat(), "updatedAt": requested_at, "delayMinutes": 30, "source": source, "quotes": rows}
 
 
+def market_day(value):
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=UTC)
+        return parsed.astimezone(MARKET_TIMEZONE).date().isoformat()
+    except ValueError:
+        return None
+
+
+def merge_intraday_series(data, previous):
+    previous_quotes = {str(row.get("ticker") or "").upper(): row for row in (previous or {}).get("quotes", [])}
+    for quote in data.get("quotes", []):
+        as_of = quote.get("asOf") or data.get("updatedAt")
+        day = market_day(as_of)
+        old = previous_quotes.get(quote["ticker"], {})
+        series = [row for row in old.get("series", []) if market_day(row.get("asOf")) == day]
+        point = {"asOf": as_of, "price": quote.get("price"), "volume": quote.get("volume")}
+        by_time = {row.get("asOf"): row for row in [*series, point] if row.get("asOf") and numeric(row.get("price")) is not None}
+        quote["series"] = sorted(by_time.values(), key=lambda row: row["asOf"])[-150:]
+    return data
+
+
 def main():
+    try:
+        previous = json.loads(OUTPUT.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        previous = {}
     books, book_source = fetch_books()
     intraday_url = os.environ.get("INTRADAY_SOURCE_URL")
     brapi_token = (os.environ.get("BRAPI_TOKEN") or "").strip()
@@ -121,6 +152,7 @@ def main():
         data = normalize_brapi(payload, books, authenticated=bool(brapi_token))
     data["bookSource"] = book_source
     data["bookStatus"] = "ATUALIZADO" if books else "INDISPONIVEL_SEM_FONTE_L2"
+    data = merge_intraday_series(data, previous)
     OUTPUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"{len(data['quotes'])} cotações válidas; {len(books)} books L2 válidos.")
 

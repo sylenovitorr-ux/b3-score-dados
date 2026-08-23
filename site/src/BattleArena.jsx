@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { buildQuantAnalysis } from "./quant/quant-engine.js";
 import { buildBuySellScore } from "./analysis/buy-sell-score.js";
 import { fairValueRange } from "./opportunity-engine.js";
-import { uniqueByIssuer } from "./issuer-key.js";
+import { issuerKey, uniqueByIssuer } from "./issuer-key.js";
 import { addMonths, battleEquitySeries, closeOrder, competitorMetrics, equityStats, finite, localDate, nextTradingDate, processOrder } from "./battle-engine.js";
 import "./BattleArena.css";
 
@@ -168,6 +168,7 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     if (active.status !== "setup" || competitor.kind !== "mine") return;
     const draft = drafts[competitor.id] ?? {}; const row = qualifiedMap.get(String(draft.ticker ?? "").trim().toUpperCase());
     if (!row) return setNotice("Escolha um ativo do universo qualificado.");
+    if (competitor.orders.some((order) => issuerKey(assetMap.get(order.ticker)) === issuerKey(row.asset))) return setNotice("Esse emissor já está na sua carteira. Escolha outra empresa para o duelo.");
     const allocation = finite(draft.allocation) ?? Math.round(competitor.capital / 5);
     const order = planOrder(row, allocation, active.startDate, "user", draft);
     if (!orderValid(order)) return setNotice("Use stop abaixo da entrada, alvo acima da entrada e capital maior que zero.");
@@ -178,9 +179,11 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
 
   const autoFillModel = (competitor) => {
     if (active.status !== "setup" || competitor.kind !== "model") return;
-    const candidates = uniqueByIssuer(qualified.filter((row) => row.score.signal === "buy")).slice(0, 5);
-    if (!candidates.length) return setNotice("A IA não encontrou ações com COMPRA e dados suficientes.");
-    const allocation = competitor.capital / candidates.length;
+    const userCount = active.competitors.find((item) => item.kind === "mine")?.orders?.length ?? 0;
+    if (!userCount) return setNotice("Adicione suas posições primeiro; a IA usará exatamente a mesma quantidade.");
+    const allocation = competitor.capital / userCount;
+    const candidates = uniqueByIssuer(qualified.filter((row) => row.score.signal === "buy" && finite(row.asset.price) <= allocation)).slice(0, userCount);
+    if (candidates.length < userCount) return setNotice(`A IA encontrou apenas ${candidates.length} empresas COMPRA acessíveis com ${money(allocation)} por posição. Reduza a quantidade ou aumente o capital.`);
     updateCompetitor(competitor.id, { orders: candidates.map((row) => planOrder(row, allocation, active.startDate, "model-auto")) }); setNotice("");
   };
 
@@ -201,6 +204,7 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   const startBattle = () => {
     const mine = active.competitors.find((competitor) => competitor.kind === "mine"); const model = active.competitors.find((competitor) => competitor.kind === "model");
     if (!mine?.orders?.length || !model?.orders?.length) return setNotice("Monte sua carteira e gere a carteira da IA antes de iniciar.");
+    if (mine.orders.length !== model.orders.length) return setNotice("Você alterou a quantidade de posições. Gere novamente a carteira da IA para igualar os dois lados.");
     if ([mine, model].some((competitor) => allocationSum(competitor) > active.capital || competitor.orders.some((order) => !orderValid(order)))) return setNotice("Revise capital, entrada, stop e alvo das duas carteiras.");
     const startDate = active.startDate > localDate() ? active.startDate : nextTradingDate(); const lockedAt = new Date().toISOString();
     const dataReferenceDate = assets.map((asset) => asset.date).filter(Boolean).sort().at(-1) ?? null;
@@ -239,6 +243,7 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   const draft = (competitorId) => drafts[competitorId] ?? {};
   const setDraft = (competitorId, patch) => setDrafts((current) => ({ ...current, [competitorId]: { ...(current[competitorId] ?? {}), ...patch } }));
   const editable = active.status === "setup";
+  const userPositionCount = competitors.find((competitor) => competitor.kind === "mine")?.orders?.length ?? 0;
 
   return <section className="battle-arena">
     <header className="battle-intro"><div><span>VOCÊ VS IA · SWING TRADE</span><h2>Mesmas regras. Decisões diferentes.</h2><p>Você escolhe sua carteira; a IA escolhe a dela. A decisão de comprar no mundo real continua sendo somente sua.</p></div><button onClick={createBattle}>Nova disputa</button></header>
@@ -251,7 +256,7 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     </section>
     {notice && <div className="battle-notice" role="alert">{notice}</div>}
 
-    <section className="battle-scoreboard"><header><div><span>PLACAR DIÁRIO</span><h3>{leader ? `${leader.name} está na frente` : "Disputa empatada"}</h3></div><small>Desde {formatDate(active.startDate)}</small></header><div>{ranked.map(({ competitor, metrics }, index) => <article key={competitor.id} className={competitor.kind}><em>#{index + 1}</em><div><b>{competitor.name}</b><small>{competitor.kind === "mine" ? "Suas escolhas" : "Top 5 da IA congelado"}</small></div><strong className={metrics.returnPct >= 0 ? "positive" : "negative"}>{pct(metrics.returnPct)}</strong><span>{money(metrics.equity)}</span><small>{metrics.open} abertas · {metrics.closed} fechadas · {metrics.waiting} aguardando · acerto {pct(metrics.winRate)}</small><i>Dia {pct(stats[competitor.id]?.dailyPct)} · drawdown {pct(stats[competitor.id]?.maxDrawdownPct)}</i></article>)}</div></section>
+    <section className="battle-scoreboard"><header><div><span>PLACAR DIÁRIO</span><h3>{leader ? `${leader.name} está na frente` : "Disputa empatada"}</h3></div><small>Desde {formatDate(active.startDate)}</small></header><div>{ranked.map(({ competitor, metrics }, index) => <article key={competitor.id} className={competitor.kind}><em>#{index + 1}</em><div><b>{competitor.name}</b><small>{competitor.kind === "mine" ? "Suas escolhas" : "Seleção da IA congelada"}</small></div><strong className={metrics.returnPct >= 0 ? "positive" : "negative"}>{pct(metrics.returnPct)}</strong><span>{money(metrics.equity)}</span><small>{metrics.open} abertas · {metrics.closed} fechadas · {metrics.waiting} aguardando · acerto {pct(metrics.winRate)}</small><i>Dia {pct(stats[competitor.id]?.dailyPct)} · drawdown {pct(stats[competitor.id]?.maxDrawdownPct)}</i></article>)}</div></section>
 
     <section className="battle-chart-card"><header><div><span>GRÁFICO DIÁRIO</span><h3>Evolução do patrimônio</h3></div><small>Capital não alocado permanece em caixa</small></header><BattleDailyChart rows={equityRows} competitors={competitors} />{equityRows.length > 0 && <details><summary>Ver fechamento diário</summary><div className="battle-daily-table"><div><b>Data</b>{competitors.map((competitor) => <b key={competitor.id}>{competitor.name}</b>)}</div>{equityRows.slice(-10).reverse().map((row) => <div key={row.date}><span>{formatDate(row.date)}</span>{competitors.map((competitor) => <span key={competitor.id}>{money(row.values[competitor.id])}</span>)}</div>)}</div></details>}</section>
 
@@ -260,17 +265,17 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
 
     <section className="battle-competitors">{competitors.map((competitor) => {
       const d = draft(competitor.id); const metrics = competitorMetrics(competitor, assetMap);
-      return <article className={`battle-competitor ${competitor.kind}`} key={competitor.id}><header><div><h3>{competitor.name}</h3><small>{money(competitor.capital)} · alocado {money(allocationSum(competitor))} · resultado {pct(metrics.returnPct)}</small></div><div>{editable && competitor.kind === "model" && <button onClick={() => autoFillModel(competitor)}>Gerar Top 5 da IA</button>}{editable && sourcePortfolios.length > 0 && competitor.kind === "mine" && <select defaultValue="" onChange={(event) => event.target.value && importPortfolio(competitor, event.target.value)}><option value="">Importar carteira...</option>{sourcePortfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select>}</div></header>
+      return <article className={`battle-competitor ${competitor.kind}`} key={competitor.id}><header><div><h3>{competitor.name}</h3><small>{money(competitor.capital)} · alocado {money(allocationSum(competitor))} · resultado {pct(metrics.returnPct)}</small></div><div>{editable && competitor.kind === "model" && <button onClick={() => autoFillModel(competitor)}>Gerar IA com {userPositionCount || "a mesma quantidade de"} {userPositionCount === 1 ? "ativo" : "ativos"}</button>}{editable && sourcePortfolios.length > 0 && competitor.kind === "mine" && <select defaultValue="" onChange={(event) => event.target.value && importPortfolio(competitor, event.target.value)}><option value="">Importar carteira...</option>{sourcePortfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select>}</div></header>
         {editable && competitor.kind === "mine" && <div className="battle-order-create"><label>Ativo<input list={`qualified-${competitor.id}`} value={d.ticker ?? ""} onChange={(event) => setDraft(competitor.id, { ticker: event.target.value.toUpperCase() })} placeholder="Ex.: PETR4" /><datalist id={`qualified-${competitor.id}`}>{qualified.map((row) => <option key={row.asset.ticker} value={row.asset.ticker}>{row.asset.name} · score {row.score.score}</option>)}</datalist></label><label>Entrada<input type="number" step="0.01" value={d.plannedEntry ?? ""} onChange={(event) => setDraft(competitor.id, { plannedEntry: event.target.value })} /></label><label>Stop<input type="number" step="0.01" value={d.stop ?? ""} onChange={(event) => setDraft(competitor.id, { stop: event.target.value })} /></label><label>Alvo<input type="number" step="0.01" value={d.target ?? ""} onChange={(event) => setDraft(competitor.id, { target: event.target.value })} /></label><label>Capital<input type="number" step="100" value={d.allocation ?? ""} onChange={(event) => setDraft(competitor.id, { allocation: event.target.value })} placeholder={String(Math.round(competitor.capital / 5))} /></label><label>Prazo<input type="date" min={active.startDate} value={d.deadline ?? ""} onChange={(event) => setDraft(competitor.id, { deadline: event.target.value })} /></label><button onClick={() => addOrder(competitor)}>Adicionar</button></div>}
         <div className="battle-orders">{competitor.orders.map((order) => {
           const asset = assetMap.get(order.ticker); const current = finite(asset?.price);
           const currentPnl = order.status === "open" && current != null && finite(order.entryPrice) != null && finite(order.quantity) != null ? (current - order.entryPrice) * order.quantity : finite(order.pnl);
           const currentReturn = order.status === "open" && current != null && finite(order.entryPrice) != null ? (current / order.entryPrice - 1) * 100 : finite(order.returnPct);
           return <section className={`battle-order ${order.status}`} key={order.id}><div className="battle-order-main"><div><strong>{order.ticker}</strong><span>{order.name}</span><small>Plano congelado: score {order.scoreAtPlan ?? "N/D"} · {order.signalAtPlan ?? "N/D"}</small></div><em>{order.status === "waiting" ? "AGUARDANDO ENTRADA" : order.status === "open" ? "POSIÇÃO ABERTA" : order.status === "closed" ? `ENCERRADA · ${order.exitReason}` : "CANCELADA"}</em><b className={currentReturn == null ? "" : currentReturn >= 0 ? "positive" : "negative"}>{pct(currentReturn)}</b></div><div className="battle-order-numbers"><span>Entrada planejada<b>{money(order.plannedEntry)}</b></span><span>Executada<b>{order.entryDate ? `${money(order.entryPrice)} · ${formatDate(order.entryDate)}` : "N/D"}</b></span><span>Stop<b>{money(order.stop)}</b></span><span>Alvo<b>{money(order.target)}</b></span><span>Prazo<b>{formatDate(order.deadline)}</b></span><span>Resultado<b>{money(currentPnl)}</b></span></div>{order.qualification?.length > 0 && <p className="battle-qualification">Qualificação: {order.qualification.join(" · ")}</p>}<footer>{active.status === "running" && competitor.kind === "mine" && order.status === "open" && <button onClick={() => manualClose(competitor, order)}>Encerrar no preço atual</button>}{editable && <button className="danger-link" onClick={() => deleteOrder(competitor.id, order.id)}>Excluir plano</button>}</footer></section>;
-        })}{!competitor.orders.length && <p className="battle-empty">{competitor.kind === "mine" ? "Adicione suas escolhas de swing trade." : "Clique em “Gerar Top 5 da IA”."}</p>}</div>
+        })}{!competitor.orders.length && <p className="battle-empty">{competitor.kind === "mine" ? "Adicione suas escolhas de swing trade, sem limite fixo de posições." : "A IA usará a mesma quantidade de ativos que você montar."}</p>}</div>
       </article>;
     })}</section>
 
-    <aside className="battle-method-note"><b>Regras do duelo</b><p>O início é sempre prospectivo. As duas carteiras usam o mesmo capital e a mesma série diária. Entrada, stop, alvo e prazo só são executados quando tocados pelo OHLC oficial. Se stop e alvo forem tocados no mesmo candle, vale o stop — regra conservadora igual para os dois. A IA escolhe até cinco emissores distintos com nota COMPRA (70+); depois do início, seus planos ficam imutáveis.</p></aside>
+    <aside className="battle-method-note"><b>Regras do duelo</b><p>O início é sempre prospectivo. As duas carteiras usam o mesmo capital, a mesma quantidade de emissores e a mesma série diária. Você define quantas posições quer, sem limite fixo; a IA seleciona essa mesma quantidade entre empresas distintas com nota COMPRA (70+). Entrada, stop, alvo e prazo só são executados quando tocados pelo OHLC oficial. Se stop e alvo forem tocados no mesmo candle, vale o stop — regra conservadora igual para os dois. Depois do início, os planos ficam imutáveis.</p></aside>
   </section>;
 }
