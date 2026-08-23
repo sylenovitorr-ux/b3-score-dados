@@ -1,4 +1,4 @@
-const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
 
 export function localDateKey(date = new Date()) {
   const y = date.getFullYear();

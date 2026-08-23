@@ -16,6 +16,6 @@ export default function AssetIntelligencePanel(props) {
   const analysis = useMemo(() => buildQuantAnalysis(asset, assets, anomaly, strategy === "swing" ? "swing_3_6m" : "long_term"), [asset, assets, anomaly, strategy]);
   return <>
     <AssetSummaryPanel asset={asset} analysis={analysis} />
-    <AssetAnalysisTabs asset={asset} analysis={analysis} anomaly={anomaly} coreProps={props} />
+    <AssetAnalysisTabs asset={asset} analysis={analysis} anomaly={anomaly} coreProps={props} strategy={strategy} />
   </>;
 }

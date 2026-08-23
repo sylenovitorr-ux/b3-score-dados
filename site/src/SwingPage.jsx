@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { fairValueRange } from "./opportunity-engine.js";
 import { buildQuantAnalysis } from "./quant/quant-engine.js";
 import { buildBuySellScore } from "./analysis/buy-sell-score.js";
+import { uniqueByIssuer } from "./issuer-key.js";
 import "./SwingPage.css";
 
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -42,7 +43,7 @@ export default function SwingPage({ assets, anomalies, onBack, onOpen }) {
     }), [assets, anomalies, strategy]);
 
   const top20 = useMemo(() => ranking.slice(0, 20), [ranking]);
-  const top4 = useMemo(() => [...top20].filter((row) => row.score.signal === "buy").sort((a, b) => (b.score.score ?? -1) - (a.score.score ?? -1)).slice(0, 4), [top20]);
+  const top4 = useMemo(() => uniqueByIssuer([...top20].filter((row) => row.score.signal === "buy").sort((a, b) => (b.score.score ?? -1) - (a.score.score ?? -1))).slice(0, 4), [top20]);
   const rows = useMemo(() => filter === "top4" ? top4 : filter === "buy" ? ranking.filter((row) => row.score.signal === "buy") : filter === "sell" ? ranking.filter((row) => row.score.signal === "sell") : filter === "all" ? ranking : top20, [filter, ranking, top20, top4]);
   const top4Set = useMemo(() => new Set(top4.map((row) => row.asset.ticker)), [top4]);
   const buyCount = ranking.filter((row) => row.score.signal === "buy").length;

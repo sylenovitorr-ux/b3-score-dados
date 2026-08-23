@@ -1,4 +1,4 @@
-const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
 const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 
 const STRATEGIES = {

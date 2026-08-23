@@ -1,6 +1,7 @@
 import { buildBuySellScore } from "./buy-sell-score.js";
 
-const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
+const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
 const round = (value, digits = 2) => value == null ? null : Number(value.toFixed(digits));
 
 function inferBookPressure(book) {
@@ -40,24 +41,34 @@ function buildLevels(asset, analysis, book) {
   return { entryLow: round(Math.min(entryLow, entryHigh)), entryHigh: round(Math.max(entryLow, entryHigh)), stop: round(stop), target1: round(target1), target2: round(target2), riskReward1: round((target1 - price) / risk, 1), riskReward2: round((target2 - price) / risk, 1) };
 }
 
-export function buildTradeSignal({ asset, analysis, book = null }) {
-  const unified = buildBuySellScore({ asset, analysis });
+export function buildTradeSignal({ asset, analysis, book = null, strategy = "swing" }) {
+  const unified = buildBuySellScore({ asset, analysis, strategy });
   const bookPressure = inferBookPressure(book);
-  const levels = buildLevels(asset, analysis, book);
+  const pressureScore = bookPressure == null ? null : clamp(50 + bookPressure / 2);
+  const combinedScore = unified.score == null
+    ? null
+    : pressureScore == null ? unified.score : Math.round(unified.score * .9 + pressureScore * .1);
+  const signal = combinedScore == null ? "unavailable" : combinedScore >= 70 ? "buy" : "sell";
+  const label = signal === "buy" ? "COMPRA" : signal === "sell" ? "VENDA" : "NÃO AVALIÁVEL";
+  const levels = combinedScore == null ? buildLevels(null, analysis, book) : buildLevels(asset, analysis, book);
   const reasons = unified.parts.map((part) => ({
     kind: part.value >= 70 ? "positive" : "negative",
     label: `${part.label} ${Math.round(part.value)}/100`,
   }));
+  if (bookPressure != null) reasons.push({ kind: bookPressure >= 0 ? "positive" : "negative", label: `Pressão do book ${bookPressure > 0 ? "+" : ""}${Math.round(bookPressure)}` });
   reasons.push({ kind: asset?.intraday ? "positive" : "neutral", label: asset?.intraday ? `Cotação intradiária${asset.intradayAsOf ? ` • ${asset.intradayAsOf}` : ""}` : "Usando último dado disponível" });
   return {
-    id: unified.signal,
-    label: unified.label,
-    tone: unified.signal === "buy" ? "excellent" : "bad",
-    confidence: unified.score ?? 0,
+    id: signal,
+    label,
+    tone: signal === "buy" ? "excellent" : signal === "sell" ? "bad" : "na",
+    confidence: combinedScore,
     ...levels,
     price: finite(asset?.price),
     score: unified.fundamentalScore,
-    combinedScore: unified.score,
+    baseScore: unified.score,
+    combinedScore,
+    strategy,
+    strategyLabel: unified.strategyLabel,
     momentum: unified.momentum,
     risk: unified.risk,
     valuation: unified.valuation,

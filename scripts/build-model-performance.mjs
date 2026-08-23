@@ -10,7 +10,7 @@ const STRATEGIES = ["swing", "long", "dividends"];
 const readJson = (path, fallback = null) => {
   try { return JSON.parse(readFileSync(resolve(ROOT, path), "utf8")); } catch { return fallback; }
 };
-const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
 const mean = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 const round = (value, digits = 2) => value == null ? null : Number(value.toFixed(digits));
 

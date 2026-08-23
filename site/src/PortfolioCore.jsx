@@ -15,7 +15,7 @@ const pct = (value) => value == null ? "N/D" : formatPercent(value);
 const today = () => localDateKey();
 const addMonths = (date, months) => { const d = new Date(`${date}T12:00:00`); d.setMonth(d.getMonth() + months); return localDateKey(d); };
 const daysBetween = (start, end = today()) => start ? Math.max(0, Math.floor((new Date(`${end}T12:00:00`).getTime() - new Date(`${start}T12:00:00`).getTime()) / 86400000)) : null;
-const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
 const quantProfile = (strategy) => strategy === "swing" ? "swing_3_6m" : "long_term";
 
 function normalize(raw) {

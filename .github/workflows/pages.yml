@@ -39,11 +39,11 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
-      - name: Rodar testes sem bloquear a publicação
+      - name: Rodar testes
         run: npm test
-        continue-on-error: true
 
   build:
+    needs: test
     if: >-
       github.event_name != 'workflow_run' ||
       (github.event.workflow_run.conclusion == 'success' &&
@@ -106,6 +106,8 @@ jobs:
       - name: Interromper se o build falhou
         if: steps.buildsite.outcome == 'failure'
         run: exit 1
+      - name: Auditar dados e orçamento do artefato
+        run: npm run audit:dist
       - name: Gravar versão publicada
         run: |
           printf '%s\n' "$GITHUB_SHA" > dist/version.txt

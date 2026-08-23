@@ -120,6 +120,15 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
       </div>
     </section>
 
+    <section className="clean-section home-product-guide" aria-label="Como usar o B3 Score">
+      <header><div><span className="section-kicker">COMO USAR</span><h2>Cada tela responde a uma pergunta diferente.</h2></div></header>
+      <div className="validation-cards">
+        <article><span>Radar</span><b>Radar responde “o que mudou?”</b><small>Use para encontrar sinais, mudanças de nota e os destaques do dia.</small></article>
+        <article><span>Valuation</span><b>Valuation responde “o preço faz sentido?”</b><small>Abra a análise do ativo para confrontar preço, fundamentos e faixa de valor justo.</small></article>
+        <article><span>Disputa</span><b>Quem executou melhor?</b><small>Compare sua carteira de swing trade com a seleção congelada da IA.</small></article>
+      </div>
+    </section>
+
     <section className="clean-section validation-section">
       <header><div><span className="section-kicker">VALIDAÇÃO DO MODELO</span><h2>Resultados após 20, 60 e 120 pregões</h2></div><small>{modelPerformance ? `${modelPerformance.snapshotCount ?? 0} fotografia(s)` : "amostra em formação"}</small></header>
       <div className="validation-cards">{validationRows.map((row) => <article key={row.sessions}><span>{row.sessions} pregões</span><b>{row.buyPositiveRatePct == null ? "N/D" : `${row.buyPositiveRatePct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`}</b><small>compras com retorno positivo</small><em>{row.buyAverageReturnPct == null ? "Amostra ainda insuficiente" : `retorno médio ${pct(row.buyAverageReturnPct)} · n=${row.buySample}`}</em></article>)}</div>
@@ -131,6 +140,10 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
       <button onClick={() => onNavigate("portfolio")}><b>Carteira</b><span>Teses, alertas e desempenho</span></button>
       <button onClick={() => onNavigate("compare")}><b>Comparar</b><span>Compare duas ações</span></button>
       <button onClick={() => onNavigate("analyze")}><b>Análise completa</b><span>Ferramentas avançadas</span></button>
+      <button onClick={() => onNavigate("quant")}><b>Quantitativo</b><span>Cenários e métricas do modelo</span></button>
+      <button onClick={() => onNavigate("integrity")}><b>Integridade</b><span>Fontes, datas e cobertura</span></button>
+      <button onClick={() => onNavigate("simulator")}><b>Simulador</b><span>Teste regras sem dinheiro real</span></button>
+      <button onClick={() => onNavigate("methodology")}><b>Metodologia</b><span>Entenda notas e critérios</span></button>
     </section>
   </div>;
 }

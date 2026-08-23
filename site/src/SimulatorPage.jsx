@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { formatMoney, formatNumber, formatPercent } from "./formatters";
 import { positionSizing, simulateTrade } from "./quant/trade-simulator-engine";
 
-const numeric = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const numeric = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
 const Field = ({ label, children }) => <label>{label}{children}</label>;
 
 function ActionSimulator({ assets }) {

@@ -1,0 +1,33 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { battleEquitySeries, finite, nextTradingDate, processOrder } from "./battle-engine.js";
+
+test("ausência não vira zero numérico", () => {
+  assert.equal(finite(null), null);
+  assert.equal(finite(""), null);
+  assert.equal(finite(0), 0);
+});
+
+test("disputa sempre começa em pregão posterior ao planejamento", () => {
+  assert.equal(nextTradingDate("2026-08-21"), "2026-08-24");
+  assert.equal(nextTradingDate("2026-08-24"), "2026-08-25");
+});
+
+test("toque simultâneo em stop e alvo usa política conservadora", () => {
+  const order = { ticker: "TEST3", status: "waiting", plannedEntry: 10, stop: 9, target: 11, allocation: 1000, startDate: "2026-08-24" };
+  const assetMap = new Map([["TEST3", { ticker: "TEST3" }]]);
+  const anomalies = { assets: { TEST3: { series: [{ date: "2026-08-24", open: 10, high: 11.2, low: 8.8, close: 10 }] } } };
+  const result = processOrder(order, { status: "running", startDate: "2026-08-24", capital: 1000 }, assetMap, anomalies);
+  assert.equal(result.status, "closed");
+  assert.equal(result.exitReason, "STOP CONSERVADOR");
+  assert.equal(result.pnl, -100);
+});
+
+test("curva diária inclui capital parado e marca a posição a mercado", () => {
+  const competitor = { id: "mine", capital: 1000, orders: [{ ticker: "TEST3", status: "open", entryDate: "2026-08-24", entryPrice: 10, quantity: 50 }] };
+  const battle = { startDate: "2026-08-24", competitors: [competitor] };
+  const assetMap = new Map([["TEST3", { ticker: "TEST3" }]]);
+  const anomalies = { assets: { TEST3: { series: [{ date: "2026-08-24", close: 10 }, { date: "2026-08-25", close: 11 }] } } };
+  const rows = battleEquitySeries(battle, assetMap, anomalies);
+  assert.deepEqual(rows.map((row) => row.values.mine), [1000, 1050]);
+});

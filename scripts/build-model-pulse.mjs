@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { normalizeAsset } from "../site/src/data/normalize-asset.js";
 import { buildQuantAnalysis } from "../site/src/quant/quant-engine.js";
 import { buildBuySellScore } from "../site/src/analysis/buy-sell-score.js";
+import { uniqueByIssuer } from "../site/src/issuer-key.js";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const OUT = resolve(ROOT, "data/model-pulse.json");
@@ -50,8 +51,6 @@ const snapshot = {
     score: row.score,
     signal: row.signal,
     price: row.price,
-    confidence: row.confidence,
-    parts: row.parts,
   }]))])),
 };
 
@@ -62,12 +61,13 @@ const events = {};
 for (const strategy of STRATEGIES) {
   const rows = strategies[strategy];
   const before = prior?.strategies?.[strategy] ?? {};
-  const previousTop4 = Object.entries(before)
+  const previousTop4 = uniqueByIssuer(Object.entries(before)
     .filter(([, value]) => value?.signal === "buy")
     .sort((a, b) => (b[1].score ?? -1) - (a[1].score ?? -1))
+    .map(([ticker, value]) => ({ ticker, value })), (row) => assets.find((asset) => asset.ticker === row.ticker))
     .slice(0, 4)
-    .map(([ticker]) => ticker);
-  const currentTop4 = rows.filter((row) => row.signal === "buy").slice(0, 4).map((row) => row.ticker);
+    .map((row) => row.ticker);
+  const currentTop4 = uniqueByIssuer(rows.filter((row) => row.signal === "buy"), (row) => assets.find((asset) => asset.ticker === row.ticker)).slice(0, 4).map((row) => row.ticker);
   const withDelta = rows.map((row) => ({
     ...row,
     previousScore: before[row.ticker]?.score ?? null,

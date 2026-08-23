@@ -1,5 +1,6 @@
 import { buildQuantAnalysis } from "../quant/quant-engine.js";
 import { buildBuySellScore } from "./buy-sell-score.js";
+import { uniqueByIssuer } from "../issuer-key.js";
 
 const KEY = "b3-score-model-pulse-v1";
 const STRATEGIES = ["swing", "long", "dividends"];
@@ -72,7 +73,7 @@ export function buildModelPulse(assets = [], anomalies = null, remotePayload = n
       newBuys: withDelta.filter((row) => row.signal === "buy" && row.previousSignal === "sell").sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0)),
       newSells: withDelta.filter((row) => row.signal === "sell" && row.previousSignal === "buy").sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0)),
       movers: withDelta.filter((row) => row.delta != null && row.delta !== 0).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)),
-      top4: withDelta.filter((row) => row.signal === "buy").slice(0, 4),
+      top4: uniqueByIssuer(withDelta.filter((row) => row.signal === "buy"), (row) => assets.find((asset) => asset.ticker === row.ticker)).slice(0, 4),
       buys: withDelta.filter((row) => row.signal === "buy").length,
       sells: withDelta.filter((row) => row.signal === "sell").length,
       enteredTop4: (remoteEvents.enteredTop4 ?? []).map((ticker) => rowMap.get(ticker) ?? { ticker }),

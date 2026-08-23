@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-08-22T23:59:11.592Z",
+  "modelVersion": "b3-score-4.0",
+  "firstSnapshotDate": "2026-08-14",
+  "lastSnapshotDate": "2026-08-14",
+  "snapshotCount": 1,
+  "evaluatedObservations": 0,
+  "methodology": "Placar prospectivo. Cada fotografia usa o sinal que foi efetivamente registrado naquele pregão e mede o preço 20, 60 ou 120 sessões depois. Não cria sinais históricos retroativos.",
+  "caveats": [
+    "COMPRA é avaliada pela frequência de retorno positivo e retorno médio posterior.",
+    "VENDA representa evitar/sair, não recomendação de venda a descoberto; o painel apenas mede o retorno que ocorreu depois do sinal.",
+    "Amostras pequenas não demonstram poder preditivo. Resultados passados não garantem resultados futuros."
+  ],
+  "horizons": [
+    20,
+    60,
+    120
+  ],
+  "strategies": {
+    "swing": {
+      "20s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      },
+      "60s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      },
+      "120s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      }
+    },
+    "long": {
+      "20s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      },
+      "60s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      },
+      "120s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      }
+    },
+    "dividends": {
+      "20s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      },
+      "60s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      },
+      "120s": {
+        "sample": 0,
+        "buySample": 0,
+        "sellSample": 0,
+        "buyPositiveRatePct": null,
+        "buyAverageReturnPct": null,
+        "buyMedianReturnPct": null,
+        "sellNonPositiveRatePct": null,
+        "sellAverageFollowingReturnPct": null,
+        "bands": {}
+      }
+    }
+  }
+}

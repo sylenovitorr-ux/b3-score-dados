@@ -1,4 +1,4 @@
-const cents = (value) => Number.isFinite(Number(value)) ? Math.round(Number(value) * 100) : null;
+const cents = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Math.round(Number(value) * 100);
 const money = (value) => value == null ? null : value / 100;
 const nonNegative = (value) => value != null && value >= 0 ? value : null;
 
