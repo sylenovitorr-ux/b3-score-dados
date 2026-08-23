@@ -1,5 +1,10 @@
 export const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
 
+export const modelPositionCount = (userCount) => {
+  const count = Math.max(0, Math.floor(finite(userCount) ?? 0));
+  return count > 0 ? count + 3 : 0;
+};
+
 export function localDate(date = new Date()) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
