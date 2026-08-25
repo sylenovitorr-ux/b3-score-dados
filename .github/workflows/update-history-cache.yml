@@ -23,8 +23,8 @@ jobs:
     timeout-minutes: 45
     env:
       BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
-      # Carga ampliada temporária para completar a cobertura inicial.
-      HISTORY_BATCH_SIZE: "300"
+      # A B3 oficial é a base. O provedor complementar roda em lote contido.
+      HISTORY_BATCH_SIZE: "80"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

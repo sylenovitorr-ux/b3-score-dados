@@ -15,6 +15,8 @@ import zipfile
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from b3_simplified import download_simplified_session, known_universe
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -137,6 +139,20 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
                 break
         cursor -= timedelta(days=1)
 
+    # The newer official BVBG.186.01 report is an independent daily fallback.
+    # It prevents a retired/blocked legacy COTAHIST endpoint from silently
+    # freezing the app while preserving the same downstream audit format.
+    simplified_sessions = 0
+    universe = known_universe(ROOT)
+    cursor = date.today()
+    for _ in range(15):
+        if cursor.weekday() < 5:
+            simplified_sessions += download_simplified_session(cursor, work, universe)
+            if simplified_sessions >= 3:
+                break
+        cursor -= timedelta(days=1)
+    sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
+
     if annual_history:
         created = materialize_daily_sessions_from_annual(work, limit=45)
         sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
@@ -178,7 +194,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "fiiCount": len(fii_data),
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
-        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 2520, "dailyFallbackSessions": sessions, "b3HistoryYears": annual_history},
-        "sources": ["B3 COTAHIST", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 12", "BCB SGS 1178"],
+        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 2520, "dailyFallbackSessions": sessions, "simplifiedPriceReportSessions": simplified_sessions, "b3HistoryYears": annual_history},
+        "sources": ["B3 COTAHIST", "B3 BVBG.186.01", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 12", "BCB SGS 1178"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

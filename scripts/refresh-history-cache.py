@@ -107,12 +107,13 @@ def seed_from_official() -> int:
     seeded = 0
     for symbol, item in assets.items():
         symbol = str(symbol or "").upper()
-        if not symbol or (OUTPUT / f"{symbol}.json").exists():
+        if not symbol:
             continue
         rows = normalize_rows((item or {}).get("series") or [])
         if len(rows) < 20:
             continue
-        write_cache(symbol, rows, "B3 COTAHIST seed")
+        rows = merge_series(existing_series(symbol), rows)
+        write_cache(symbol, rows, "B3 COTAHIST oficial")
         seeded += 1
     return seeded
 
@@ -203,6 +204,7 @@ def main() -> None:
     latest = None
 
     print(f"Universe={len(universe)}; seeded={seeded}; batch={len(batch)}; token={'yes' if TOKEN else 'no/public'}")
+    auth_failed = False
     for index, symbol in enumerate(batch, start=1):
         try:
             incoming = normalize_remote(fetch_history(symbol))
@@ -216,10 +218,15 @@ def main() -> None:
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
             failed.append({"ticker": symbol, "error": str(error)[:180]})
             print(f"[{index}/{len(batch)}] {symbol}: FAILED {error}")
+            if isinstance(error, urllib.error.HTTPError) and error.code in (401, 403):
+                auth_failed = True
+                print("Remote provider rejected authorization; stopping the batch and preserving official B3 history.")
+                break
         time.sleep(0.08)
 
     covered, missing = cache_coverage(universe)
     updated_this_run = seeded + remote_ok
+    latest = max((str(load_json(OUTPUT / f"{symbol}.json", {}).get("latestDate") or "") for symbol in universe), default="") or latest
     status = {
         "generatedAt": datetime.now(UTC).isoformat(),
         "source": "B3 COTAHIST seed + brapi.dev free rotation",
@@ -232,6 +239,7 @@ def main() -> None:
         "remoteUpdatedThisRun": remote_ok,
         "updatedThisRun": updated_this_run,
         "failedThisRun": len(failed),
+        "remoteAuthFailed": auth_failed,
         "covered": covered,
         "missing": len(missing),
         "coveragePct": round(covered / len(universe) * 100, 2),

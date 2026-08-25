@@ -39,9 +39,17 @@ function normalizeSeries(series) {
 
 // Só sobrepõe a fotografia diária quando a fonte externa declarar dados válidos.
 // Assim, um arquivo ausente/defasado nunca vira uma "cotação ao vivo" fictícia.
-export function normalizeIntraday(payload) {
+export function normalizeIntraday(payload, now = new Date()) {
   if (!payload || !Array.isArray(payload.quotes) || payload.status !== "ATUALIZADO") {
-    return { available: false, quotes: new Map(), updatedAt: null, delayMinutes: null, source: null, bookStatus: null, bookSource: null };
+    return { available: false, reason: "indisponível", quotes: new Map(), updatedAt: null, delayMinutes: null, source: null, bookStatus: null, bookSource: null };
+  }
+  const updatedAt = payload.updatedAt ? String(payload.updatedAt) : null;
+  const ageMinutes = updatedAt ? (now.getTime() - new Date(updatedAt).getTime()) / 60000 : Infinity;
+  const values = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now).map((part) => [part.type, part.value]));
+  const today = `${values.year}-${values.month}-${values.day}`;
+  const referenceDate = quoteDate(updatedAt);
+  if (!Number.isFinite(ageMinutes) || ageMinutes < -5 || ageMinutes > 180 || referenceDate !== today) {
+    return { available: false, reason: "arquivo intradiário defasado", quotes: new Map(), updatedAt, ageMinutes, delayMinutes: number(payload.delayMinutes), source: payload.source ? String(payload.source) : null, bookStatus: null, bookSource: null };
   }
   const quotes = new Map(payload.quotes.map((quote) => [String(quote.ticker ?? "").toUpperCase(), {
     price: number(quote.price),
@@ -54,7 +62,8 @@ export function normalizeIntraday(payload) {
   return {
     available: quotes.size > 0,
     quotes,
-    updatedAt: payload.updatedAt ? String(payload.updatedAt) : null,
+    updatedAt,
+    ageMinutes,
     delayMinutes: number(payload.delayMinutes),
     source: payload.source ? String(payload.source) : null,
     bookStatus: payload.bookStatus ? String(payload.bookStatus) : null,
@@ -71,6 +80,11 @@ export function applyIntradayQuotes(assets, intraday) {
     return {
       ...asset,
       officialQuoteDate: asset.officialQuoteDate ?? asset.date ?? null,
+      officialPrice: asset.officialPrice ?? asset.price ?? null,
+      officialOpen: asset.officialOpen ?? asset.priceopen ?? null,
+      officialHigh: asset.officialHigh ?? asset.high ?? null,
+      officialLow: asset.officialLow ?? asset.low ?? null,
+      officialVolume: asset.officialVolume ?? asset.volume ?? null,
       date: quoteDate(intradayAsOf) ?? asset.date,
       price: quote.price,
       changepct: quote.changePct ?? asset.changepct,

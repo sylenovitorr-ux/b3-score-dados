@@ -92,6 +92,7 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          from datetime import date
           from pathlib import Path
           status = json.loads(Path('data/status.json').read_text(encoding='utf-8'))
           if not status.get('ok'):
@@ -102,6 +103,9 @@ jobs:
               raise SystemExit(f"cobertura CVM insuficiente: {status.get('stockCvmCount')}")
           if int(status.get('fiiCount') or 0) < 150:
               raise SystemExit(f"FIIs insuficientes: {status.get('fiiCount')}")
+          quote_date = date.fromisoformat(status.get('stockQuoteDate'))
+          if (date.today() - quote_date).days > 7:
+              raise SystemExit(f"cotação B3 defasada: {quote_date}; publicação recusada")
           pulse = json.loads(Path('data/model-pulse.json').read_text(encoding='utf-8'))
           if not pulse.get('referenceDate') or not pulse.get('history'):
               raise SystemExit('diário do modelo não foi gerado corretamente')
