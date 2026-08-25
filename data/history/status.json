@@ -1,19 +1,20 @@
 {
-  "generatedAt": "2026-08-24T23:41:03.145299+00:00",
+  "generatedAt": "2026-08-25T22:06:00.244062+00:00",
   "source": "B3 COTAHIST seed + brapi.dev free rotation",
   "range": "1y",
   "interval": "1d",
   "policy": "full-universe seed from official B3; rotating public brapi batch missing-first then oldest-cache",
   "universe": 651,
-  "batchSize": 300,
-  "seededThisRun": 0,
+  "batchSize": 80,
+  "seededThisRun": 361,
   "remoteUpdatedThisRun": 0,
-  "updatedThisRun": 0,
-  "failedThisRun": 300,
+  "updatedThisRun": 361,
+  "failedThisRun": 1,
+  "remoteAuthFailed": true,
   "covered": 361,
   "missing": 290,
   "coveragePct": 55.45,
-  "latestDate": null,
+  "latestDate": "2026-08-18",
   "nextMissing": [
     "B3SA3",
     "CEGR3",
@@ -69,202 +70,6 @@
   "failures": [
     {
       "ticker": "B3SA3",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ABCP11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ADSH11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "AFHF11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "AFHI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "AIEC11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "AJFI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ALMI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ALZC11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ALZR11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "APTO11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "APXM11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "AROA11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ARRI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ARTE11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "ARXD11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "AZPL11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BBFO11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BBIG11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BBRC11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BCIA11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BCRI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BIME11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BLCA11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BLMG11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BMLC11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BNFS11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BPML11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BRCO11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BRCR11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BRIP11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BROF11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BSLT11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BTCI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BTHF11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BTHI11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BTLG11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BTRU11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "BTYU11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CACR11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CARE11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CBOP11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CCME11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CEGR3",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CEOC11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CLIN11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CNES11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CPLG11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CPSH11",
-      "error": "HTTP Error 401: Unauthorized"
-    },
-    {
-      "ticker": "CPTS11",
       "error": "HTTP Error 401: Unauthorized"
     }
   ]
