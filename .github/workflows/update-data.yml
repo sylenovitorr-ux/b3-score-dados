@@ -116,9 +116,18 @@ jobs:
           performance = json.loads(Path('data/model-performance.json').read_text(encoding='utf-8'))
           if performance.get('snapshotCount') is None:
               raise SystemExit('placar prospectivo ausente')
+          benchmarks = json.loads(Path('data/benchmarks.json').read_text(encoding='utf-8'))
+          for benchmark_id in ('IBOV', 'CDI'):
+              benchmark = (benchmarks.get('series') or {}).get(benchmark_id) or {}
+              if benchmark.get('status') != 'ATUALIZADO' or not benchmark.get('series'):
+                  raise SystemExit(f'benchmark obrigatório indisponível: {benchmark_id}')
+              benchmark_date = date.fromisoformat(benchmark.get('referenceDate'))
+              if (date.today() - benchmark_date).days > 7:
+                  raise SystemExit(f'benchmark {benchmark_id} defasado: {benchmark_date}')
           print(status)
           print('Diário:', pulse.get('referenceDate'), {k: v.get('evaluated') for k, v in pulse['events'].items()})
           print('Placar:', performance.get('snapshotCount'), 'snapshots;', performance.get('evaluatedObservations'), 'observações maduras')
+          print('Benchmarks:', {key: benchmarks['series'][key]['referenceDate'] for key in ('IBOV', 'CDI')})
           PY
 
       - name: Validar histórico dos gráficos sem bloquear snapshot

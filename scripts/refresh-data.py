@@ -177,10 +177,10 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
 
     subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
-    if annual_history:
-        subprocess.run([sys.executable, str(ROOT / "scripts/build-benchmarks.py"), str(work)], check=True)
-    else:
-        print("B3 annual history unavailable; preserving the previous benchmark snapshot.")
+    # IBOV is refreshed from B3's daily index endpoint and CDI from BCB SGS 12.
+    # Annual COTAHIST is only a fallback, so its absence must not freeze the two
+    # mandatory battle benchmarks.
+    subprocess.run([sys.executable, str(ROOT / "scripts/build-benchmarks.py"), str(work)], check=True)
 
     stock_data = json.loads((ROOT / "data/b3-fundamentals.json").read_text(encoding="utf-8"))
     fii_data = json.loads((ROOT / "data/fii-catalog.json").read_text(encoding="utf-8"))

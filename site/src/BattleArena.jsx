@@ -7,13 +7,16 @@ import { assetKindLabel, lotSizeFor, marketSymbol, matchesAssetSearch, maxQuanti
 import { BATTLE_MODEL_VERSION, DEFAULT_EXECUTION, addMonths, allocatedCapital, battleEquitySeries, battlePlanFingerprint, closeOrder, competitorMetrics, equityStats, finite, localDate, marketSnapshotFingerprint, modelPositionAllocations, modelPositionCount, nextTradingDate, processOrder } from "./battle-engine.js";
 import { marketDataHealth } from "./data/market-health.js";
 import { isB3TradingDate, nextB3TradingDate } from "./market-calendar.js";
+import { buildBattleBenchmarkSeries, excessReturn, mergeBenchmarksIntoBattleRows } from "./battle-benchmarks.js";
 import "./BattleArena.css";
 
 const KEY = "b3-score-battles-v3";
 const LEGACY_KEYS = ["b3-score-battles-v2", "b3-score-battles-v1"];
 const ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
+const BENCHMARK_URL = `${import.meta.env.BASE_URL}data/benchmarks.json`;
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (value) => value == null ? "N/D" : `${value > 0 ? "+" : ""}${Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+const pp = (value) => value == null ? "N/D" : `${value > 0 ? "+" : ""}${Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} p.p.`;
 const id = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const statusLabel = (status) => status === "running" ? "EM ANDAMENTO" : status === "finished" ? "ENCERRADA" : "EM PREPARAÇÃO";
 const formatDate = (value) => value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "N/D";
@@ -133,19 +136,19 @@ function planOrder(row, capital, startDate, source, overrides = {}, horizonMonth
   };
 }
 
-function BattleDailyChart({ rows, competitors }) {
+function BattleDailyChart({ rows, chartSeries }) {
   if (!rows.length) return <div className="battle-chart-empty"><b>O gráfico diário começa no primeiro pregão da disputa.</b><span>As carteiras ficam travadas antes da data inicial.</span></div>;
   const width = 900; const height = 270; const pad = 34;
-  const values = rows.flatMap((row) => competitors.map((competitor) => finite(row.returns?.[competitor.id])).filter((value) => value != null));
+  const values = rows.flatMap((row) => chartSeries.map((item) => finite(row.returns?.[item.id])).filter((value) => value != null));
   const min = Math.min(...values); const max = Math.max(...values); const spread = Math.max(max - min, max * .01, 1);
   const x = (index) => rows.length === 1 ? width / 2 : pad + index / (rows.length - 1) * (width - pad * 2);
   const y = (value) => height - pad - (value - (min - spread * .12)) / (spread * 1.24) * (height - pad * 2);
-  const points = (competitor) => rows.map((row, index) => `${x(index)},${y(row.returns[competitor.id])}`).join(" ");
+  const points = (item) => rows.map((row, index) => finite(row.returns[item.id]) == null ? null : `${x(index)},${y(row.returns[item.id])}`).filter(Boolean).join(" ");
   return <div className="battle-daily-chart">
-    <div className="battle-chart-legend">{competitors.map((competitor) => <span key={competitor.id} className={competitor.kind}><i />{competitor.name}</span>)}</div>
-    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Retorno percentual diário de você e da IA">
+    <div className="battle-chart-legend">{chartSeries.map((item) => <span key={item.id} className={item.kind}><i />{item.name}</span>)}</div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Retorno percentual diário de você, IA, Ibovespa e CDI">
       {[0, .25, .5, .75, 1].map((ratio) => <line key={ratio} x1={pad} x2={width - pad} y1={pad + ratio * (height - pad * 2)} y2={pad + ratio * (height - pad * 2)} />)}
-      {competitors.map((competitor) => <polyline key={competitor.id} className={competitor.kind} points={points(competitor)} />)}
+      {chartSeries.map((item) => <polyline key={item.id} className={item.kind} points={points(item)} />)}
     </svg>
     <div className="battle-chart-axis"><span>{formatDate(rows[0].date)}</span><span>{formatDate(rows.at(-1).date)}</span></div>
   </div>;
@@ -154,6 +157,7 @@ function BattleDailyChart({ rows, competitors }) {
 export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   const [battles, setBattles] = useState([]); const [activeId, setActiveId] = useState(null);
   const [ready, setReady] = useState(false); const [anomalies, setAnomalies] = useState(null);
+  const [benchmarkPayload, setBenchmarkPayload] = useState(null);
   const [drafts, setDrafts] = useState({}); const [notice, setNotice] = useState("");
   const assetMap = useMemo(() => new Map(assets.map((asset) => [asset.ticker, asset])), [assets]);
 
@@ -168,6 +172,7 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     } catch { localStorage.removeItem(KEY); }
     setReady(true);
     fetch(ANOMALY_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then(setAnomalies).catch(() => setAnomalies(null));
+    fetch(BENCHMARK_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then(setBenchmarkPayload).catch(() => setBenchmarkPayload(null));
   }, []);
 
   useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify({ version: 3, activeId, battles })); }, [ready, activeId, battles]);
@@ -318,6 +323,12 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   const competitors = active.competitors.filter((competitor) => ["mine", "model"].includes(competitor.kind));
   const metricRows = competitors.map((competitor) => ({ competitor, metrics: competitorMetrics(competitor, assetMap) }));
   const equityRows = battleEquitySeries({ ...active, competitors }, assetMap, anomalies);
+  const benchmarkResult = buildBattleBenchmarkSeries(benchmarkPayload, active.startDate, equityRows.map((row) => row.date));
+  const chartRows = mergeBenchmarksIntoBattleRows(equityRows, benchmarkResult);
+  const chartSeries = [
+    ...competitors.map((competitor) => ({ id: competitor.id, name: competitor.name, kind: competitor.kind })),
+    ...benchmarkResult.series.map((item) => ({ id: `benchmark-${item.id}`, name: item.name, kind: item.kind })),
+  ];
   const stats = Object.fromEntries(competitors.map((competitor) => [competitor.id, equityStats(equityRows, competitor.id)]));
   const ranked = [...metricRows].sort((a, b) => (b.metrics.returnPct ?? -Infinity) - (a.metrics.returnPct ?? -Infinity));
   const leader = ranked.length === 2 && ranked[0].metrics.returnPct !== ranked[1].metrics.returnPct ? ranked[0].competitor : null;
@@ -351,7 +362,9 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
 
     <section className="battle-scoreboard"><header><div><span>PLACAR OFICIAL · RETORNO SOBRE O ALOCADO</span><h3>{leader ? `${leader.name} está na frente` : "Disputa empatada"}</h3></div><small>R$ aparece como dado secundário porque a IA usa +3 ativos</small></header><div>{ranked.map(({ competitor, metrics }, index) => <article key={competitor.id} className={competitor.kind}><em>#{index + 1}</em><div><b>{competitor.name}</b><small>{competitor.kind === "mine" ? "Seu plano" : "Modelo determinístico congelado"}</small></div><strong className={metrics.returnPct >= 0 ? "positive" : "negative"}>{pct(metrics.returnPct)}</strong><span>{money(metrics.pnl)} P/L</span><small>alocado {money(metrics.allocatedCapital)} · {metrics.open} abertas · {metrics.closed} fechadas · {metrics.waiting} aguardando</small><i>Dia {pct(stats[competitor.id]?.dailyPct)} · drawdown {pct(stats[competitor.id]?.maxDrawdownPct)}</i></article>)}</div></section>
 
-    <section className="battle-chart-card"><header><div><span>GRÁFICO DIÁRIO COMPLETO</span><h3>Movimento de cada pregão em %</h3></div><small>Base comparável: retorno líquido sobre o valor alocado</small></header><BattleDailyChart rows={equityRows} competitors={competitors} />{equityRows.length > 0 && <details><summary>Ver fechamento diário</summary><div className="battle-daily-table"><div><b>Data</b>{competitors.map((competitor) => <b key={competitor.id}>{competitor.name}</b>)}</div>{equityRows.slice().reverse().map((row) => <div key={row.date}><span>{formatDate(row.date)}</span>{competitors.map((competitor) => <span key={competitor.id}>{pct(row.returns[competitor.id])} · {money(row.values[competitor.id])}</span>)}</div>)}</div></details>}</section>
+    <section className="battle-benchmarks"><header><div><span>REFERÊNCIAS OBRIGATÓRIAS</span><h3>Mercado e custo de oportunidade</h3></div><small>{!equityRows.length ? "A comparação começará no primeiro pregão" : benchmarkResult.ready ? "Mesmo início e mesmos pregões da disputa" : `Aguardando ${benchmarkResult.missing.join(" e ") || "dados oficiais"}`}</small></header><div>{benchmarkResult.series.map((benchmark) => <article className={benchmark.kind} key={benchmark.id}><div><b>{benchmark.name}</b><small>{benchmark.id === "IBOV" ? "Mercado brasileiro de ações" : "Rendimento conservador acumulado"}</small></div><strong className={benchmark.latestReturnPct == null ? "" : benchmark.latestReturnPct >= 0 ? "positive" : "negative"}>{pct(benchmark.latestReturnPct)}</strong><span>Você {pp(excessReturn(metricRows.find((row) => row.competitor.kind === "mine")?.metrics.returnPct, benchmark.latestReturnPct))}</span><span>IA {pp(excessReturn(metricRows.find((row) => row.competitor.kind === "model")?.metrics.returnPct, benchmark.latestReturnPct))}</span><small>base {formatDate(benchmark.baselineDate)} · fonte até {formatDate(benchmark.referenceDate)}</small></article>)}</div><p>Ibovespa usa a série diária oficial da B3. O CDI é composto pelas taxas diárias oficiais, sem dividir a taxa anual por mês.</p></section>
+
+    <section className="battle-chart-card"><header><div><span>GRÁFICO DIÁRIO COMPLETO</span><h3>Você × IA × Ibovespa × CDI</h3></div><small>Mesmo intervalo; carteiras líquidas sobre o alocado</small></header><BattleDailyChart rows={chartRows} chartSeries={chartSeries} />{chartRows.length > 0 && <details><summary>Ver fechamento diário</summary><div className="battle-daily-table" style={{ "--battle-columns": chartSeries.length + 1 }}><div><b>Data</b>{chartSeries.map((item) => <b key={item.id}>{item.name}</b>)}</div>{chartRows.slice().reverse().map((row) => <div key={row.date}><span>{formatDate(row.date)}</span>{chartSeries.map((item) => <span key={item.id}>{pct(row.returns[item.id])}{item.kind === "mine" || item.kind === "model" ? ` · ${money(row.values[item.id])}` : ""}</span>)}</div>)}</div></details>}</section>
 
     {editable && <div className="battle-start"><div><b>1. Monte a sua carteira</b><span>2. Gere a carteira da IA</span><span>3. Inicie e congele as escolhas</span></div><button onClick={startBattle}>Iniciar disputa no próximo pregão</button></div>}
     {active.status === "running" && <div className="battle-start running"><div><b>Disputa em andamento</b><span>As ordens não podem mais ser editadas. Você pode encerrar apenas suas posições abertas.</span></div><button onClick={finishBattle}>Encerrar disputa</button></div>}
