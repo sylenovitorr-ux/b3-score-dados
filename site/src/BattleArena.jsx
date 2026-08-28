@@ -66,7 +66,7 @@ function fundamentalGate(asset) {
 const portfolioFingerprint = (portfolio) => JSON.stringify({
   name: portfolio?.name, capital: portfolio?.capital, strategy: portfolio?.strategy,
   tickers: portfolio?.tickers ?? [],
-  holdings: (portfolio?.holdings ?? []).map((holding) => [holding.ticker, holding.entryPrice, holding.entryDate, holding.quantity, holding.marketMode]),
+  holdings: (portfolio?.holdings ?? []).map((holding) => [holding.ticker, holding.entryPrice, holding.entryDate, holding.quantity, holding.marketMode, holding.stop, holding.target]),
 });
 
 const latestHistoricalDate = (anomalies) => Object.values(anomalies?.assets ?? {}).flatMap((row) => row?.series?.at(-1)?.date ?? []).sort().at(-1) ?? anomalies?.quoteDate ?? null;
