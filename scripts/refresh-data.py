@@ -176,7 +176,9 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-options.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
 
-    subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=True)
+    # Historical charts are useful, but an incomplete historical cache must not
+    # block the fresh official snapshot used by prices, portfolios and radar.
+    subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=False)
     # IBOV is refreshed from B3's daily index endpoint and CDI from BCB SGS 12.
     # Annual COTAHIST is only a fallback, so its absence must not freeze the two
     # mandatory battle benchmarks.

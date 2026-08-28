@@ -22,6 +22,7 @@ import { applyIntradayQuotes, normalizeIntraday } from "./data/intraday";
 import { fallbackMarketScores, assetOverallScore } from "./scoring/fundamental-score";
 import { scoreLabel as overallScoreLabel, scoreTone as overallScoreTone, confidenceTone as overallConfidenceTone } from "./scoring/score-labels";
 import { buildDecision } from "./analysis/decision-engine";
+import { freshness } from "./quant/data-quality";
 const FILTERS = [
   { id: "all", label: "Todos" },
   { id: "stocks", label: "A\xE7\xF5es" },
@@ -1345,7 +1346,14 @@ function Home() {
     const linked = stocks.filter((asset) => asset.fundamentals);
     return { total: stocks.length, linked: linked.length, pe: linked.filter((asset) => asset.fundamentals?.pe !== null).length, pb: linked.filter((asset) => asset.fundamentals?.pb !== null).length, roe: linked.filter((asset) => asset.fundamentals?.roe !== null).length, dividends: linked.filter((asset) => asset.fundamentals?.dividendYield !== null).length };
   }, [assets]);
-  const statusText = status === "live" ? "B3 + CVM atualizados" : status === "official" ? "B3 + balan\xE7os CVM" : "\xDAltimo cache salvo";
+  const marketDataFreshness = useMemo(() => freshness(asOf.stockPriceAsOf, "price"), [asOf.stockPriceAsOf]);
+  const statusText = marketDataFreshness.code === "INDISPONIVEL"
+    ? "Dados de mercado indisponíveis"
+    : marketDataFreshness.code !== "ATUALIZADO"
+      ? `Pregão ${marketDataFreshness.label.toLowerCase()} · ${marketDataFreshness.ageDays} dias`
+      : status === "cache"
+        ? `Cache local · pregão ${shortDate(asOf.stockPriceAsOf)}`
+        : "Pregão B3 atualizado";
   const chooseWeb = () => {
     localStorage.setItem("b3-score-platform-v1", "web");
     setShowAndroidGuide(false);

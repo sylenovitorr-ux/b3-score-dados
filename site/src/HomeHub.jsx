@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildModelPulse, strategyLabel } from "./analysis/model-pulse.js";
 import { assetKindLabel, marketSymbol, matchesAssetSearch, underlyingTicker } from "./battle-market.js";
+import { freshness } from "./quant/data-quality.js";
 import "./usability-v3.css";
 import "./terminal-v4.css";
+import "./data-freshness.css";
 
 const ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
 const MODEL_PULSE_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/model-pulse.json";
@@ -51,6 +53,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   const visibleChanges = eventRows.length ? eventRows : current.movers.slice(0, 4).map((row) => ({ ...row, eventLabel: "Score mudou" }));
   const validation = modelPerformance?.strategies?.[strategy] ?? {};
   const validationRows = [20, 60, 120].map((sessions) => ({ sessions, ...(validation[`${sessions}s`] ?? {}) }));
+  const dataFreshness = useMemo(() => freshness(asOf.stockPriceAsOf, "price"), [asOf.stockPriceAsOf]);
 
   const open = (value = ticker) => {
     const resolved = underlyingTicker(value, assets);
@@ -73,8 +76,13 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
   return <div className="v2-home clean-home">
     <section className="clean-home-topbar">
       <div className="clean-brand"><b>B3 SCORE</b><span>Radar de ações, units e FIIs</span></div>
-      <div className="clean-status"><span>{status}</span><small>{pulseSource}</small></div>
+      <div className={`clean-status ${dataFreshness.tone}`}><span>{status}</span><small>{pulseSource}</small></div>
     </section>
+
+    {!loading && dataFreshness.code !== "ATUALIZADO" && <section className="home-data-alert" role="alert">
+      <div><b>Dados do pregão {dataFreshness.label.toLowerCase()}</b><span>Referência: {asOf.stockPriceAsOf ?? "não informada"}. Preços, sinais, carteira e disputa podem não representar o mercado atual.</span></div>
+      <button onClick={() => window.location.reload()}>Tentar atualizar</button>
+    </section>}
 
     <section className="clean-search-hero">
       <div>

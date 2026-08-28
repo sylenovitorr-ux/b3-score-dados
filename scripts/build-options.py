@@ -121,12 +121,38 @@ def build(source: Path) -> dict:
             sessions.append((date, lines))
     if not sessions:
         raise ValueError("Nenhuma sessão válida do COTAHIST foi encontrada.")
-    quote_date, lines = max(sessions, key=lambda item: item[0])
-    contracts = parse_options(lines)
+    sessions.sort(key=lambda item: item[0], reverse=True)
+    latest_market_date = sessions[0][0]
+    quote_date = None
+    contracts = []
+    for candidate_date, lines in sessions:
+        candidate_contracts = parse_options(lines)
+        if candidate_contracts:
+            quote_date = candidate_date
+            contracts = candidate_contracts
+            break
+
+    # The simplified B3 price report updates equities and FIIs, but may not
+    # contain the derivatives segment. Options are therefore an independent,
+    # non-critical dataset and must never freeze the main market snapshot.
     if not contracts:
-        raise ValueError("Nenhum contrato com vínculo inequívoco foi encontrado no COTAHIST.")
+        return {
+            "schemaVersion": 1,
+            "status": "INDISPONIVEL",
+            "updatedAt": datetime.now(UTC).isoformat(),
+            "quoteDate": latest_market_date,
+            "source": "B3 COTAHIST",
+            "referenceRate": latest_selic(),
+            "contracts": [],
+            "coverage": {
+                "automatic": [],
+                "unavailable": ["contratos", "bid", "ask", "open interest"],
+            },
+            "limitations": "Nenhuma sessão disponível continha contratos com vínculo inequívoco. O snapshot principal de ações e FIIs permanece independente e atualizado.",
+        }
     return {
         "schemaVersion": 1,
+        "status": "ATUALIZADO",
         "updatedAt": datetime.now(UTC).isoformat(),
         "quoteDate": quote_date,
         "source": "B3 COTAHIST",
@@ -145,4 +171,4 @@ if __name__ == "__main__":
     target = ROOT / "data/options-chain.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    print(f"Generated {len(payload['contracts'])} options from B3 close {payload['quoteDate']}.")
+    print(f"Generated {len(payload['contracts'])} options from B3 close {payload['quoteDate']} ({payload['status']}).")
