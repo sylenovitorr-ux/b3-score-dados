@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { battleEquitySeries, battlePlanFingerprint, competitorMetrics, finite, modelPositionAllocations, modelPositionCount, nextTradingDate, processOrder } from "./battle-engine.js";
+import { DEFAULT_EXECUTION, battleEquitySeries, battlePlanFingerprint, competitorMetrics, finite, historicalTechnicalSnapshot, modelPositionAllocations, modelPositionCount, nextTradingDate, processOrder, replayHistoricalBattle } from "./battle-engine.js";
 
 const noCosts = { transactionCostPct: 0, slippagePct: 0 };
 
@@ -10,22 +10,22 @@ test("ausência não vira zero numérico", () => {
   assert.equal(finite(0), 0);
 });
 
-test("disputa sempre começa em pregão posterior ao planejamento", () => {
+test("modo ao vivo começa em pregão posterior ao planejamento", () => {
   assert.equal(nextTradingDate("2026-08-21"), "2026-08-24");
   assert.equal(nextTradingDate("2026-08-24"), "2026-08-25");
 });
 
-test("IA usa sempre três ativos a mais que o usuário", () => {
-  assert.equal(modelPositionCount(1), 4);
-  assert.equal(modelPositionCount(2), 5);
-  assert.equal(modelPositionCount(4), 7);
+test("IA usa sempre dois ativos a mais que o usuário", () => {
+  assert.equal(modelPositionCount(1), 3);
+  assert.equal(modelPositionCount(2), 4);
+  assert.equal(modelPositionCount(4), 6);
   assert.equal(modelPositionCount(0), 0);
 });
 
 test("cada ativo da IA usa integralmente o mesmo valor por ativo escolhido pelo usuário", () => {
-  assert.deepEqual(modelPositionAllocations(1, 300), [300, 300, 300, 300]);
-  assert.deepEqual(modelPositionAllocations(2, 300), [300, 300, 300, 300, 300]);
-  assert.deepEqual(modelPositionAllocations(4, 500), [500, 500, 500, 500, 500, 500, 500]);
+  assert.deepEqual(modelPositionAllocations(1, 300), [300, 300, 300]);
+  assert.deepEqual(modelPositionAllocations(2, 300), [300, 300, 300, 300]);
+  assert.deepEqual(modelPositionAllocations(4, 500), [500, 500, 500, 500, 500, 500]);
 });
 
 test("toque simultâneo em stop e alvo usa política conservadora", () => {
@@ -86,6 +86,49 @@ test("custos e slippage são simétricos e reduzem o resultado", () => {
   assert.ok(result.pnl < 100);
   assert.ok(result.fees > 0);
   assert.equal(result.executionResolution, "daily-touch");
+});
+
+test("nova disputa aplica taxa fixa de 0,031% na compra e na venda sem slippage", () => {
+  assert.deepEqual(DEFAULT_EXECUTION, { transactionCostPct: 0.031, slippagePct: 0, ambiguityPolicy: "stop-conservador" });
+  const order = { ticker: "TEST3", status: "waiting", plannedEntry: 10, stop: 9, target: 11, allocation: 1000, startDate: "2026-08-24" };
+  const assetMap = new Map([["TEST3", { ticker: "TEST3" }]]);
+  const anomalies = { assets: { TEST3: { series: [{ date: "2026-08-24", open: 10, high: 11, low: 10, close: 11 }] } } };
+  const result = processOrder(order, { status: "running", startDate: "2026-08-24", capital: 1000, ...DEFAULT_EXECUTION }, assetMap, anomalies);
+  assert.equal(result.entryFee, 0.31);
+  assert.equal(result.exitFee, 0.341);
+  assert.ok(Math.abs(result.pnl - 99.349) < 1e-9);
+});
+
+test("seleção técnica histórica não lê candles da data inicial nem do futuro", () => {
+  const series = Array.from({ length: 35 }, (_, index) => {
+    const date = new Date("2026-06-15T12:00:00"); date.setDate(date.getDate() + index);
+    return { date: date.toISOString().slice(0, 10), close: 10 + index * .1, low: 9.8 + index * .1, volume: 1500000 };
+  });
+  const base = { assets: { TEST3: { series } } };
+  const withFutureShock = { assets: { TEST3: { series: [...series, { date: "2026-08-05", close: 1, low: 1, volume: 1 }] } } };
+  const asset = { ticker: "TEST3", name: "Teste", kind: "stock" };
+  const first = historicalTechnicalSnapshot(asset, base, "2026-08-01");
+  const second = historicalTechnicalSnapshot(asset, withFutureShock, "2026-08-01");
+  assert.equal(first.asset.price, second.asset.price);
+  assert.equal(first.score.score, second.score.score);
+  assert.equal(first.asset.officialQuoteDate, second.asset.officialQuoteDate);
+});
+
+test("replay histórico encerra posição no último candle escolhido", () => {
+  const order = { ticker: "TEST3", status: "waiting", plannedEntry: 10, stop: 8, target: 20, allocation: 1000, startDate: "2026-08-20", deadline: "2026-12-20", ...noCosts };
+  const assetMap = new Map([["TEST3", { ticker: "TEST3" }]]);
+  const anomalies = { assets: { TEST3: { series: [
+    { date: "2026-08-20", open: 10, high: 10.5, low: 9.8, close: 10.2 },
+    { date: "2026-08-21", open: 10.2, high: 11.2, low: 10.1, close: 11 },
+    { date: "2026-08-24", open: 12, high: 13, low: 12, close: 13 },
+  ] } } };
+  const battle = { status: "running", startDate: "2026-08-20", endDate: "2026-08-21", capital: 1000, ...noCosts, competitors: [{ id: "mine", kind: "mine", orders: [order] }] };
+  const result = replayHistoricalBattle(battle, assetMap, anomalies);
+  const closed = result.competitors[0].orders[0];
+  assert.equal(result.status, "finished");
+  assert.equal(closed.exitDate, "2026-08-21");
+  assert.equal(closed.exitPrice, 11);
+  assert.equal(closed.exitReason, "FIM DO PERÍODO");
 });
 
 test("placar oficial usa retorno sobre alocado, não P/L bruto", () => {

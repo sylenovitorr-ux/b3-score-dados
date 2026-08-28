@@ -4,14 +4,14 @@ import { buildBuySellScore } from "./analysis/buy-sell-score.js";
 import { fairValueRange } from "./opportunity-engine.js";
 import { issuerKey, uniqueByIssuer } from "./issuer-key.js";
 import { assetKindLabel, lotSizeFor, marketSymbol, matchesAssetSearch, maxQuantityFor, underlyingTicker } from "./battle-market.js";
-import { BATTLE_MODEL_VERSION, DEFAULT_EXECUTION, addMonths, allocatedCapital, battleEquitySeries, battlePlanFingerprint, closeOrder, competitorMetrics, equityStats, finite, localDate, marketSnapshotFingerprint, modelPositionAllocations, modelPositionCount, nextTradingDate, processOrder } from "./battle-engine.js";
+import { BATTLE_MODEL_VERSION, DEFAULT_EXECUTION, addMonths, allocatedCapital, battleEquitySeries, battlePlanFingerprint, closeOrder, competitorMetrics, equityStats, finite, historicalTechnicalSnapshot, localDate, marketSnapshotFingerprint, modelPositionAllocations, modelPositionCount, nextTradingDate, processOrder, replayHistoricalBattle } from "./battle-engine.js";
 import { marketDataHealth } from "./data/market-health.js";
 import { isB3TradingDate, nextB3TradingDate } from "./market-calendar.js";
 import { buildBattleBenchmarkSeries, excessReturn, mergeBenchmarksIntoBattleRows } from "./battle-benchmarks.js";
 import "./BattleArena.css";
 
-const KEY = "b3-score-battles-v3";
-const LEGACY_KEYS = ["b3-score-battles-v2", "b3-score-battles-v1"];
+const KEY = "b3-score-battles-v4";
+const LEGACY_KEYS = ["b3-score-battles-v3", "b3-score-battles-v2", "b3-score-battles-v1"];
 const ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
 const BENCHMARK_URL = `${import.meta.env.BASE_URL}data/benchmarks.json`;
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -63,13 +63,24 @@ function fundamentalGate(asset) {
   ].filter(Boolean) };
 }
 
-function emptyBattle() {
-  const capital = 10000;
+const portfolioFingerprint = (portfolio) => JSON.stringify({
+  name: portfolio?.name, capital: portfolio?.capital, strategy: portfolio?.strategy,
+  tickers: portfolio?.tickers ?? [],
+  holdings: (portfolio?.holdings ?? []).map((holding) => [holding.ticker, holding.entryPrice, holding.entryDate, holding.quantity, holding.marketMode]),
+});
+
+const latestHistoricalDate = (anomalies) => Object.values(anomalies?.assets ?? {}).flatMap((row) => row?.series?.at(-1)?.date ?? []).sort().at(-1) ?? anomalies?.quoteDate ?? null;
+
+function emptyBattle(sourcePortfolio = null) {
+  const capital = finite(sourcePortfolio?.capital) > 0 ? finite(sourcePortfolio.capital) : 10000;
+  const sourceCount = new Set([...(sourcePortfolio?.tickers ?? []), ...(sourcePortfolio?.holdings ?? []).map((holding) => holding.ticker)]).size;
+  const positionAllocation = sourceCount ? Math.max(1, capital / sourceCount) : 1000;
   return {
-    id: id("battle"), name: `Você vs IA · ${new Date().toLocaleDateString("pt-BR")}`,
-    strategy: "swing", capital, positionAllocation: 1000, startDate: nextTradingDate(), status: "setup", horizonMonths: 3, marketMode: "fractional",
+    id: id("battle"), name: sourcePortfolio ? `Disputa · ${sourcePortfolio.name}` : `Você vs IA · ${new Date().toLocaleDateString("pt-BR")}`,
+    strategy: "swing", capital, positionAllocation, mode: "live", startDate: nextTradingDate(), endDate: null, status: "setup", horizonMonths: 3, marketMode: "fractional",
+    sourcePortfolioId: sourcePortfolio?.id ?? null, sourcePortfolioFingerprint: null,
     ...DEFAULT_EXECUTION, createdAt: new Date().toISOString(), modelVersion: BATTLE_MODEL_VERSION,
-    audit: [{ at: new Date().toISOString(), type: "battle-created", label: "Disputa criada" }],
+    audit: [{ at: new Date().toISOString(), type: "battle-created", label: sourcePortfolio ? `Rascunho criado automaticamente pela carteira ${sourcePortfolio.name}` : "Disputa criada" }],
     competitors: [
       { id: id("mine"), name: "Você", kind: "mine", capital, orders: [] },
       { id: id("model"), name: "IA B3 Score", kind: "model", capital, orders: [] },
@@ -81,7 +92,10 @@ function hydrateBattle(source) {
   const horizonMonths = [1, 2, 3, 6, 12].includes(Number(source?.horizonMonths)) ? Number(source.horizonMonths) : 6;
   const marketMode = source?.marketMode === "standard" ? "standard" : "fractional";
   const positionAllocation = finite(source?.positionAllocation) > 0 ? finite(source.positionAllocation) : finite(source?.competitors?.find((item) => item.kind === "mine")?.orders?.[0]?.allocation) ?? 1000;
-  return { transactionCostPct: DEFAULT_EXECUTION.transactionCostPct, slippagePct: DEFAULT_EXECUTION.slippagePct, ambiguityPolicy: DEFAULT_EXECUTION.ambiguityPolicy, audit: [], ...source, horizonMonths, marketMode, positionAllocation, competitors: (source?.competitors ?? []).map((competitor) => ({
+  const useNewCost = !source?.status || source.status === "setup";
+  const transactionCostPct = useNewCost ? DEFAULT_EXECUTION.transactionCostPct : finite(source?.transactionCostPct) ?? DEFAULT_EXECUTION.transactionCostPct;
+  const slippagePct = useNewCost ? 0 : finite(source?.slippagePct) ?? 0;
+  return { audit: [], ...source, mode: source?.mode === "historical" ? "historical" : "live", endDate: source?.endDate ?? null, transactionCostPct, slippagePct, ambiguityPolicy: DEFAULT_EXECUTION.ambiguityPolicy, horizonMonths, marketMode, positionAllocation, competitors: (source?.competitors ?? []).map((competitor) => ({
     ...competitor,
     orders: (competitor.orders ?? []).map((order) => ({
       ...order,
@@ -90,6 +104,7 @@ function hydrateBattle(source) {
       lotSize: Math.max(1, finite(order.lotSize) ?? 1),
       maxQuantity: order.maxQuantity ?? (order.assetKind !== "fii" && marketMode === "fractional" ? 99 : null),
       assetKind: order.assetKind || "stock",
+      ...(useNewCost ? { transactionCostPct, slippagePct } : {}),
     })),
   })) };
 }
@@ -167,7 +182,10 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
       if (Array.isArray(saved?.battles) && saved.battles.length) { const hydrated = saved.battles.map(hydrateBattle); setBattles(hydrated); setActiveId(saved.activeId || hydrated[0].id); }
       else for (const key of LEGACY_KEYS) {
         const legacy = JSON.parse(localStorage.getItem(key) || "null");
-        if (Array.isArray(legacy?.battles) && legacy.battles.length) { const migrated = legacy.battles.map(migrateBattle); setBattles(migrated); setActiveId(migrated[0].id); break; }
+        if (Array.isArray(legacy?.battles) && legacy.battles.length) {
+          const migrated = key.endsWith("v3") ? legacy.battles.map(hydrateBattle) : legacy.battles.map(migrateBattle);
+          setBattles(migrated); setActiveId(migrated[0].id); break;
+        }
       }
     } catch { localStorage.removeItem(KEY); }
     setReady(true);
@@ -175,7 +193,18 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     fetch(BENCHMARK_URL, { cache: "no-store" }).then((response) => response.ok ? response.json() : null).then(setBenchmarkPayload).catch(() => setBenchmarkPayload(null));
   }, []);
 
-  useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify({ version: 3, activeId, battles })); }, [ready, activeId, battles]);
+  useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify({ version: 4, activeId, battles })); }, [ready, activeId, battles]);
+
+  useEffect(() => {
+    if (!ready || !sourcePortfolios.length) return;
+    setBattles((current) => {
+      const missing = sourcePortfolios.filter((portfolio) => !current.some((battle) => battle.sourcePortfolioId === portfolio.id));
+      if (!missing.length) return current;
+      const additions = missing.map((portfolio) => emptyBattle(portfolio));
+      if (!activeId) setActiveId(additions[0].id);
+      return [...current, ...additions];
+    });
+  }, [ready, sourcePortfolios, activeId]);
 
   useEffect(() => {
     if (!ready || !anomalies || !battles.length) return;
@@ -191,15 +220,54 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   }, [ready, anomalies, assets.length, assetMap, battles.length]);
 
   const active = battles.find((battle) => battle.id === activeId) ?? null;
-  const qualified = useMemo(() => assets.map((asset) => {
+  const liveQualified = useMemo(() => assets.map((asset) => {
     const gate = fundamentalGate(asset); if (!gate.pass) return null;
     const anomaly = anomalies?.assets?.[asset.ticker] ?? null;
     const analysis = buildQuantAnalysis(asset, assets, anomaly, "swing_3_6m");
     const score = buildBuySellScore({ asset, analysis, strategy: "swing" });
     return score.score == null || !Array.isArray(anomaly?.series) || anomaly.series.length < 30 ? null : { asset, gate, analysis, score, fair: fairValueRange(asset), anomaly };
   }).filter(Boolean).sort((a, b) => (b.score.score ?? -1) - (a.score.score ?? -1)), [assets, anomalies]);
+  const qualified = useMemo(() => active?.mode === "historical"
+    ? assets.map((asset) => historicalTechnicalSnapshot(asset, anomalies, active.startDate)).filter(Boolean).sort((a, b) => b.score.score - a.score.score)
+    : liveQualified, [active?.mode, active?.startDate, assets, anomalies, liveQualified]);
   const qualifiedMap = useMemo(() => new Map(qualified.map((row) => [row.asset.ticker, row])), [qualified]);
   const dataHealth = useMemo(() => marketDataHealth(assets, anomalies), [assets, anomalies]);
+  const historyLatest = useMemo(() => latestHistoricalDate(anomalies), [anomalies]);
+
+  useEffect(() => {
+    if (!ready || !anomalies || !sourcePortfolios.length) return;
+    setBattles((current) => {
+      let changed = false;
+      const next = current.map((battle) => {
+        if (battle.status !== "setup" || !battle.sourcePortfolioId) return battle;
+        const portfolio = sourcePortfolios.find((item) => item.id === battle.sourcePortfolioId);
+        if (!portfolio) return battle;
+        const fingerprint = `${portfolioFingerprint(portfolio)}|${battle.mode}|${battle.startDate}`;
+        if (fingerprint === battle.sourcePortfolioFingerprint && battle.competitors?.find((item) => item.kind === "mine")?.orders?.length) return battle;
+        const tickers = [...new Set([...(portfolio.tickers ?? []), ...(portfolio.holdings ?? []).map((holding) => holding.ticker)])];
+        const holdings = new Map((portfolio.holdings ?? []).map((holding) => [holding.ticker, holding]));
+        const rows = uniqueByIssuer(tickers.map((ticker) => {
+          const asset = assetMap.get(ticker); if (!asset) return null;
+          if (battle.mode === "historical") return historicalTechnicalSnapshot(asset, anomalies, battle.startDate);
+          const live = liveQualified.find((row) => row.asset.ticker === ticker);
+          if (live) return live;
+          const analysis = buildQuantAnalysis(asset, assets, anomalies?.assets?.[ticker] ?? null, "swing_3_6m");
+          const score = buildBuySellScore({ asset, analysis, strategy: "swing" });
+          return { asset, analysis, score: score.score == null ? { score: 50, label: "PLANO DA CARTEIRA", signal: "hold", parts: {} } : score, fair: fairValueRange(asset), anomaly: anomalies?.assets?.[ticker] ?? null, gate: { pass: true, reasons: ["posição vinculada da carteira"] } };
+        }).filter(Boolean));
+        const positionAllocation = rows.length ? Math.max(1, finite(battle.positionAllocation) ?? finite(portfolio.capital) / rows.length) : battle.positionAllocation;
+        const orders = rows.map((row) => {
+          const holding = holdings.get(row.asset.ticker);
+          return planOrder(row, positionAllocation, battle.startDate, `portfolio:${portfolio.id}`, {
+            plannedEntry: finite(holding?.entryPrice) ?? finite(row.asset.price), stop: finite(holding?.stop), target: finite(holding?.target), allocation: positionAllocation,
+          }, battle.horizonMonths, battle.marketMode, battle);
+        });
+        changed = true;
+        return { ...battle, name: battle.name.startsWith("Disputa ·") ? `Disputa · ${portfolio.name}` : battle.name, capital: Math.max(finite(portfolio.capital) ?? 0, positionAllocation * rows.length), positionAllocation, sourcePortfolioFingerprint: fingerprint, modelPlanFingerprint: null, competitors: battle.competitors.map((competitor) => competitor.kind === "mine" ? { ...competitor, orders } : competitor.kind === "model" ? { ...competitor, orders: [] } : competitor) };
+      });
+      return changed ? next : current;
+    });
+  }, [ready, anomalies, sourcePortfolios, assetMap, assets, liveQualified, active?.mode, active?.startDate]);
 
   const updateBattle = (patch) => setBattles((current) => current.map((battle) => battle.id === activeId ? { ...battle, ...patch } : battle));
   const updateCompetitor = (competitorId, updater) => setBattles((current) => current.map((battle) => battle.id !== activeId ? battle : { ...battle, competitors: battle.competitors.map((competitor) => competitor.id === competitorId ? (typeof updater === "function" ? updater(competitor) : { ...competitor, ...updater }) : competitor) }));
@@ -210,11 +278,32 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     const positionAllocation = Math.max(1, finite(value) ?? 1);
     updateBattle({ positionAllocation, competitors: active.competitors.map((competitor) => ({ ...competitor, orders: competitor.orders.map((order) => ({ ...order, allocation: positionAllocation })) })) });
   };
+  const setMode = (mode) => {
+    const nextMode = mode === "historical" ? "historical" : "live";
+    let startDate = nextTradingDate(); let endDate = null;
+    if (nextMode === "historical" && historyLatest) {
+      endDate = historyLatest;
+      const cutoff = new Date(`${historyLatest}T12:00:00`); cutoff.setDate(cutoff.getDate() - 7);
+      const desired = localDate(cutoff);
+      const availableDates = [...new Set(Object.values(anomalies?.assets ?? {}).flatMap((row) => (row.series ?? []).map((item) => item.date)))].sort();
+      startDate = availableDates.filter((date) => date <= desired).at(-1) ?? availableDates.at(-2) ?? historyLatest;
+    }
+    updateBattle({ mode: nextMode, startDate, endDate, modelPlanFingerprint: null, competitors: active.competitors.map((competitor) => ({ ...competitor, orders: competitor.kind === "model" ? [] : competitor.orders.map((order) => ({ ...order, startDate, deadline: addMonths(startDate, active.horizonMonths) })) })) });
+    setNotice("");
+  };
   const setStartDate = (value) => {
-    const minimum = nextTradingDate();
-    const candidate = value < minimum ? minimum : value;
+    const minimum = active.mode === "historical" ? "2000-01-01" : nextTradingDate();
+    const maximum = active.mode === "historical" && historyLatest ? historyLatest : "9999-12-31";
+    const candidate = value < minimum ? minimum : value > maximum ? maximum : value;
     const startDate = isB3TradingDate(candidate) ? candidate : nextB3TradingDate(candidate);
-    updateBattle({ startDate, competitors: active.competitors.map((competitor) => ({ ...competitor, orders: competitor.orders.map((order) => ({ ...order, startDate, deadline: addMonths(startDate, active.horizonMonths) })) })) });
+    updateBattle({ startDate, endDate: active.mode === "historical" && active.endDate < startDate ? historyLatest : active.endDate, modelPlanFingerprint: null, competitors: active.competitors.map((competitor) => ({ ...competitor, orders: competitor.kind === "model" ? [] : competitor.orders.map((order) => ({ ...order, startDate, deadline: addMonths(startDate, active.horizonMonths) })) })) });
+  };
+  const setEndDate = (value) => {
+    if (active.mode !== "historical") return;
+    const maximum = historyLatest ?? value;
+    const candidate = value > maximum ? maximum : value < active.startDate ? active.startDate : value;
+    const endDate = isB3TradingDate(candidate) ? candidate : nextB3TradingDate(candidate);
+    updateBattle({ endDate: endDate > maximum ? maximum : endDate, modelPlanFingerprint: null, competitors: active.competitors.map((competitor) => ({ ...competitor, orders: competitor.kind === "model" ? [] : competitor.orders })) });
   };
   const setHorizon = (value) => {
     const horizonMonths = [1, 2, 3, 6, 12].includes(Number(value)) ? Number(value) : 3;
@@ -248,18 +337,18 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     if (active.modelPlanFingerprint === battlePlanFingerprint(active)) return setNotice("A seleção da IA já está congelada para este plano. Altere seu plano para gerar uma nova seleção.");
     const mine = active.competitors.find((item) => item.kind === "mine");
     const userCount = mine?.orders?.length ?? 0;
-    if (!userCount) return setNotice("Adicione suas posições primeiro; a IA usará sempre três ativos a mais.");
+    if (!userCount) return setNotice("Adicione suas posições primeiro; a IA usará sempre dois ativos a mais.");
     const modelCount = modelPositionCount(userCount);
     const allocations = modelPositionAllocations(userCount, active.positionAllocation);
     const allocation = allocations[0];
     const userIssuers = new Set((mine.orders ?? []).map((order) => issuerKey(assetMap.get(order.ticker))));
-    const candidates = uniqueByIssuer(qualified.filter((row) => row.score.signal === "buy" && !userIssuers.has(issuerKey(row.asset)) && finite(row.asset.price) * lotSizeFor(row.asset, active.marketMode) <= allocation)).slice(0, modelCount);
+    const candidates = uniqueByIssuer(qualified.filter((row) => (row.historical || row.score.signal === "buy") && !userIssuers.has(issuerKey(row.asset)) && finite(row.asset.price) * lotSizeFor(row.asset, active.marketMode) <= allocation)).slice(0, modelCount);
     if (candidates.length < modelCount) return setNotice(`A IA encontrou ${candidates.length} dos ${modelCount} ativos necessários com ${money(allocation)} por posição. Aumente o valor usado ou reduza suas posições.`);
     const fingerprint = battlePlanFingerprint(active); const generatedAt = new Date().toISOString();
     setBattles((current) => current.map((battle) => battle.id !== activeId ? battle : {
       ...battle, modelPlanFingerprint: fingerprint, modelGeneratedAt: generatedAt,
       audit: [...(battle.audit ?? []), { at: generatedAt, type: "model-generated", label: `IA gerada uma vez para ${fingerprint}` }],
-      competitors: battle.competitors.map((item) => item.id === competitor.id ? { ...item, orders: candidates.map((row, index) => planOrder(row, allocations[index], battle.startDate, "model-deterministic", {}, battle.horizonMonths, battle.marketMode, battle)) } : item),
+      competitors: battle.competitors.map((item) => item.id === competitor.id ? { ...item, orders: candidates.map((row, index) => planOrder(row, allocations[index], battle.startDate, row.historical ? "model-historical-technical" : "model-deterministic", {}, battle.horizonMonths, battle.marketMode, battle)) } : item),
     })); setNotice("");
   };
 
@@ -278,18 +367,35 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
     updateCompetitor(competitorId, (competitor) => ({ ...competitor, orders: competitor.orders.filter((order) => order.id !== orderId) }));
   };
 
+  const updateOrderPlan = (competitorId, orderId, patch) => {
+    if (active.status !== "setup") return;
+    updateCompetitor(competitorId, (competitor) => ({ ...competitor, orders: competitor.orders.map((order) => order.id === orderId ? { ...order, ...patch } : order) }));
+    updateBattle({ modelPlanFingerprint: null });
+  };
+
   const startBattle = () => {
     const mine = active.competitors.find((competitor) => competitor.kind === "mine"); const model = active.competitors.find((competitor) => competitor.kind === "model");
-    if (!dataHealth.ready) return setNotice(`A disputa não pode ser travada agora: ${dataHealth.reason} Atualize os dados e tente novamente.`);
+    if (active.mode === "live" && !dataHealth.ready) return setNotice(`A disputa ao vivo não pode ser travada agora: ${dataHealth.reason} Atualize os dados e tente novamente.`);
+    if (active.mode === "historical" && (!anomalies || !historyLatest || !active.endDate || active.startDate > active.endDate)) return setNotice("Escolha um início e um fim válidos dentro do histórico diário disponível.");
     if (!mine?.orders?.length || !model?.orders?.length) return setNotice("Monte sua carteira e gere a carteira da IA antes de iniciar.");
     if (active.modelPlanFingerprint !== battlePlanFingerprint(active)) return setNotice("Seu plano mudou depois da seleção da IA. Gere a IA novamente antes de travar.");
-    if (model.orders.length !== modelPositionCount(mine.orders.length)) return setNotice("Você alterou a quantidade de posições. Gere novamente a carteira da IA para manter três ativos a mais.");
+    if (model.orders.length !== modelPositionCount(mine.orders.length)) return setNotice("Você alterou a quantidade de posições. Gere novamente a carteira da IA para manter dois ativos a mais.");
     if ([mine, model].some((competitor) => competitor.orders.some((order) => Math.abs((finite(order.allocation) ?? 0) - active.positionAllocation) > .01))) return setNotice("Todas as posições precisam usar o mesmo valor por ativo. Revise o valor e gere novamente a IA.");
     if (allocationSum(mine) > active.capital || [mine, model].some((competitor) => competitor.orders.some((order) => !orderValid(order)))) return setNotice("Revise seu orçamento, entrada, stop e alvo das duas carteiras.");
-    const startDate = active.startDate > localDate() ? active.startDate : nextTradingDate(); const lockedAt = new Date().toISOString();
+    const startDate = active.mode === "historical" ? active.startDate : active.startDate > localDate() ? active.startDate : nextTradingDate(); const lockedAt = new Date().toISOString();
     const dataReferenceDate = assets.map((asset) => asset.date).filter(Boolean).sort().at(-1) ?? null;
-    const dataSnapshot = { officialQuoteDate: dataHealth.officialQuoteDate, historyDate: dataHealth.historyDate, expectedDate: dataHealth.expectedDate, coveredAssets: dataHealth.covered, fingerprint: marketSnapshotFingerprint(assets, anomalies), anomalyModelVersion: anomalies?.modelVersion ?? null, source: "B3 EOD oficial" };
-    updateBattle({ status: "running", startDate, lockedAt, dataReferenceDate, dataSnapshot, audit: [...(active.audit ?? []), { at: lockedAt, type: "battle-locked", label: `Planos travados · ${dataSnapshot.fingerprint}` }], competitors: active.competitors.map((competitor) => ({ ...competitor, capital: allocatedCapital(competitor), orders: competitor.orders.map((order) => ({ ...order, startDate, deadline: addMonths(startDate, active.horizonMonths), lockedAt })) })) }); setNotice("");
+    const dataSnapshot = { officialQuoteDate: dataHealth.officialQuoteDate, historyDate: historyLatest ?? dataHealth.historyDate, expectedDate: dataHealth.expectedDate, coveredAssets: dataHealth.covered, fingerprint: marketSnapshotFingerprint(assets, anomalies), anomalyModelVersion: anomalies?.modelVersion ?? null, source: active.mode === "historical" ? "B3 EOD · replay técnico" : "B3 EOD oficial" };
+    const lockedBattle = { ...active, status: "running", startDate, lockedAt, dataReferenceDate, dataSnapshot, audit: [...(active.audit ?? []), { at: lockedAt, type: "battle-locked", label: `${active.mode === "historical" ? "Replay histórico executado" : "Planos travados"} · ${dataSnapshot.fingerprint}` }], competitors: active.competitors.map((competitor) => ({ ...competitor, capital: allocatedCapital(competitor), orders: competitor.orders.map((order) => ({ ...order, startDate, deadline: addMonths(startDate, active.horizonMonths), lockedAt })) })) };
+    const replayed = active.mode === "historical" ? replayHistoricalBattle(lockedBattle, assetMap, anomalies) : lockedBattle;
+    const result = active.mode === "historical" ? { ...replayed, audit: [...replayed.audit, { at: replayed.finishedAt, type: "historical-replay-finished", label: `Replay concluído até ${replayed.endDate}` }] } : replayed;
+    setBattles((current) => current.map((battle) => battle.id === activeId ? result : battle)); setNotice("");
+  };
+
+  const reviseBattle = () => {
+    const createdAt = new Date().toISOString();
+    const resetOrder = (order) => ({ ...order, id: id("order"), status: "waiting", marketEntryPrice: null, entryPrice: null, entryDate: null, quantity: null, entryFee: null, marketExitPrice: null, exitPrice: null, exitDate: null, exitReason: null, grossPnl: null, exitFee: null, fees: null, pnl: null, returnPct: null, entryResolution: null, executionResolution: null, updatedAt: null, lockedAt: null });
+    const revision = { ...active, id: id("battle"), name: `${active.name} · revisão`, status: "setup", lockedAt: null, finishedAt: null, modelPlanFingerprint: null, createdAt, revisionOf: active.id, audit: [{ at: createdAt, type: "battle-revision", label: `Versão corrigida de ${active.name}` }], competitors: active.competitors.map((competitor) => ({ ...competitor, id: id(competitor.kind), orders: competitor.kind === "mine" ? competitor.orders.map(resetOrder) : [] })) };
+    setBattles((current) => [...current, revision]); setActiveId(revision.id); setNotice("Versão corrigida criada. Ajuste datas ou preços e gere novamente a IA.");
   };
 
   const manualClose = (competitor, order) => {
@@ -314,7 +420,7 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   };
 
   const exportBattle = () => {
-    const blob = new Blob([JSON.stringify({ schema: "b3-score-battle-v3", exportedAt: new Date().toISOString(), battle: active }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ schema: "b3-score-battle-v4", exportedAt: new Date().toISOString(), battle: active }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `${active.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "disputa"}.json`; link.click(); URL.revokeObjectURL(url);
   };
 
@@ -347,41 +453,42 @@ export default function BattleArena({ assets = [], sourcePortfolios = [] }) {
   const setupStep = active.status !== "setup" ? 4 : userPositionCount === 0 ? 1 : !modelCurrent ? 2 : 3;
 
   return <section className="battle-arena">
-    <header className="battle-intro"><div><span>VOCÊ VS IA · SWING TRADE REAL</span><h2>Seu plano contra um modelo congelado.</h2><p>Comparação prospectiva com pregões oficiais, execução simulada e trilha auditável. A decisão de comprar no mundo real continua sendo somente sua.</p></div><div className="battle-head-actions"><button onClick={exportBattle}>Baixar registro</button><button onClick={createBattle}>Nova disputa</button></div></header>
+    <header className="battle-intro"><div><span>VOCÊ VS IA · AO VIVO OU REPLAY</span><h2>Sua carteira entra na disputa automaticamente.</h2><p>Teste a partir de um pregão passado ou acompanhe dali para frente, sempre com candles diários em ordem cronológica e escolhas auditáveis.</p></div><div className="battle-head-actions"><button onClick={exportBattle}>Baixar registro</button>{active.status === "finished" && <button onClick={reviseBattle}>Criar versão corrigida</button>}<button onClick={createBattle}>Nova disputa</button></div></header>
     <div className="battle-tabs">{battles.map((battle) => <button className={battle.id === activeId ? "active" : ""} key={battle.id} onClick={() => setActiveId(battle.id)}>{battle.name}</button>)}</div>
 
     <div className="battle-steps">{["Regras", "Seu plano", "Seleção IA", "Travado"].map((label, index) => <span key={label} className={setupStep >= index + 1 ? "active" : ""}><i>{index + 1}</i>{label}</span>)}</div>
-    <section className={`battle-data-health ${dataHealth.ready ? "ready" : "stale"}`}><div><b>{dataHealth.ready ? "DADOS OFICIAIS APTOS" : "DADOS BLOQUEADOS PARA NOVA DISPUTA"}</b><span>{dataHealth.reason}</span></div><div><span>Cotação B3<b>{formatDate(dataHealth.officialQuoteDate)}</b></span><span>Histórico diário<b>{formatDate(dataHealth.historyDate)}</b></span><span>Cobertura<b>{dataHealth.covered} ativos</b></span></div></section>
+    <section className={`battle-data-health ${active.mode === "historical" ? (historyLatest ? "ready" : "stale") : (dataHealth.ready ? "ready" : "stale")}`}><div><b>{active.mode === "historical" ? (historyLatest ? "REPLAY HISTÓRICO DISPONÍVEL" : "HISTÓRICO INDISPONÍVEL") : (dataHealth.ready ? "DADOS OFICIAIS APTOS" : "DADOS BLOQUEADOS PARA NOVA DISPUTA")}</b><span>{active.mode === "historical" ? `O replay usa somente candles anteriores à data escolhida para selecionar a IA. Série disponível até ${formatDate(historyLatest)}.` : dataHealth.reason}</span></div><div><span>Cotação B3<b>{formatDate(dataHealth.officialQuoteDate)}</b></span><span>Histórico diário<b>{formatDate(historyLatest ?? dataHealth.historyDate)}</b></span><span>Cobertura<b>{dataHealth.covered} ativos</b></span></div></section>
     <section className="battle-setup">
-      <div className="battle-setup-main"><label>Nome<input value={active.name} disabled={!editable} onChange={(event) => updateBattle({ name: event.target.value || "Disputa" })} /></label><label>Estratégia<input value="Swing Trade" disabled /></label><label>Primeiro pregão B3<input type="date" min={nextTradingDate()} value={active.startDate} disabled={!editable} onChange={(event) => setStartDate(event.target.value)} /></label><label>Seu orçamento máximo<input type="number" min="1000" step="100" value={active.capital} disabled={!editable} onChange={(event) => setCapital(event.target.value)} /></label><label>Valor repetido em cada ativo<input type="number" min="1" step="50" value={active.positionAllocation} disabled={!editable} onChange={(event) => setPositionAllocation(event.target.value)} /></label><label>Horizonte igual<select value={active.horizonMonths} disabled={!editable} onChange={(event) => setHorizon(event.target.value)}>{[1, 2, 3, 6, 12].map((months) => <option value={months} key={months}>{months} {months === 1 ? "mês" : "meses"}</option>)}</select></label><label>Mercado de ações<select value={active.marketMode} disabled={!editable} onChange={(event) => setMarketMode(event.target.value)}><option value="fractional">Fracionário · 1 a 99</option><option value="standard">Lote padrão · 100</option></select></label><label>Custos por ordem<input value={`${active.transactionCostPct}% + ${active.slippagePct}% slippage`} disabled /></label></div>
+      <div className="battle-setup-main"><label>Nome<input value={active.name} disabled={!editable} onChange={(event) => updateBattle({ name: event.target.value || "Disputa" })} /></label><label>Modo<select value={active.mode ?? "live"} disabled={!editable} onChange={(event) => setMode(event.target.value)}><option value="live">Ao vivo · próximos pregões</option><option value="historical">Replay · pregões passados</option></select></label><label>Primeiro pregão B3<input type="date" min={active.mode === "live" ? nextTradingDate() : undefined} max={active.mode === "historical" ? historyLatest ?? undefined : undefined} value={active.startDate} disabled={!editable} onChange={(event) => setStartDate(event.target.value)} /></label>{active.mode === "historical" && <label>Último pregão do teste<input type="date" min={active.startDate} max={historyLatest ?? undefined} value={active.endDate ?? historyLatest ?? ""} disabled={!editable} onChange={(event) => setEndDate(event.target.value)} /></label>}<label>Seu orçamento máximo<input type="number" min="1000" step="100" value={active.capital} disabled={!editable} onChange={(event) => setCapital(event.target.value)} /></label><label>Valor repetido em cada ativo<input type="number" min="1" step="50" value={active.positionAllocation} disabled={!editable} onChange={(event) => setPositionAllocation(event.target.value)} /></label><label>Horizonte igual<select value={active.horizonMonths} disabled={!editable} onChange={(event) => setHorizon(event.target.value)}>{[1, 2, 3, 6, 12].map((months) => <option value={months} key={months}>{months} {months === 1 ? "mês" : "meses"}</option>)}</select></label><label>Mercado de ações<select value={active.marketMode} disabled={!editable} onChange={(event) => setMarketMode(event.target.value)}><option value="fractional">Fracionário · 1 a 99</option><option value="standard">Lote padrão · 100</option></select></label><label>Taxa simplificada<input value="0,031% na compra + 0,031% na venda" disabled /></label></div>
       <div className={`battle-status ${active.status}`}><b>{statusLabel(active.status)}</b><span>{active.status === "setup" ? "Planos ainda editáveis" : `Planos travados em ${new Date(active.lockedAt ?? active.finishedAt).toLocaleString("pt-BR")}`}</span></div>
       <button className="battle-delete" onClick={removeBattle}>Excluir disputa</button>
     </section>
+    {active.sourcePortfolioId && <div className="battle-linked"><b>CARTEIRA VINCULADA</b><span>{sourcePortfolios.find((portfolio) => portfolio.id === active.sourcePortfolioId)?.name ?? "Carteira removida"}</span><small>Enquanto o rascunho estiver aberto, os ativos da carteira são sincronizados. Ao executar, o plano é congelado.</small></div>}
     <div className="battle-coverage"><b>Universo qualificado</b><span>{qualifiedCounts.stock} ações · {qualifiedCounts.unit} units · {qualifiedCounts.fii} FIIs</span><small>Digite pelo código ou nome; no fracionário, ações e units aparecem com F.</small></div>
     {notice && <div className="battle-notice" role="alert">{notice}</div>}
 
-    <section className="battle-scoreboard"><header><div><span>PLACAR OFICIAL · RETORNO SOBRE O ALOCADO</span><h3>{leader ? `${leader.name} está na frente` : "Disputa empatada"}</h3></div><small>R$ aparece como dado secundário porque a IA usa +3 ativos</small></header><div>{ranked.map(({ competitor, metrics }, index) => <article key={competitor.id} className={competitor.kind}><em>#{index + 1}</em><div><b>{competitor.name}</b><small>{competitor.kind === "mine" ? "Seu plano" : "Modelo determinístico congelado"}</small></div><strong className={metrics.returnPct >= 0 ? "positive" : "negative"}>{pct(metrics.returnPct)}</strong><span>{money(metrics.pnl)} P/L</span><small>alocado {money(metrics.allocatedCapital)} · {metrics.open} abertas · {metrics.closed} fechadas · {metrics.waiting} aguardando</small><i>Dia {pct(stats[competitor.id]?.dailyPct)} · drawdown {pct(stats[competitor.id]?.maxDrawdownPct)}</i></article>)}</div></section>
+    <section className="battle-scoreboard"><header><div><span>PLACAR OFICIAL · RETORNO SOBRE O ALOCADO</span><h3>{leader ? `${leader.name} está na frente` : "Disputa empatada"}</h3></div><small>R$ aparece como dado secundário porque a IA usa N+2 ativos</small></header><div>{ranked.map(({ competitor, metrics }, index) => <article key={competitor.id} className={competitor.kind}><em>#{index + 1}</em><div><b>{competitor.name}</b><small>{competitor.kind === "mine" ? "Seu plano" : active.mode === "historical" ? "Replay técnico sem olhar o futuro" : "Modelo determinístico congelado"}</small></div><strong className={metrics.returnPct >= 0 ? "positive" : "negative"}>{pct(metrics.returnPct)}</strong><span>{money(metrics.pnl)} P/L</span><small>alocado {money(metrics.allocatedCapital)} · {metrics.open} abertas · {metrics.closed} fechadas · {metrics.waiting} aguardando</small><i>Dia {pct(stats[competitor.id]?.dailyPct)} · drawdown {pct(stats[competitor.id]?.maxDrawdownPct)}</i></article>)}</div></section>
 
     <section className="battle-benchmarks"><header><div><span>REFERÊNCIAS OBRIGATÓRIAS</span><h3>Mercado e custo de oportunidade</h3></div><small>{!equityRows.length ? "A comparação começará no primeiro pregão" : benchmarkResult.ready ? "Mesmo início e mesmos pregões da disputa" : `Aguardando ${benchmarkResult.missing.join(" e ") || "dados oficiais"}`}</small></header><div>{benchmarkResult.series.map((benchmark) => <article className={benchmark.kind} key={benchmark.id}><div><b>{benchmark.name}</b><small>{benchmark.id === "IBOV" ? "Mercado brasileiro de ações" : "Rendimento conservador acumulado"}</small></div><strong className={benchmark.latestReturnPct == null ? "" : benchmark.latestReturnPct >= 0 ? "positive" : "negative"}>{pct(benchmark.latestReturnPct)}</strong><span>Você {pp(excessReturn(metricRows.find((row) => row.competitor.kind === "mine")?.metrics.returnPct, benchmark.latestReturnPct))}</span><span>IA {pp(excessReturn(metricRows.find((row) => row.competitor.kind === "model")?.metrics.returnPct, benchmark.latestReturnPct))}</span><small>base {formatDate(benchmark.baselineDate)} · fonte até {formatDate(benchmark.referenceDate)}</small></article>)}</div><p>Ibovespa usa a série diária oficial da B3. O CDI é composto pelas taxas diárias oficiais, sem dividir a taxa anual por mês.</p></section>
 
     <section className="battle-chart-card"><header><div><span>GRÁFICO DIÁRIO COMPLETO</span><h3>Você × IA × Ibovespa × CDI</h3></div><small>Mesmo intervalo; carteiras líquidas sobre o alocado</small></header><BattleDailyChart rows={chartRows} chartSeries={chartSeries} />{chartRows.length > 0 && <details><summary>Ver fechamento diário</summary><div className="battle-daily-table" style={{ "--battle-columns": chartSeries.length + 1 }}><div><b>Data</b>{chartSeries.map((item) => <b key={item.id}>{item.name}</b>)}</div>{chartRows.slice().reverse().map((row) => <div key={row.date}><span>{formatDate(row.date)}</span>{chartSeries.map((item) => <span key={item.id}>{pct(row.returns[item.id])}{item.kind === "mine" || item.kind === "model" ? ` · ${money(row.values[item.id])}` : ""}</span>)}</div>)}</div></details>}</section>
 
-    {editable && <div className="battle-start"><div><b>1. Monte a sua carteira</b><span>2. Gere a carteira da IA</span><span>3. Inicie e congele as escolhas</span></div><button onClick={startBattle}>Iniciar disputa no próximo pregão</button></div>}
+    {editable && <div className="battle-start"><div><b>1. Sua carteira entra no plano</b><span>2. Gere a carteira N+2 da IA</span><span>3. Execute e congele as escolhas</span></div><button onClick={startBattle}>{active.mode === "historical" ? `Executar replay de ${formatDate(active.startDate)} a ${formatDate(active.endDate)}` : "Iniciar disputa no próximo pregão"}</button></div>}
     {active.status === "running" && <div className="battle-start running"><div><b>Disputa em andamento</b><span>As ordens não podem mais ser editadas. Você pode encerrar apenas suas posições abertas.</span></div><button onClick={finishBattle}>Encerrar disputa</button></div>}
 
     <section className="battle-competitors">{competitors.map((competitor) => {
       const d = draft(competitor.id); const metrics = competitorMetrics(competitor, assetMap);
-      return <article className={`battle-competitor ${competitor.kind}`} key={competitor.id}><header><div><h3>{competitor.name}</h3><small>{competitor.orders.length} ativos · alocado {money(allocationSum(competitor))} · resultado oficial {pct(metrics.returnPct)}</small></div><div>{editable && competitor.kind === "model" && <button disabled={modelCurrent} className={modelCurrent ? "model-current" : ""} onClick={() => autoFillModel(competitor)}>{modelCurrent ? `IA definida · ${competitor.orders.length} ativos` : `Gerar IA com ${userPositionCount ? modelPositionCount(userPositionCount) : "+3"} ativos`}</button>}{editable && sourcePortfolios.length > 0 && competitor.kind === "mine" && <select defaultValue="" onChange={(event) => event.target.value && importPortfolio(competitor, event.target.value)}><option value="">Importar carteira...</option>{sourcePortfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select>}</div></header>
+      return <article className={`battle-competitor ${competitor.kind}`} key={competitor.id}><header><div><h3>{competitor.name}</h3><small>{competitor.orders.length} ativos · alocado {money(allocationSum(competitor))} · resultado oficial {pct(metrics.returnPct)}</small></div><div>{editable && competitor.kind === "model" && <button disabled={modelCurrent} className={modelCurrent ? "model-current" : ""} onClick={() => autoFillModel(competitor)}>{modelCurrent ? `IA definida · ${competitor.orders.length} ativos` : `Gerar IA com ${userPositionCount ? modelPositionCount(userPositionCount) : "N+2"} ativos`}</button>}{editable && sourcePortfolios.length > 0 && competitor.kind === "mine" && !active.sourcePortfolioId && <select defaultValue="" onChange={(event) => event.target.value && importPortfolio(competitor, event.target.value)}><option value="">Importar carteira...</option>{sourcePortfolios.map((portfolio) => <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>)}</select>}</div></header>
         {editable && competitor.kind === "mine" && <div className="battle-order-create"><label className="battle-search-field">Ativo<div className="battle-search-wrap"><input value={d.query ?? ""} onChange={(event) => setDraft(competitor.id, { query: event.target.value.toUpperCase(), ticker: "" })} placeholder={active.marketMode === "fractional" ? "Digite PETR4F, HGLG11..." : "Digite PETR4, HGLG11..."} autoComplete="off" />{d.query && !d.ticker && searchMatches(d.query).length > 0 && <div className="battle-search-suggestions">{searchMatches(d.query).map((row) => <button type="button" key={row.asset.ticker} onClick={() => selectAsset(competitor.id, row)}><b>{marketSymbol(row.asset, active.marketMode)}</b><span>{row.asset.name}</span><em>{assetKindLabel(row.asset)} · {money(row.asset.price)} · score {row.score.score}</em></button>)}</div>}</div></label><label>Minha entrada<input type="number" min="0.01" step="0.01" value={d.plannedEntry ?? ""} onChange={(event) => setDraft(competitor.id, { plannedEntry: event.target.value })} /></label><label>Meu stop<input type="number" min="0.01" step="0.01" value={d.stop ?? ""} onChange={(event) => setDraft(competitor.id, { stop: event.target.value })} /></label><label>Minha saída<input type="number" min="0.01" step="0.01" value={d.target ?? ""} onChange={(event) => setDraft(competitor.id, { target: event.target.value })} /></label><div className="battle-common-deadline"><span>Valor por ativo</span><b>{money(active.positionAllocation)}</b></div><div className="battle-common-deadline"><span>Prazo comum</span><b>{active.horizonMonths} {active.horizonMonths === 1 ? "mês" : "meses"}</b></div><button onClick={() => addOrder(competitor)}>Adicionar</button></div>}
         <div className="battle-orders">{competitor.orders.map((order) => {
           const asset = assetMap.get(order.ticker); const current = finite(asset?.intraday ? asset.officialPrice : asset?.price);
           const currentPnl = order.status === "open" && current != null && finite(order.entryPrice) != null && finite(order.quantity) != null ? (current - order.entryPrice) * order.quantity : finite(order.pnl);
           const currentReturn = order.status === "open" && current != null && finite(order.entryPrice) != null ? (current / order.entryPrice - 1) * 100 : finite(order.returnPct);
-          return <section className={`battle-order ${order.status}`} key={order.id}><div className="battle-order-main"><div><strong>{order.displayTicker ?? order.ticker}</strong><span>{order.name}</span><small>{assetKindLabel(asset ?? { kind: order.assetKind })} · lote {order.lotSize ?? 1}{order.maxQuantity ? ` · máximo ${order.maxQuantity}` : ""} · plano congelado: score {order.scoreAtPlan ?? "N/D"} · {order.signalAtPlan ?? "N/D"}</small></div><em>{order.status === "waiting" ? "AGUARDANDO ENTRADA" : order.status === "open" ? "POSIÇÃO ABERTA" : order.status === "closed" ? `ENCERRADA · ${order.exitReason}` : "CANCELADA"}</em><b className={currentReturn == null ? "" : currentReturn >= 0 ? "positive" : "negative"}>{pct(currentReturn)}</b></div><div className="battle-order-numbers"><span>Entrada planejada<b>{money(order.plannedEntry)}</b></span><span>Executada<b>{order.entryDate ? `${money(order.entryPrice)} · ${formatDate(order.entryDate)}` : "N/D"}</b></span><span>Stop<b>{money(order.stop)}</b></span><span>Saída / alvo<b>{money(order.target)}</b></span><span>Prazo comum<b>{formatDate(order.deadline)}</b></span><span>Resultado<b>{money(currentPnl)}</b></span></div>{order.qualification?.length > 0 && <p className="battle-qualification">Qualificação: {order.qualification.join(" · ")}</p>}<footer>{active.status === "running" && competitor.kind === "mine" && order.status === "open" && <button onClick={() => manualClose(competitor, order)}>Encerrar no preço atual</button>}{editable && <button className="danger-link" onClick={() => deleteOrder(competitor.id, order.id)}>Excluir plano</button>}</footer></section>;
-        })}{!competitor.orders.length && <p className="battle-empty">{competitor.kind === "mine" ? "Adicione suas escolhas; todas usarão o valor por ativo escolhido." : "A IA usará três ativos a mais e repetirá integralmente o mesmo valor em cada ativo."}</p>}</div>
+          return <section className={`battle-order ${order.status}`} key={order.id}><div className="battle-order-main"><div><strong>{order.displayTicker ?? order.ticker}</strong><span>{order.name}</span><small>{assetKindLabel(asset ?? { kind: order.assetKind })} · lote {order.lotSize ?? 1}{order.maxQuantity ? ` · máximo ${order.maxQuantity}` : ""} · plano congelado: score {order.scoreAtPlan ?? "N/D"} · {order.signalAtPlan ?? "N/D"}</small></div><em>{order.status === "waiting" ? "AGUARDANDO ENTRADA" : order.status === "open" ? "POSIÇÃO ABERTA" : order.status === "closed" ? `ENCERRADA · ${order.exitReason}` : "CANCELADA"}</em><b className={currentReturn == null ? "" : currentReturn >= 0 ? "positive" : "negative"}>{pct(currentReturn)}</b></div><div className="battle-order-numbers"><span>Entrada planejada<b>{money(order.plannedEntry)}</b></span><span>Executada<b>{order.entryDate ? `${money(order.entryPrice)} · ${formatDate(order.entryDate)}` : "N/D"}</b></span><span>Stop<b>{money(order.stop)}</b></span><span>Saída / alvo<b>{money(order.target)}</b></span><span>Prazo comum<b>{formatDate(order.deadline)}</b></span><span>Resultado<b>{money(currentPnl)}</b></span></div>{editable && competitor.kind === "mine" && <div className="battle-plan-edit"><label>Alterar entrada<input type="number" min="0.01" step="0.01" value={order.plannedEntry ?? ""} onChange={(event) => updateOrderPlan(competitor.id, order.id, { plannedEntry: finite(event.target.value) })} /></label><label>Alterar stop<input type="number" min="0.01" step="0.01" value={order.stop ?? ""} onChange={(event) => updateOrderPlan(competitor.id, order.id, { stop: finite(event.target.value) })} /></label><label>Alterar saída<input type="number" min="0.01" step="0.01" value={order.target ?? ""} onChange={(event) => updateOrderPlan(competitor.id, order.id, { target: finite(event.target.value) })} /></label></div>}{order.qualification?.length > 0 && <p className="battle-qualification">Qualificação: {order.qualification.join(" · ")}</p>}<footer>{active.status === "running" && competitor.kind === "mine" && order.status === "open" && <button onClick={() => manualClose(competitor, order)}>Encerrar no preço atual</button>}{editable && <button className="danger-link" onClick={() => deleteOrder(competitor.id, order.id)}>Excluir plano</button>}</footer></section>;
+        })}{!competitor.orders.length && <p className="battle-empty">{competitor.kind === "mine" ? "Adicione suas escolhas; toda carteira nova também cria este rascunho automaticamente." : "A IA usará dois ativos a mais e repetirá integralmente o mesmo valor em cada ativo."}</p>}</div>
       </article>;
     })}</section>
 
-    <aside className="battle-method-note"><b>Regras auditáveis</b><p>O início é prospectivo e só pode ser travado com cotação e histórico diário oficial dentro da validade. Você escolhe um único valor por ativo, repetido integralmente em todas as posições. A IA usa sempre três ativos a mais — 2 contra 5, 4 contra 7 — então o total em reais dela é maior; por isso o vencedor oficial é definido pelo retorno percentual líquido sobre o capital alocado, e o P/L em reais é secundário. Você define entrada, stop e saída; a IA calcula os próprios preços e não pode ser sorteada de novo sem mudança no seu plano. Gap executa na abertura; quando stop e alvo aparecem no mesmo candle diário, vale o stop conservador. Custos de {active.transactionCostPct}% e slippage de {active.slippagePct}% são aplicados igualmente. Depois do início, planos, versão do modelo e fotografia dos dados ficam imutáveis.</p>{active.dataSnapshot && <div className="battle-snapshot"><span>Snapshot <b>{active.dataSnapshot.fingerprint}</b></span><span>Modelo <b>{active.modelVersion}</b></span><span>B3 <b>{formatDate(active.dataSnapshot.officialQuoteDate)}</b></span></div>}{active.audit?.length > 0 && <details><summary>Trilha de auditoria ({active.audit.length})</summary>{[...active.audit].reverse().map((item, index) => <div className="battle-audit-row" key={`${item.at}-${index}`}><b>{new Date(item.at).toLocaleString("pt-BR")}</b><span>{item.label ?? item.type}</span></div>)}</details>}</aside>
+    <aside className="battle-method-note"><b>Regras auditáveis</b><p>{active.mode === "historical" ? "No replay, a IA é escolhida apenas com preços e volumes anteriores ao primeiro pregão; fundamentos históricos completos não estão disponíveis, por isso o resultado é identificado como teste retrospectivo técnico. " : "No modo ao vivo, planos e dados ficam congelados antes do primeiro pregão. "}Você escolhe um único valor por ativo, repetido integralmente em todas as posições. A IA usa sempre dois ativos a mais — 2 contra 4, 4 contra 6 — então o vencedor oficial é definido pelo retorno percentual líquido sobre o capital alocado. Gap executa na abertura; quando stop e alvo aparecem no mesmo candle diário, vale o stop conservador. A taxa fixa da simulação é {active.transactionCostPct}% sobre o volume da compra e novamente sobre o volume da venda; não há corretagem nem slippage adicional. Uma versão encerrada nunca é reescrita: para mudar um pregão passado, crie uma versão corrigida.</p>{active.dataSnapshot && <div className="battle-snapshot"><span>Snapshot <b>{active.dataSnapshot.fingerprint}</b></span><span>Modelo <b>{active.modelVersion}</b></span><span>B3 <b>{formatDate(active.dataSnapshot.historyDate ?? active.dataSnapshot.officialQuoteDate)}</b></span></div>}{active.audit?.length > 0 && <details><summary>Trilha de auditoria ({active.audit.length})</summary>{[...active.audit].reverse().map((item, index) => <div className="battle-audit-row" key={`${item.at}-${index}`}><b>{new Date(item.at).toLocaleString("pt-BR")}</b><span>{item.label ?? item.type}</span></div>)}</details>}</aside>
   </section>;
 }

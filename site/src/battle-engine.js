@@ -1,12 +1,12 @@
 import { nextB3TradingDate } from "./market-calendar.js";
 
 export const finite = (value) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
-export const BATTLE_MODEL_VERSION = "b3-score-swing-v3.0.0";
-export const DEFAULT_EXECUTION = Object.freeze({ transactionCostPct: 0.03, slippagePct: 0.05, ambiguityPolicy: "stop-conservador" });
+export const BATTLE_MODEL_VERSION = "b3-score-swing-v4.0.0";
+export const DEFAULT_EXECUTION = Object.freeze({ transactionCostPct: 0.031, slippagePct: 0, ambiguityPolicy: "stop-conservador" });
 
 export const modelPositionCount = (userCount) => {
   const count = Math.max(0, Math.floor(finite(userCount) ?? 0));
-  return count > 0 ? count + 3 : 0;
+  return count > 0 ? count + 2 : 0;
 };
 
 export const modelPositionAllocations = (userCount, perAssetValue) => {
@@ -37,7 +37,8 @@ function stableHash(text) {
 export function battlePlanFingerprint(battle) {
   const mine = battle?.competitors?.find((item) => item.kind === "mine");
   const plan = {
-    startDate: battle?.startDate, horizonMonths: battle?.horizonMonths, marketMode: battle?.marketMode,
+    mode: battle?.mode ?? "live", startDate: battle?.startDate, endDate: battle?.endDate ?? null,
+    horizonMonths: battle?.horizonMonths, marketMode: battle?.marketMode,
     positionAllocation: finite(battle?.positionAllocation),
     orders: (mine?.orders ?? []).map((order) => ({ ticker: order.ticker, entry: finite(order.plannedEntry), stop: finite(order.stop), target: finite(order.target), allocation: finite(order.allocation) })).sort((a, b) => a.ticker.localeCompare(b.ticker)),
   };
@@ -71,6 +72,35 @@ export function rowsForTicker(ticker, asset, anomalies) {
     });
   }
   return [...map.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
+export function historicalTechnicalSnapshot(asset, anomalies, startDate) {
+  const history = rowsForTicker(asset?.ticker, null, anomalies).filter((row) => row.date < startDate);
+  if (history.length < 30) return null;
+  const window = history.slice(-60);
+  const last = window.at(-1);
+  const closes = window.map((row) => finite(row.close)).filter((value) => value != null);
+  const last20 = window.slice(-20);
+  const close = finite(last?.close);
+  const close20 = finite(window.at(-21)?.close) ?? finite(window[0]?.close);
+  const close60 = finite(window[0]?.close);
+  if (!(close > 0) || !(close20 > 0) || !(close60 > 0)) return null;
+  const sma20 = last20.reduce((sum, row) => sum + (finite(row.close) ?? 0), 0) / last20.length;
+  const return20 = (close / close20 - 1) * 100;
+  const return60 = (close / close60 - 1) * 100;
+  const dailyReturns = closes.slice(1).map((value, index) => value / closes[index] - 1);
+  const volatility = dailyReturns.length ? Math.sqrt(dailyReturns.reduce((sum, value) => sum + value * value, 0) / dailyReturns.length) * 100 : 0;
+  const trendBonus = close >= sma20 ? 12 : -12;
+  const liquidity = last20.reduce((sum, row) => sum + (finite(row.volume) ?? 0), 0) / last20.length;
+  const liquidityBonus = liquidity >= 1000000 ? 8 : liquidity >= 100000 ? 4 : 0;
+  const score = Math.max(0, Math.min(100, Math.round(58 + trendBonus + return20 * 1.1 + return60 * .35 + liquidityBonus - volatility * .8)));
+  const low20 = Math.min(...last20.map((row) => finite(row.low) ?? finite(row.close)).filter((value) => value != null));
+  return {
+    asset: { ...asset, price: close, date: last.date, officialQuoteDate: last.date },
+    anomaly: { low20, series: history }, fair: { base: null }, historical: true,
+    score: { score, label: score >= 70 ? "COMPRA TÉCNICA" : "OBSERVAR", signal: score >= 70 ? "buy" : "hold", parts: { return20, return60, volatility } },
+    gate: { pass: true, reasons: [`replay técnico com ${history.length} pregões anteriores`, `referência ${last.date}`] },
+  };
 }
 
 function touches(row, price) {
@@ -123,7 +153,7 @@ function exitForRow(order, row) {
 export function processOrder(order, battle, assetMap, anomalies) {
   if (battle.status !== "running" || ["closed", "cancelled"].includes(order.status)) return order;
   const asset = assetMap.get(order.ticker);
-  const series = rowsForTicker(order.ticker, asset, anomalies);
+  const series = rowsForTicker(order.ticker, asset, anomalies).filter((row) => !battle.endDate || row.date <= battle.endDate);
   if (!series.length) return order;
   let working = { ...order };
   if (working.status === "waiting") {
@@ -153,6 +183,23 @@ export function processOrder(order, battle, assetMap, anomalies) {
     if (working.deadline && row.date >= working.deadline) return closeOrder(working, row.close, row.date, "PRAZO", battle);
   }
   return working;
+}
+
+export function replayHistoricalBattle(battle, assetMap, anomalies) {
+  if (!battle?.startDate || !battle?.endDate || battle.endDate < battle.startDate) return battle;
+  const running = { ...battle, status: "running" };
+  const competitors = (battle.competitors ?? []).map((competitor) => ({
+    ...competitor,
+    orders: (competitor.orders ?? []).map((order) => {
+      const processed = processOrder({ ...order, startDate: battle.startDate, deadline: order.deadline || battle.endDate }, running, assetMap, anomalies);
+      if (processed.status === "waiting") return { ...processed, status: "cancelled", exitReason: "NÃO ENTROU NO PERÍODO", updatedAt: new Date().toISOString() };
+      if (processed.status !== "open") return processed;
+      const rows = rowsForTicker(processed.ticker, assetMap.get(processed.ticker), anomalies).filter((row) => row.date >= processed.entryDate && row.date <= battle.endDate);
+      const last = rows.at(-1);
+      return last ? closeOrder(processed, last.close, last.date, "FIM DO PERÍODO", running) : processed;
+    }),
+  }));
+  return { ...battle, status: "finished", competitors, finishedAt: new Date().toISOString() };
 }
 
 function lastCloseAt(series, date) {
