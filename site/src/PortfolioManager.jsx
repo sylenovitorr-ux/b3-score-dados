@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PortfolioCore from "./PortfolioCore.jsx";
-import BattleArena from "./BattleArena.jsx";
+import UnifiedBattleArena from "./UnifiedBattleArena.jsx";
 import PortfolioHistoryPanel from "./PortfolioHistoryPanel.jsx";
 import "./PortfolioManager.css";
 import "./PortfolioWorkspace.css";
@@ -12,10 +12,8 @@ const pct = (value) => value == null ? "N/D" : `${Number(value) > 0 ? "+" : ""}$
 const daysBetween = (start, end) => start && end ? Math.max(0, Math.floor((new Date(`${end}T12:00:00`) - new Date(`${start}T12:00:00`)) / 86400000)) : null;
 
 function loadPortfolios() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(KEY) || "null");
-    return Array.isArray(parsed?.portfolios) ? parsed.portfolios : [];
-  } catch { return []; }
+  try { const parsed = JSON.parse(localStorage.getItem(KEY) || "null"); return Array.isArray(parsed?.portfolios) ? parsed.portfolios : []; }
+  catch { return []; }
 }
 
 function ClosedTradeEditor() {
@@ -53,6 +51,6 @@ export default function PortfolioManager({ assets = [], asOf = {} }) {
   const switchTab = (next) => { setSourcePortfolios(loadPortfolios()); setTab(next); };
   return <div className="portfolio-workspace-shell">
     <nav className="portfolio-workspace-tabs" aria-label="Área de carteira"><button className={tab === "portfolio" ? "active" : ""} onClick={() => switchTab("portfolio")}>Carteiras</button><button className={tab === "battle" ? "active" : ""} onClick={() => switchTab("battle")}>Disputa</button><button className={tab === "closed" ? "active" : ""} onClick={() => switchTab("closed")}>Encerradas</button></nav>
-    {tab === "portfolio" ? <><PortfolioCore assets={assets} asOf={asOf} /><PortfolioHistoryPanel assets={assets} /></> : tab === "battle" ? <BattleArena assets={assets} sourcePortfolios={sourcePortfolios} /> : <ClosedTradeEditor />}
+    {tab === "portfolio" ? <><PortfolioCore assets={assets} asOf={asOf} /><PortfolioHistoryPanel assets={assets} /></> : tab === "battle" ? <UnifiedBattleArena assets={assets} sourcePortfolios={sourcePortfolios} /> : <ClosedTradeEditor />}
   </div>;
 }
