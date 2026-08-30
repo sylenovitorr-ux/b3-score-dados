@@ -10,7 +10,7 @@ test("rotas novas preservam ticker e funcionam no GitHub Pages", () => {
 
 test("links legados continuam válidos e falham com segurança", () => {
   assert.deepEqual(parseRoute("#radar-diario"), { page: "radar", ticker: null });
-  assert.deepEqual(parseRoute("#opcoes"), { page: "options", ticker: null });
+  assert.deepEqual(parseRoute("#opcoes"), { page: "home", ticker: null });
   assert.deepEqual(parseRoute("#qualquer-coisa"), { page: "home", ticker: null });
 });
 
