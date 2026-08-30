@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh stocks, units, FIIs and fundamentals from official B3/CVM files."""
+"""Refresh stocks, units and fundamentals from official B3/CVM files."""
 
 from __future__ import annotations
 
@@ -104,23 +104,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     work = Path(folder)
     year = date.today().year
 
-    monthly_years = []
-    for report_year in (year - 1, year):
-        name = f"inf_mensal_fii_{report_year}.zip"
-        if download(f"https://dados.cvm.gov.br/dados/FII/DOC/INF_MENSAL/DADOS/{name}", work / name):
-            monthly_years.append(report_year)
-        else:
-            print(f"CVM monthly FII file unavailable: {report_year}; continuing with available years.")
-    if not monthly_years:
-        raise SystemExit("No CVM monthly FII file available")
-
-    quarterly_ok = False
-    for report_year in (year - 1, year):
-        name = f"inf_trimestral_fii_{report_year}.zip"
-        quarterly_ok = download(f"https://dados.cvm.gov.br/dados/FII/DOC/INF_TRIMESTRAL/DADOS/{name}", work / name) or quarterly_ok
-    if not quarterly_ok:
-        raise SystemExit("No CVM quarterly FII file available")
-
     annual_history = []
     for history_year in range(year - 9, year + 1):
         annual_name = f"COTAHIST_A{history_year}.ZIP"
@@ -139,9 +122,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
                 break
         cursor -= timedelta(days=1)
 
-    # The newer official BVBG.186.01 report is an independent daily fallback.
-    # It prevents a retired/blocked legacy COTAHIST endpoint from silently
-    # freezing the app while preserving the same downstream audit format.
     simplified_sessions = 0
     universe = known_universe(ROOT)
     cursor = date.today()
@@ -172,31 +152,22 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-fundamentals.py"), str(work), str(dfp_year), str(itr_year), str(fca_year)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-sector-classification.py")], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/apply-sector-classification.py")], check=True)
-    subprocess.run([sys.executable, str(ROOT / "scripts/build-fiis.py"), str(work)], check=True)
-    subprocess.run([sys.executable, str(ROOT / "scripts/build-options.py"), str(work)], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
 
-    # Historical charts are useful, but an incomplete historical cache must not
-    # block the fresh official snapshot used by prices, portfolios and radar.
     subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=False)
-    # IBOV is refreshed from B3's daily index endpoint and CDI from BCB SGS 12.
-    # Annual COTAHIST is only a fallback, so its absence must not freeze the two
-    # mandatory battle benchmarks.
     subprocess.run([sys.executable, str(ROOT / "scripts/build-benchmarks.py"), str(work)], check=True)
 
     stock_data = json.loads((ROOT / "data/b3-fundamentals.json").read_text(encoding="utf-8"))
-    fii_data = json.loads((ROOT / "data/fii-catalog.json").read_text(encoding="utf-8"))
     status = {
         "ok": True,
         "updatedAt": datetime.now(UTC).isoformat(),
         "stockQuoteDate": max((row.get("date") or "" for row in stock_data), default=None),
-        "fiiQuoteDate": max((row.get("date") or "" for row in fii_data), default=None),
         "stockCount": len(stock_data),
         "stockCvmCount": sum(bool(row.get("fundamentals")) for row in stock_data),
-        "fiiCount": len(fii_data),
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
         "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 2520, "dailyFallbackSessions": sessions, "simplifiedPriceReportSessions": simplified_sessions, "b3HistoryYears": annual_history},
-        "sources": ["B3 COTAHIST", "B3 BVBG.186.01", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "CVM Informes FII", "BCB SGS 12", "BCB SGS 1178"],
+        "universe": "acoes_units",
+        "sources": ["B3 COTAHIST", "B3 BVBG.186.01", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "BCB SGS 12", "BCB SGS 1178"],
     }
     (ROOT / "data/status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
