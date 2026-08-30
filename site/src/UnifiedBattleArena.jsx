@@ -18,6 +18,8 @@ import {
   replayHistoricalBattle,
 } from "./battle-engine.js";
 import { buildBattleBenchmarkSeries, mergeBenchmarksIntoBattleRows, excessReturn } from "./battle-benchmarks.js";
+import { liveCompetitorMetrics } from "./battle-live-metrics.js";
+import { processLiveOrder } from "./battle-live-execution.js";
 import "./UnifiedBattleArena.css";
 
 const KEY = "b3-score-battles-v5";
@@ -73,28 +75,11 @@ function planOrder(row, allocation, startDate, marketMode, source, overrides = {
   const target = finite(overrides.target) ?? (fair > entry ? fair : entry * 1.15);
   const asset = row.asset;
   return {
-    id: uid("order"),
-    ticker: asset.ticker,
-    displayTicker: marketSymbol(asset, marketMode),
-    name: asset.name,
-    assetKind: asset.kind,
-    marketMode,
-    lotSize: lotSizeFor(asset, marketMode),
-    maxQuantity: maxQuantityFor(asset, marketMode),
-    status: "waiting",
-    strategy: "swing",
-    plannedEntry: entry,
-    stop,
-    target,
-    allocation,
-    startDate,
-    deadline: addMonths(startDate, horizonMonths),
-    scoreAtPlan: row?.score?.score ?? null,
-    signalAtPlan: row?.score?.label ?? null,
-    source,
-    transactionCostPct: DEFAULT_EXECUTION.transactionCostPct,
-    slippagePct: 0,
-    createdAt: new Date().toISOString(),
+    id: uid("order"), ticker: asset.ticker, displayTicker: marketSymbol(asset, marketMode), name: asset.name,
+    assetKind: asset.kind, marketMode, lotSize: lotSizeFor(asset, marketMode), maxQuantity: maxQuantityFor(asset, marketMode),
+    status: "waiting", strategy: "swing", plannedEntry: entry, stop, target, allocation, startDate,
+    deadline: addMonths(startDate, horizonMonths), scoreAtPlan: row?.score?.score ?? null, signalAtPlan: row?.score?.label ?? null,
+    source, transactionCostPct: DEFAULT_EXECUTION.transactionCostPct, slippagePct: 0, createdAt: new Date().toISOString(),
   };
 }
 
@@ -107,7 +92,6 @@ function buildPlan({ portfolio, config, assets, anomalies }) {
     if (!asset) return null;
     return config.mode === "historical" ? historicalTechnicalSnapshot(asset, anomalies, config.startDate) : liveRow(asset, assets);
   }).filter(Boolean));
-
   const mineOrders = mineRows.map((row) => {
     const holding = holdings.find((item) => item.ticker === row.asset.ticker);
     return planOrder(row, allocation, config.startDate, config.marketMode, `portfolio:${portfolio.id}`, {
@@ -116,14 +100,17 @@ function buildPlan({ portfolio, config, assets, anomalies }) {
       target: config.mode === "historical" ? null : finite(holding?.target),
     }, config.horizonMonths);
   }).filter(Boolean);
-
   const userIssuers = new Set(mineRows.map((row) => issuerKey(row.asset)));
-  const candidates = uniqueByIssuer(assets.map((asset) => config.mode === "historical" ? historicalTechnicalSnapshot(asset, anomalies, config.startDate) : liveRow(asset, assets)).filter((row) => row && row.gate?.pass && !userIssuers.has(issuerKey(row.asset)) && finite(row.asset.price) * lotSizeFor(row.asset, config.marketMode) <= allocation))
-    .sort((a, b) => (finite(b.score?.score) ?? -1) - (finite(a.score?.score) ?? -1));
+  const candidates = uniqueByIssuer(assets.map((asset) => config.mode === "historical" ? historicalTechnicalSnapshot(asset, anomalies, config.startDate) : liveRow(asset, assets)).filter((row) => row && row.gate?.pass && !userIssuers.has(issuerKey(row.asset)) && finite(row.asset.price) * lotSizeFor(row.asset, config.marketMode) <= allocation)).sort((a, b) => (finite(b.score?.score) ?? -1) - (finite(a.score?.score) ?? -1));
   const modelCount = modelPositionCount(mineOrders.length);
   const modelRows = candidates.slice(0, modelCount);
   const modelOrders = modelRows.map((row) => planOrder(row, allocation, config.startDate, config.marketMode, "model:auto-n-plus-2", {}, config.horizonMonths)).filter(Boolean);
   return { mineOrders, modelOrders, modelCount };
+}
+
+function metricsFor(battle, competitor, assetMap) {
+  if (!competitor) return null;
+  return battle?.mode === "live" && battle?.status === "running" ? liveCompetitorMetrics(competitor, assetMap) : competitorMetrics(competitor, assetMap);
 }
 
 function ScoreCard({ battle, assetMap, anomalies, benchmarks }) {
@@ -132,8 +119,8 @@ function ScoreCard({ battle, assetMap, anomalies, benchmarks }) {
   const merged = useMemo(() => benchmarkSet ? mergeBenchmarksIntoBattleRows(equity, benchmarkSet) : equity, [equity, benchmarkSet]);
   const mine = battle?.competitors?.find((item) => item.kind === "mine");
   const model = battle?.competitors?.find((item) => item.kind === "model");
-  const mineMetrics = mine ? competitorMetrics(mine, assetMap) : null;
-  const modelMetrics = model ? competitorMetrics(model, assetMap) : null;
+  const mineMetrics = metricsFor(battle, mine, assetMap);
+  const modelMetrics = metricsFor(battle, model, assetMap);
   const ibov = benchmarkSet?.series?.find((item) => item.id === "IBOV")?.latestReturnPct ?? null;
   const cdi = benchmarkSet?.series?.find((item) => item.id === "CDI")?.latestReturnPct ?? null;
   const rows = [
@@ -144,34 +131,28 @@ function ScoreCard({ battle, assetMap, anomalies, benchmarks }) {
   ].sort((a, b) => (finite(b.value) ?? -Infinity) - (finite(a.value) ?? -Infinity));
   const leader = rows.find((row) => row.value != null);
   return <>
-    <section className="uba-scoreboard">
-      <header><div><span>PLACAR OFICIAL</span><h3>{leader ? `${leader.name} está na frente` : "Aguardando primeiro pregão"}</h3></div><small>retorno líquido sobre o valor alocado</small></header>
-      <div className="uba-score-grid">{rows.map((row, index) => <article className={row.key} key={row.key}><em>#{index + 1}</em><strong>{row.name}</strong><b>{pct(row.value)}</b><span>α IBOV {pp(row.alphaIbov)}</span><span>α CDI {pp(row.alphaCdi)}</span></article>)}</div>
-    </section>
+    <section className="uba-scoreboard"><header><div><span>PLACAR {battle.mode === "live" && battle.status === "running" ? "INTRADAY" : "OFICIAL"}</span><h3>{leader ? `${leader.name} está na frente` : "Aguardando primeiro pregão"}</h3></div><small>retorno líquido sobre o valor alocado</small></header><div className="uba-score-grid">{rows.map((row, index) => <article className={row.key} key={row.key}><em>#{index + 1}</em><strong>{row.name}</strong><b>{pct(row.value)}</b><span>α IBOV {pp(row.alphaIbov)}</span><span>α CDI {pp(row.alphaCdi)}</span></article>)}</div></section>
     <section className="uba-curve"><header><span>CURVA DA DISPUTA</span><b>Você × IA × IBOV × CDI</b></header><div className="uba-day-list">{merged.slice(-12).map((row) => <div key={row.date}><span>{fmt(row.date)}</span><b>Você {pct(row.returns?.[mine?.id])}</b><b>IA {pct(row.returns?.[model?.id])}</b><small>IBOV {pct(row.returns?.["benchmark-IBOV"])}</small><small>CDI {pct(row.returns?.["benchmark-CDI"])}</small></div>)}</div></section>
   </>;
 }
 
-export default function UnifiedBattleArena({ assets = [], sourcePortfolios = [] }) {
+export default function UnifiedBattleArena({ assets = [], sourcePortfolios = [], changedTickers = [] }) {
   const [anomalies, setAnomalies] = useState(null);
   const [benchmarks, setBenchmarks] = useState(null);
   const [selectedId, setSelectedId] = useState(sourcePortfolios[0]?.id ?? null);
   const [configs, setConfigs] = useState({});
-  const [battles, setBattles] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(KEY) || "null")?.battles ?? []; } catch { return []; }
-  });
+  const [battles, setBattles] = useState(() => { try { return JSON.parse(localStorage.getItem(KEY) || "null")?.battles ?? []; } catch { return []; } });
   const [notice, setNotice] = useState("");
   const assetMap = useMemo(() => new Map(assets.map((asset) => [asset.ticker, asset])), [assets]);
   const latest = useMemo(() => latestHistoryDate(anomalies), [anomalies]);
+  const changedSet = useMemo(() => new Set(changedTickers), [changedTickers]);
 
   useEffect(() => {
     fetch(ANOMALY_URL, { cache: "no-store" }).then((r) => r.ok ? r.json() : Promise.reject()).then(setAnomalies).catch(() => setAnomalies(null));
     fetch(BENCHMARK_URL, { cache: "no-store" }).then((r) => r.ok ? r.json() : Promise.reject()).then(setBenchmarks).catch(() => setBenchmarks(null));
   }, []);
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify({ version: 5, battles })); }, [battles]);
-  useEffect(() => {
-    if (!sourcePortfolios.some((row) => row.id === selectedId)) setSelectedId(sourcePortfolios[0]?.id ?? null);
-  }, [sourcePortfolios, selectedId]);
+  useEffect(() => { if (!sourcePortfolios.some((row) => row.id === selectedId)) setSelectedId(sourcePortfolios[0]?.id ?? null); }, [sourcePortfolios, selectedId]);
   useEffect(() => {
     if (!latest) return;
     setConfigs((current) => {
@@ -182,19 +163,29 @@ export default function UnifiedBattleArena({ assets = [], sourcePortfolios = [] 
   }, [sourcePortfolios, latest]);
   useEffect(() => {
     if (!anomalies) return;
+    const incremental = changedSet.size > 0;
     setBattles((current) => current.map((battle) => {
       if (battle.status !== "running" || battle.mode !== "live") return battle;
-      const competitors = battle.competitors.map((competitor) => ({ ...competitor, orders: competitor.orders.map((order) => processOrder(order, battle, assetMap, anomalies)) }));
-      return { ...battle, competitors };
+      let touched = false;
+      const competitors = battle.competitors.map((competitor) => ({
+        ...competitor,
+        orders: competitor.orders.map((order) => {
+          if (incremental && !changedSet.has(order.ticker)) return order;
+          const daily = processOrder(order, battle, assetMap, anomalies);
+          const live = processLiveOrder(daily, assetMap.get(order.ticker));
+          if (live !== order) touched = true;
+          return live;
+        }),
+      }));
+      return touched ? { ...battle, competitors, lastIntradayUpdateAt: new Date().toISOString() } : battle;
     }));
-  }, [anomalies, assetMap, assets]);
+  }, [anomalies, assetMap, changedSet]);
 
   const portfolio = sourcePortfolios.find((row) => row.id === selectedId) ?? null;
   const config = portfolio ? configs[portfolio.id] ?? defaultConfig(portfolio, latest) : null;
   const plan = useMemo(() => portfolio && config && anomalies ? buildPlan({ portfolio, config, assets, anomalies }) : { mineOrders: [], modelOrders: [], modelCount: 0 }, [portfolio, config, assets, anomalies]);
   const battleHistory = useMemo(() => battles.filter((row) => row.sourcePortfolioId === selectedId).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))), [battles, selectedId]);
   const activeBattle = battleHistory[0] ?? null;
-
   const patchConfig = (patch) => portfolio && setConfigs((current) => ({ ...current, [portfolio.id]: { ...config, ...patch } }));
   const setMode = (mode) => patchConfig({ mode, startDate: mode === "live" ? nextTradingDate() : config.startDate, endDate: mode === "historical" ? (config.endDate ?? latest) : null });
 
@@ -204,19 +195,10 @@ export default function UnifiedBattleArena({ assets = [], sourcePortfolios = [] 
     if (plan.modelOrders.length !== plan.modelCount) return setNotice(`A IA encontrou ${plan.modelOrders.length} de ${plan.modelCount} ativos N+2. Ajuste o valor por ativo ou o período.`);
     if (config.mode === "historical" && (!config.startDate || !config.endDate || config.endDate < config.startDate)) return setNotice("Escolha um intervalo histórico válido.");
     const battle = {
-      id: uid("battle"),
-      name: `Disputa · ${portfolio.name}`,
-      sourcePortfolioId: portfolio.id,
-      mode: config.mode,
-      startDate: config.mode === "live" ? nextTradingDate() : config.startDate,
-      endDate: config.mode === "historical" ? config.endDate : null,
-      horizonMonths: config.horizonMonths,
-      marketMode: config.marketMode,
-      positionAllocation: config.positionAllocation,
-      transactionCostPct: DEFAULT_EXECUTION.transactionCostPct,
-      slippagePct: 0,
-      status: "running",
-      modelVersion: BATTLE_MODEL_VERSION,
+      id: uid("battle"), name: `Disputa · ${portfolio.name}`, sourcePortfolioId: portfolio.id, mode: config.mode,
+      startDate: config.mode === "live" ? nextTradingDate() : config.startDate, endDate: config.mode === "historical" ? config.endDate : null,
+      horizonMonths: config.horizonMonths, marketMode: config.marketMode, positionAllocation: config.positionAllocation,
+      transactionCostPct: DEFAULT_EXECUTION.transactionCostPct, slippagePct: 0, status: "running", modelVersion: BATTLE_MODEL_VERSION,
       createdAt: new Date().toISOString(),
       competitors: [
         { id: uid("mine"), name: "Você", kind: "mine", capital: config.positionAllocation * plan.mineOrders.length, orders: plan.mineOrders },
@@ -230,22 +212,12 @@ export default function UnifiedBattleArena({ assets = [], sourcePortfolios = [] 
 
   if (!sourcePortfolios.length) return <section className="uba-empty"><h2>Crie uma carteira primeiro.</h2><p>Toda carteira passa a ter sua própria disputa automaticamente.</p></section>;
   return <div className="uba-shell">
-    <section className="uba-hero"><div><span>DISPUTA UNIFICADA</span><h2>Carteira real contra IA N+2</h2><p>A carteira é a origem da verdade. A IA recebe automaticamente dois ativos a mais e o placar compara ambos com IBOV e CDI.</p></div><select value={selectedId ?? ""} onChange={(e) => setSelectedId(e.target.value)}>{sourcePortfolios.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></section>
-
+    <section className="uba-hero"><div><span>DISPUTA UNIFICADA</span><h2>Carteira real contra IA N+2</h2><p>A IA escolhe N+2 no início e mantém esses ativos. Durante o pregão, preço, retorno, stop, alvo e placar são atualizados sem refazer a seleção.</p></div><select value={selectedId ?? ""} onChange={(e) => setSelectedId(e.target.value)}>{sourcePortfolios.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></section>
     {portfolio && config && <>
-      <section className="uba-config">
-        <label>Modo<select value={config.mode} onChange={(e) => setMode(e.target.value)}><option value="live">Ao vivo</option><option value="historical">Replay histórico</option></select></label>
-        <label>Primeiro pregão<input type="date" max={config.mode === "historical" ? latest ?? undefined : undefined} value={config.startDate ?? ""} onChange={(e) => patchConfig({ startDate: e.target.value })} /></label>
-        {config.mode === "historical" && <label>Último pregão<input type="date" min={config.startDate} max={latest ?? undefined} value={config.endDate ?? latest ?? ""} onChange={(e) => patchConfig({ endDate: e.target.value })} /></label>}
-        <label>Valor por ativo<input type="number" min="1" step="50" value={config.positionAllocation} onChange={(e) => patchConfig({ positionAllocation: Math.max(1, Number(e.target.value)) })} /></label>
-        <label>Horizonte<select value={config.horizonMonths} onChange={(e) => patchConfig({ horizonMonths: Number(e.target.value) })}>{[1,2,3,6,12].map((m) => <option key={m} value={m}>{m} {m === 1 ? "mês" : "meses"}</option>)}</select></label>
-        <label>Mercado<select value={config.marketMode} onChange={(e) => patchConfig({ marketMode: e.target.value })}><option value="fractional">Fracionário</option><option value="standard">Lote padrão</option></select></label>
-      </section>
-
+      <section className="uba-config"><label>Modo<select value={config.mode} onChange={(e) => setMode(e.target.value)}><option value="live">Ao vivo</option><option value="historical">Replay histórico</option></select></label><label>Primeiro pregão<input type="date" max={config.mode === "historical" ? latest ?? undefined : undefined} value={config.startDate ?? ""} onChange={(e) => patchConfig({ startDate: e.target.value })} /></label>{config.mode === "historical" && <label>Último pregão<input type="date" min={config.startDate} max={latest ?? undefined} value={config.endDate ?? latest ?? ""} onChange={(e) => patchConfig({ endDate: e.target.value })} /></label>}<label>Valor por ativo<input type="number" min="1" step="50" value={config.positionAllocation} onChange={(e) => patchConfig({ positionAllocation: Math.max(1, Number(e.target.value)) })} /></label><label>Horizonte<select value={config.horizonMonths} onChange={(e) => patchConfig({ horizonMonths: Number(e.target.value) })}>{[1,2,3,6,12].map((m) => <option key={m} value={m}>{m} {m === 1 ? "mês" : "meses"}</option>)}</select></label><label>Mercado<select value={config.marketMode} onChange={(e) => patchConfig({ marketMode: e.target.value })}><option value="fractional">Fracionário</option><option value="standard">Lote padrão</option></select></label></section>
       <section className="uba-plan"><header><div><span>PLANO AUTOMÁTICO</span><h3>{plan.mineOrders.length} seus × {plan.modelCount} da IA</h3></div><small>Regra N+2 · custo 0,031% compra + 0,031% venda</small></header><div className="uba-plan-cols"><div><b>VOCÊ</b>{plan.mineOrders.map((order) => <span key={order.id}>{order.displayTicker} · {money(order.plannedEntry)}</span>)}</div><div><b>IA B3 SCORE</b>{plan.modelOrders.map((order) => <span key={order.id}>{order.displayTicker} · score {order.scoreAtPlan ?? "N/D"}</span>)}</div></div><button className="uba-start" onClick={start}>{config.mode === "historical" ? `Executar replay ${fmt(config.startDate)} → ${fmt(config.endDate)}` : `Iniciar no próximo pregão (${fmt(nextTradingDate())})`}</button>{notice && <p className="uba-notice">{notice}</p>}</section>
     </>}
-
     {activeBattle && <ScoreCard battle={activeBattle} assetMap={assetMap} anomalies={anomalies} benchmarks={benchmarks} />}
-    {!!battleHistory.length && <section className="uba-history"><header><span>HISTÓRICO</span><h3>Disputas desta carteira</h3></header>{battleHistory.slice(0, 12).map((battle) => { const mine = battle.competitors.find((x) => x.kind === "mine"); const model = battle.competitors.find((x) => x.kind === "model"); const mm = mine ? competitorMetrics(mine, assetMap) : null; const im = model ? competitorMetrics(model, assetMap) : null; return <article key={battle.id}><div><b>{battle.mode === "historical" ? "Replay" : "Ao vivo"}</b><small>{fmt(battle.startDate)}{battle.endDate ? ` → ${fmt(battle.endDate)}` : ""}</small></div><span>Você <b>{pct(mm?.returnPct)}</b></span><span>IA <b>{pct(im?.returnPct)}</b></span><em>{battle.status === "finished" ? "ENCERRADA" : "EM ANDAMENTO"}</em></article>; })}</section>}
+    {!!battleHistory.length && <section className="uba-history"><header><span>HISTÓRICO</span><h3>Disputas desta carteira</h3></header>{battleHistory.slice(0, 12).map((battle) => { const mine = battle.competitors.find((x) => x.kind === "mine"); const model = battle.competitors.find((x) => x.kind === "model"); const mm = metricsFor(battle, mine, assetMap); const im = metricsFor(battle, model, assetMap); return <article key={battle.id}><div><b>{battle.mode === "historical" ? "Replay" : "Ao vivo"}</b><small>{fmt(battle.startDate)}{battle.endDate ? ` → ${fmt(battle.endDate)}` : ""}</small></div><span>Você <b>{pct(mm?.returnPct)}</b></span><span>IA <b>{pct(im?.returnPct)}</b></span><em>{battle.status === "finished" ? "ENCERRADA" : "EM ANDAMENTO"}</em></article>; })}</section>}
   </div>;
 }
