@@ -104,17 +104,23 @@ jobs:
           if performance.get('snapshotCount') is None:
               raise SystemExit('placar prospectivo ausente')
           benchmarks = json.loads(Path('data/benchmarks.json').read_text(encoding='utf-8'))
-          for benchmark_id in ('IBOV', 'CDI'):
-              benchmark = (benchmarks.get('series') or {}).get(benchmark_id) or {}
-              if benchmark.get('status') != 'ATUALIZADO' or not benchmark.get('series'):
-                  raise SystemExit(f'benchmark obrigatório indisponível: {benchmark_id}')
-              benchmark_date = date.fromisoformat(benchmark.get('referenceDate'))
-              if (date.today() - benchmark_date).days > 4:
-                  raise SystemExit(f'benchmark {benchmark_id} defasado: {benchmark_date}')
+          ibov = (benchmarks.get('series') or {}).get('IBOV') or {}
+          if ibov.get('status') != 'ATUALIZADO' or not ibov.get('series'):
+              raise SystemExit('benchmark obrigatório indisponível: IBOV')
+          ibov_date = date.fromisoformat(ibov.get('referenceDate'))
+          if (date.today() - ibov_date).days > 4:
+              raise SystemExit(f'benchmark IBOV defasado: {ibov_date}')
+          cdi = (benchmarks.get('series') or {}).get('CDI') or {}
+          if cdi.get('status') != 'ATUALIZADO' or not cdi.get('series'):
+              print('AVISO: CDI temporariamente indisponível no BCB; publicação do pregão B3 continuará sem falsificar o CDI.')
+          else:
+              cdi_date = date.fromisoformat(cdi.get('referenceDate'))
+              if (date.today() - cdi_date).days > 7:
+                  print(f'AVISO: CDI defasado ({cdi_date}); publicação do pregão B3 continuará e o app deve sinalizar a limitação.')
           print(status)
           print('Diário:', pulse.get('referenceDate'), {k: v.get('evaluated') for k, v in pulse['events'].items()})
           print('Placar:', performance.get('snapshotCount'), 'snapshots;', performance.get('evaluatedObservations'), 'observações maduras')
-          print('Benchmarks:', {key: benchmarks['series'][key]['referenceDate'] for key in ('IBOV', 'CDI')})
+          print('IBOV:', ibov.get('referenceDate'), 'CDI:', cdi.get('referenceDate'), cdi.get('status'))
           PY
 
       - name: Validar histórico dos gráficos sem bloquear snapshot
