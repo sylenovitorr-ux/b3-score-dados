@@ -12,9 +12,6 @@ on:
       - "site/src/quant/**"
       - "site/src/scoring/**"
   schedule:
-    # Tentativas após o fechamento e à noite. Em UTC: 20:45 = 17:45 BRT,
-    # 22:45 = 19:45 BRT e 01:15 = 22:15 BRT do dia anterior.
-    # Rodamos em dias úteis e também no sábado de madrugada para autocura.
     - cron: "45 20 * * 1-5"
     - cron: "45 22 * * 1-5"
     - cron: "15 1 * * 2-6"
@@ -22,9 +19,11 @@ on:
 permissions:
   contents: write
 
+# Uma execução nova substitui uma atualização antiga. Isso impede que uma coleta
+# lenta ou presa mantenha os próximos pregões eternamente na fila.
 concurrency:
   group: atualizar-dados-b3
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   atualizar:
@@ -84,7 +83,6 @@ jobs:
           import json
           from datetime import date, datetime, timedelta, timezone
           from pathlib import Path
-
           status = json.loads(Path('data/status.json').read_text(encoding='utf-8'))
           if not status.get('ok'):
               raise SystemExit('status.json não está OK')
@@ -94,22 +92,17 @@ jobs:
               raise SystemExit(f"ações/units insuficientes: {status.get('stockCount')}")
           if int(status.get('stockCvmCount') or 0) < 200:
               raise SystemExit(f"cobertura CVM insuficiente: {status.get('stockCvmCount')}")
-
           quote_date = date.fromisoformat(status.get('stockQuoteDate'))
           now_brt = datetime.now(timezone(timedelta(hours=-3)))
           expected = now_brt.date()
-          # Após 19h BRT, em dia útil, o snapshot deve alcançar o pregão do próprio dia.
-          # Antes disso, exigimos ao menos o último dia útil anterior. Feriados são
-          # naturalmente tolerados porque a coleta oficial não inventa um pregão.
           if now_brt.weekday() < 5 and now_brt.hour >= 19:
               minimum_expected = expected
           else:
               minimum_expected = expected - timedelta(days=1)
               while minimum_expected.weekday() >= 5:
                   minimum_expected -= timedelta(days=1)
-          if quote_date < minimum_expected and (minimum_expected - quote_date).days > 0:
+          if quote_date < minimum_expected:
               raise SystemExit(f"cotação B3 não alcançou o pregão esperado: obtido={quote_date}; mínimo={minimum_expected}")
-
           pulse = json.loads(Path('data/model-pulse.json').read_text(encoding='utf-8'))
           if not pulse.get('referenceDate') or not pulse.get('history'):
               raise SystemExit('diário do modelo não foi gerado corretamente')
@@ -136,9 +129,6 @@ jobs:
                   print(f'AVISO: CDI defasado ({cdi_date}); publicação do pregão B3 continuará e o app deve sinalizar a limitação.')
           print(status)
           print('Pregão B3 validado:', quote_date, 'mínimo esperado:', minimum_expected)
-          print('Diário:', pulse.get('referenceDate'), {k: v.get('evaluated') for k, v in pulse['events'].items()})
-          print('Placar:', performance.get('snapshotCount'), 'snapshots;', performance.get('evaluatedObservations'), 'observações maduras')
-          print('IBOV:', ibov.get('referenceDate'), 'CDI:', cdi.get('referenceDate'), cdi.get('status'))
           PY
 
       - name: Validar histórico dos gráficos sem bloquear snapshot
