@@ -30,11 +30,11 @@ test("valuation extremo expõe sensibilidade e valor bruto preservado", () => {
   assert.match(app, /Teste de sensibilidade/);
 });
 
-test("laboratório de opções oferece modelo importável e mantém ausência explícita", () => {
+test("interface ativa não reintroduz laboratório de opções", () => {
+  const app = read("./AppLite.jsx");
   const options = read("./OptionsLab.jsx");
-  assert.match(options, /modelo-mercado-opcoes\.csv/);
-  assert.match(options, /ticker;bid;ask;openInterest;referenceDate;source/);
-  assert.match(options, /permanecem como Dado indisponível/);
+  assert.doesNotMatch(app, /options-chain\.json|OptionsLab|modelo-mercado-opcoes\.csv/);
+  assert.doesNotMatch(options, /modelo-mercado-opcoes\.csv|ticker;bid;ask;openInterest/);
 });
 
 test("camada visual mantém foco visível, contraste e tipografia mínima revisada", () => {
