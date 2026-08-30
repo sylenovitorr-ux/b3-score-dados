@@ -1,11 +1,9 @@
 {
   "ok": true,
-  "updatedAt": "2026-08-30T23:07:27.394927+00:00",
+  "updatedAt": "2026-08-30T23:16:08.614132+00:00",
   "stockQuoteDate": "2026-08-28",
-  "fiiQuoteDate": "2026-08-14",
   "stockCount": 370,
-  "stockCvmCount": 338,
-  "fiiCount": 280,
+  "stockCvmCount": 339,
   "dfpYears": [
     2016,
     2017,
@@ -28,23 +26,25 @@
     2026
   ],
   "historyPolicy": {
-    "annualYears": 10,
+    "annualYears": 2,
     "quarterlyYears": 5,
-    "marketSessions": 260,
+    "marketSessions": 504,
+    "dailyFallbackSessions": 45,
+    "simplifiedPriceReportSessions": 3,
     "b3HistoryYears": [
       2025,
       2026
     ]
   },
+  "universe": "acoes_units",
   "sources": [
     "B3 COTAHIST",
+    "B3 BVBG.186.01",
     "B3 Proventos",
     "CVM DFP",
     "CVM ITR",
     "CVM FCA",
-    "CVM Informes FII",
     "BCB SGS 12",
     "BCB SGS 1178"
-  ],
-  "universe": "acoes_units"
+  ]
 }
