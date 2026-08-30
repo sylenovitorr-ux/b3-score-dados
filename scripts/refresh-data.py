@@ -20,15 +20,16 @@ from b3_simplified import download_simplified_session, known_universe
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def download(url: str, target: Path) -> bool:
-    for attempt in range(6):
+def download(url: str, target: Path, attempts: int = 3, timeout: int = 35) -> bool:
+    """Download a ZIP without allowing one public endpoint to stall the whole refresh."""
+    for attempt in range(attempts):
         try:
             offset = target.stat().st_size if target.exists() else 0
             headers = {"User-Agent": "Mozilla/5.0 (compatible; B3ScoreGratuito/1.0)", "Accept": "application/zip,application/octet-stream,*/*"}
             if offset:
                 headers["Range"] = f"bytes={offset}-"
             request = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(request, timeout=90) as response:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
                 resume = offset > 0 and getattr(response, "status", 200) == 206
                 with target.open("ab" if resume else "wb") as output:
                     while chunk := response.read(1024 * 1024):
@@ -42,8 +43,8 @@ def download(url: str, target: Path) -> bool:
                 return False
         except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException):
             pass
-        if attempt < 5:
-            time.sleep(min(8, 2 ** attempt))
+        if attempt < attempts - 1:
+            time.sleep(min(5, 2 ** attempt))
     target.unlink(missing_ok=True)
     return False
 
@@ -65,10 +66,9 @@ def download_history(work: Path, kind: str, years: range) -> list[int]:
         "dfp": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/DFP/DADOS/dfp_cia_aberta_{year}.zip",
         "itr": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/ITR/DADOS/itr_cia_aberta_{year}.zip",
     }
-    template = templates[kind]
     available = []
     for report_year in years:
-        if download(template.format(year=report_year), work / f"{kind}{report_year}.zip"):
+        if download(templates[kind].format(year=report_year), work / f"{kind}{report_year}.zip"):
             available.append(report_year)
     if not available:
         raise SystemExit(f"No CVM {kind.upper()} history file available")
@@ -104,21 +104,15 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     work = Path(folder)
     year = date.today().year
 
-    annual_history = []
-    for history_year in range(year - 9, year + 1):
-        annual_name = f"COTAHIST_A{history_year}.ZIP"
-        if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{annual_name}", work / annual_name):
-            annual_history.append(history_year)
-        else:
-            print(f"B3 annual history unavailable for {history_year}; continuing with available years.")
-
+    # Preço primeiro. Procuramos os pregões recentes antes dos arquivos históricos
+    # pesados, para que uma fonte lenta não esconda o último fechamento disponível.
     sessions = 0
     cursor = date.today()
-    for _ in range(75):
+    for _ in range(20):
         name = f"COTAHIST_D{cursor.strftime('%d%m%Y')}.ZIP"
-        if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{name}", work / name):
+        if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{name}", work / name, attempts=2, timeout=25):
             sessions += 1
-            if sessions >= 45:
+            if sessions >= 8:
                 break
         cursor -= timedelta(days=1)
 
@@ -131,13 +125,22 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
             if simplified_sessions >= 3:
                 break
         cursor -= timedelta(days=1)
-    sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
 
+    # O anual corrente garante histórico suficiente para gráficos sem baixar dez
+    # arquivos grandes em toda atualização diária. Histórico fundamental continua CVM.
+    annual_history = []
+    for history_year in range(year - 1, year + 1):
+        annual_name = f"COTAHIST_A{history_year}.ZIP"
+        if download(f"https://bvmf.bmfbovespa.com.br/InstDados/SerHist/{annual_name}", work / annual_name, attempts=2, timeout=45):
+            annual_history.append(history_year)
+        else:
+            print(f"B3 annual history unavailable for {history_year}; continuing.")
+
+    sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
     if annual_history:
         created = materialize_daily_sessions_from_annual(work, limit=45)
         sessions = len(list(work.glob("COTAHIST_D*.ZIP")))
         print(f"B3 annual COTAHIST complemented daily sessions with {created} files; total sessions={sessions}.")
-
     if sessions < 2:
         raise SystemExit("Could not obtain two recent B3 trading sessions")
 
@@ -153,7 +156,6 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
     subprocess.run([sys.executable, str(ROOT / "scripts/build-sector-classification.py")], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/apply-sector-classification.py")], check=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-daily-radar.py"), str(work)], check=True)
-
     subprocess.run([sys.executable, str(ROOT / "scripts/build-market-anomalies.py"), str(work)], check=False)
     subprocess.run([sys.executable, str(ROOT / "scripts/build-benchmarks.py"), str(work)], check=True)
 
@@ -166,7 +168,7 @@ with tempfile.TemporaryDirectory(prefix="b3-score-data-") as folder:
         "stockCvmCount": sum(bool(row.get("fundamentals")) for row in stock_data),
         "dfpYears": sorted(dfp_years),
         "itrYears": sorted(itr_years),
-        "historyPolicy": {"annualYears": 10, "quarterlyYears": 5, "marketSessions": 2520, "dailyFallbackSessions": sessions, "simplifiedPriceReportSessions": simplified_sessions, "b3HistoryYears": annual_history},
+        "historyPolicy": {"annualYears": 2, "quarterlyYears": 5, "marketSessions": 504, "dailyFallbackSessions": sessions, "simplifiedPriceReportSessions": simplified_sessions, "b3HistoryYears": annual_history},
         "universe": "acoes_units",
         "sources": ["B3 COTAHIST", "B3 BVBG.186.01", "B3 Proventos", "CVM DFP", "CVM ITR", "CVM FCA", "BCB SGS 12", "BCB SGS 1178"],
     }
