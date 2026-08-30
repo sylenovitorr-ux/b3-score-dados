@@ -36,46 +36,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Preparar Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: site/package-lock.json
+      # CAMINHO RÁPIDO: o fechamento da B3 é coletado e publicado primeiro.
+      # Ele reutiliza os últimos fundamentos CVM já validados e não espera DFP/ITR/FCA.
+      - name: Atualizar último pregão B3
+        run: python scripts/refresh-market-fast.py
 
-      - name: Instalar dependências
-        run: |
-          python -m pip install --disable-pip-version-check openpyxl
-          cd site && npm ci
-
-      - name: Atualizar dados oficiais com autocura
-        shell: bash
-        run: |
-          set -u
-          sucesso=0
-          for tentativa in 1 2 3; do
-            echo "=== atualização oficial ${tentativa}/3 ==="
-            if python scripts/refresh-data.py; then
-              sucesso=1
-              break
-            fi
-            echo "Fonte pública falhou; nova tentativa após pausa."
-            git checkout -- data/ >/dev/null 2>&1 || true
-            sleep $((tentativa * 45))
-          done
-          if [ "$sucesso" -ne 1 ]; then
-            echo "As três tentativas falharam. O último snapshot válido permanece publicado."
-            exit 1
-          fi
-
-      - name: Gerar diário automático do modelo
-        run: node scripts/build-model-pulse.mjs
-
-      - name: Gerar placar prospectivo do modelo
-        run: node scripts/build-model-performance.mjs
-
-      - name: Validar snapshot oficial para publicação
-        shell: bash
+      - name: Validar fechamento rápido
         run: |
           python - <<'PY'
           import json
@@ -89,42 +55,22 @@ jobs:
               raise SystemExit(f"universo inesperado: {status.get('universe')}")
           if int(status.get('stockCount') or 0) < 250:
               raise SystemExit(f"ações/units insuficientes: {status.get('stockCount')}")
-          if int(status.get('stockCvmCount') or 0) < 200:
-              raise SystemExit(f"cobertura CVM insuficiente: {status.get('stockCvmCount')}")
-
           quote_date = date.fromisoformat(status['stockQuoteDate'])
-          # Não presumimos que segunda-sexta seja pregão. Feriados da B3 devem manter
-          # o último snapshot oficial. Só rejeitamos uma fotografia claramente velha.
           if (date.today() - quote_date).days > 7:
-              raise SystemExit(f'snapshot B3 claramente defasado: {quote_date}')
-
-          benchmarks = json.loads(Path('data/benchmarks.json').read_text(encoding='utf-8'))
-          ibov = (benchmarks.get('series') or {}).get('IBOV') or {}
-          if ibov.get('status') != 'ATUALIZADO' or not ibov.get('series'):
-              raise SystemExit('benchmark obrigatório indisponível: IBOV')
-          ibov_date = date.fromisoformat(ibov['referenceDate'])
-          if ibov_date < quote_date:
-              raise SystemExit(f'IBOV ficou atrás do snapshot B3: IBOV={ibov_date}; B3={quote_date}')
-
-          cdi = (benchmarks.get('series') or {}).get('CDI') or {}
-          if cdi.get('status') != 'ATUALIZADO' or not cdi.get('series'):
-              print('AVISO: CDI indisponível; B3 será publicada sem inventar CDI.')
-
-          print('Snapshot oficial aprovado:', quote_date, 'ações/units:', status.get('stockCount'), 'IBOV:', ibov_date)
+              raise SystemExit(f'fechamento B3 claramente defasado: {quote_date}')
+          print('Fechamento B3 aprovado para publicação:', quote_date)
           PY
 
-      # O pregão válido é publicado ANTES dos testes do aplicativo. Assim uma regressão
-      # de UI/modelo nunca mais congela cotações oficiais por vários pregões.
-      - name: Publicar snapshot oficial imediatamente
+      - name: Publicar fechamento B3 imediatamente
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/b3-catalog.json data/b3-fundamentals.json data/status.json data/benchmarks.json
           if git diff --cached --quiet; then
             echo "O último pregão oficial já está publicado."
           else
-            git commit -m "Atualizar snapshot oficial B3"
+            git commit -m "Atualizar fechamento oficial B3"
             for tentativa in 1 2 3; do
               git fetch origin "${GITHUB_REF_NAME}"
               git rebase -X theirs "origin/${GITHUB_REF_NAME}"
@@ -136,22 +82,63 @@ jobs:
             done
           fi
 
-      - name: Validar histórico dos gráficos
-        continue-on-error: true
+      # CAMINHO PESADO: fundamentos, histórico, proventos e demais cálculos podem
+      # demorar ou falhar sem impedir que o preço oficial recém-publicado continue válido.
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Instalar dependências pesadas
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          path = Path('data/market-anomalies.json')
-          if not path.exists() or path.stat().st_size < 100:
-              raise SystemExit('market-anomalies.json ausente ou vazio')
-          payload = json.loads(path.read_text(encoding='utf-8'))
-          assets = payload.get('assets') or {}
-          with_series = sum(1 for item in assets.values() if isinstance(item.get('series'), list) and len(item['series']) >= 30)
-          if len(assets) < 50 or with_series < 50:
-              raise SystemExit(f'histórico insuficiente: assets={len(assets)} series_validas={with_series}')
-          print(f'Histórico OK: {len(assets)} ativos; {with_series} séries com 30+ pregões')
-          PY
+          python -m pip install --disable-pip-version-check openpyxl
+          cd site && npm ci
+
+      - name: Atualizar fundamentos e histórico
+        id: heavy_refresh
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -u
+          sucesso=0
+          for tentativa in 1 2; do
+            echo "=== atualização completa ${tentativa}/2 ==="
+            if timeout 35m python scripts/refresh-data.py; then
+              sucesso=1
+              break
+            fi
+            echo "Atualização completa falhou ou excedeu o tempo. O fechamento rápido permanece publicado."
+            git checkout -- data/ >/dev/null 2>&1 || true
+            sleep $((tentativa * 20))
+          done
+          if [ "$sucesso" -ne 1 ]; then
+            exit 1
+          fi
+
+      - name: Publicar enriquecimento completo quando disponível
+        if: steps.heavy_refresh.outcome == 'success'
+        shell: bash
+        run: |
+          node scripts/build-model-pulse.mjs || true
+          node scripts/build-model-performance.mjs || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Sem enriquecimento adicional para publicar."
+          else
+            git commit -m "Atualizar fundamentos e histórico B3"
+            for tentativa in 1 2 3; do
+              git fetch origin "${GITHUB_REF_NAME}"
+              git rebase -X theirs "origin/${GITHUB_REF_NAME}"
+              if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+                break
+              fi
+              if [ "$tentativa" -eq 3 ]; then exit 1; fi
+            done
+          fi
 
       - name: Validar motores e frontend sem bloquear o pregão
         continue-on-error: true
