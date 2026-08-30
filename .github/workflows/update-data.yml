@@ -74,7 +74,7 @@ jobs:
       - name: Gerar placar prospectivo do modelo
         run: node scripts/build-model-performance.mjs
 
-      - name: Validar snapshot principal e diário
+      - name: Validar snapshot de ações e diário
         shell: bash
         run: |
           python - <<'PY'
@@ -84,12 +84,12 @@ jobs:
           status = json.loads(Path('data/status.json').read_text(encoding='utf-8'))
           if not status.get('ok'):
               raise SystemExit('status.json não está OK')
+          if status.get('universe') != 'acoes_units':
+              raise SystemExit(f"universo inesperado: {status.get('universe')}")
           if int(status.get('stockCount') or 0) < 250:
-              raise SystemExit(f"ações insuficientes: {status.get('stockCount')}")
+              raise SystemExit(f"ações/units insuficientes: {status.get('stockCount')}")
           if int(status.get('stockCvmCount') or 0) < 200:
               raise SystemExit(f"cobertura CVM insuficiente: {status.get('stockCvmCount')}")
-          if int(status.get('fiiCount') or 0) < 150:
-              raise SystemExit(f"FIIs insuficientes: {status.get('fiiCount')}")
           quote_date = date.fromisoformat(status.get('stockQuoteDate'))
           if (date.today() - quote_date).days > 4:
               raise SystemExit(f"cotação B3 defasada: {quote_date}; publicação recusada")
@@ -155,7 +155,7 @@ jobs:
             echo "Os dados já estão atualizados."
             exit 0
           fi
-          git commit -m "Atualizar dados oficiais, diário e placar do modelo"
+          git commit -m "Atualizar dados oficiais de ações, diário e placar do modelo"
           for tentativa in 1 2 3; do
             git fetch origin "${GITHUB_REF_NAME}"
             git rebase -X theirs "origin/${GITHUB_REF_NAME}"
