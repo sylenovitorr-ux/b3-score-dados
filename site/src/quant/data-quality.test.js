@@ -11,7 +11,8 @@ test("pregão recente é identificado como atualizado", () => {
 test("pregão antigo não é apresentado como atualizado", () => {
   const result = freshness("2026-08-14", "price", new Date("2026-08-28T12:00:00Z"));
   assert.equal(result.code, "MUITO_DEFASADO");
-  assert.equal(result.ageDays, 14);
+  assert.equal(result.ageDays, 10);
+  assert.equal(result.calendarAgeDays, 14);
 });
 
 test("data ausente fica indisponível", () => {
