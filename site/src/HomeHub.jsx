@@ -11,6 +11,8 @@ const MODEL_PULSE_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-sc
 const MODEL_PERFORMANCE_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/model-performance.json";
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (value) => value == null ? "N/D" : `${Number(value) > 0 ? "+" : ""}${Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+const displayDate = (value) => value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "N/D";
+const todayLabel = () => new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
 function Delta({ value }) {
   if (value == null || value === 0) return <span className="delta neutral">sem comparação</span>;
@@ -80,7 +82,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
     </section>
 
     {!loading && dataFreshness.code !== "ATUALIZADO" && <section className="home-data-alert" role="alert">
-      <div><b>Dados do pregão {dataFreshness.label.toLowerCase()}</b><span>Referência: {asOf.stockPriceAsOf ?? "não informada"}. Preços, sinais, carteira e disputa podem não representar o mercado atual.</span></div>
+      <div><b>Pregão ainda não sincronizado</b><span>Data atual: {todayLabel()} · Último pregão disponível: {displayDate(asOf.stockPriceAsOf)} · Diferença: {dataFreshness.ageDays ?? "N/D"} dia(s) útil(eis). A bolsa opera de segunda a sexta; sábado e domingo não contam como pregão.</span></div>
       <button onClick={() => window.location.reload()}>Tentar atualizar</button>
     </section>}
 
@@ -92,7 +94,7 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
       </div>
       <div className="hero-search-box">
         <label>Buscar ativo</label>
-        <div><input aria-label="Pesquisar ação, unit ou FII" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4F, BPAC11F ou HGLG11" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === underlyingTicker(ticker, assets))}>Abrir análise</button></div>
+        <div><input aria-label="Pesquisar ação, unit ou FII" value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase())} onKeyDown={(event) => event.key === "Enter" && open()} placeholder="PETR4F, BPAC11F OU HGLG11" autoComplete="off"/><button onClick={() => open()} disabled={!assets.some((asset) => asset.ticker === underlyingTicker(ticker, assets))}>Abrir análise</button></div>
         {matches.length > 0 && <div className="v2-search-results">{matches.map((asset) => <button key={asset.ticker} onClick={() => open(asset.ticker)}><b>{marketSymbol(asset, "fractional")}</b><span>{asset.name} · {assetKindLabel(asset)}</span><em>{money(asset.price)}</em></button>)}</div>}
       </div>
     </section>
@@ -102,7 +104,8 @@ export default function HomeHub({ assets, statusText, asOf, loading, onNavigate,
     </nav>
 
     <section className="market-summary-strip">
-      <article><span>Pregão</span><b>{asOf.stockPriceAsOf ?? "N/D"}</b></article>
+      <article><span>Data atual</span><b>{todayLabel()}</b></article>
+      <article><span>Último pregão</span><b>{displayDate(asOf.stockPriceAsOf)}</b></article>
       <article><span>Ações avaliadas</span><b>{evaluated || "N/D"}</b></article>
       <article className="buy"><span>COMPRA</span><b>{current.buys || 0}</b></article>
       <article className="sell"><span>VENDA</span><b>{current.sells || 0}</b></article>
