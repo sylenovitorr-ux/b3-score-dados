@@ -7,19 +7,43 @@ export const DATA_STATUS = Object.freeze({
   unavailable: { code: "INDISPONIVEL", label: "Dado indisponível", tone: "unavailable" },
 });
 
+function toDateOnly(value) {
+  if (!value) return null;
+  const parsed = new Date(String(value).length === 10 ? `${value}T12:00:00Z` : value);
+  if (!Number.isFinite(parsed.getTime())) return null;
+  return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate(), 12));
+}
+
 export function ageInDays(referenceDate, now = new Date()) {
-  if (!referenceDate) return null;
-  const parsed = new Date(referenceDate.length === 10 ? `${referenceDate}T12:00:00Z` : referenceDate);
-  return Number.isFinite(parsed.getTime()) ? Math.max(0, Math.floor((now.getTime() - parsed.getTime()) / DAY)) : null;
+  const parsed = toDateOnly(referenceDate);
+  if (!parsed) return null;
+  return Math.max(0, Math.floor((now.getTime() - parsed.getTime()) / DAY));
+}
+
+export function businessDaysSince(referenceDate, now = new Date()) {
+  const start = toDateOnly(referenceDate);
+  const end = toDateOnly(now.toISOString());
+  if (!start || !end || start >= end) return 0;
+  let count = 0;
+  const cursor = new Date(start.getTime());
+  cursor.setUTCDate(cursor.getUTCDate() + 1);
+  while (cursor <= end) {
+    const weekday = cursor.getUTCDay();
+    if (weekday >= 1 && weekday <= 5) count += 1;
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return count;
 }
 
 export function freshness(referenceDate, kind = "price", now = new Date()) {
-  const age = ageInDays(referenceDate, now);
-  if (age === null) return { ...DATA_STATUS.unavailable, ageDays: null, referenceDate: referenceDate ?? null, confidence: 0 };
-  const limits = kind === "fundamentals" ? [190, 310] : kind === "macro" ? [45, 100] : kind === "history" ? [8, 20] : [4, 10];
+  const calendarAge = ageInDays(referenceDate, now);
+  if (calendarAge === null) return { ...DATA_STATUS.unavailable, ageDays: null, calendarAgeDays: null, referenceDate: referenceDate ?? null, confidence: 0 };
+
+  const age = kind === "price" ? businessDaysSince(referenceDate, now) : calendarAge;
+  const limits = kind === "fundamentals" ? [190, 310] : kind === "macro" ? [45, 100] : kind === "history" ? [8, 20] : [1, 3];
   const status = age <= limits[0] ? DATA_STATUS.current : age <= limits[1] ? DATA_STATUS.stale : DATA_STATUS.veryStale;
   const confidence = status === DATA_STATUS.current ? 100 : status === DATA_STATUS.stale ? 60 : 25;
-  return { ...status, ageDays: age, referenceDate, confidence };
+  return { ...status, ageDays: age, calendarAgeDays: calendarAge, referenceDate, confidence };
 }
 
 export function datum(value, meta = {}) {
