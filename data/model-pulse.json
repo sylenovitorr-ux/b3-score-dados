@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-05T05:52:39.872Z",
+  "generatedAt": "2026-09-07T23:07:28.966Z",
   "referenceDate": "2026-09-04",
   "previousReferenceDate": "2026-09-03",
   "modelVersion": "b3-score-4.0",
@@ -98,6 +98,24 @@
         }
       ],
       "newSells": [
+        {
+          "ticker": "AGRO3",
+          "name": "Brasilagro",
+          "price": 19.27,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 48,
+            "valuation": 92,
+            "momentum": 61,
+            "risk": 82,
+            "confidence": 95
+          },
+          "previousScore": 71,
+          "previousSignal": "buy",
+          "delta": -5
+        },
         {
           "ticker": "HYPE3",
           "name": "Hypera",
@@ -207,6 +225,24 @@
           "previousScore": 63,
           "previousSignal": "sell",
           "delta": 5
+        },
+        {
+          "ticker": "AGRO3",
+          "name": "Brasilagro",
+          "price": 19.27,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 48,
+            "valuation": 92,
+            "momentum": 61,
+            "risk": 82,
+            "confidence": 95
+          },
+          "previousScore": 71,
+          "previousSignal": "buy",
+          "delta": -5
         },
         {
           "ticker": "VSTE3",
@@ -531,28 +567,10 @@
           "previousScore": 60,
           "previousSignal": "sell",
           "delta": 3
-        },
-        {
-          "ticker": "UCAS3",
-          "name": "Unicasa",
-          "price": 1.14,
-          "score": 63,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 50,
-            "valuation": 92,
-            "momentum": 54,
-            "risk": 61,
-            "confidence": 95
-          },
-          "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": -3
         }
       ],
       "enteredTop4": [
-        "SOND6"
+        "TEND3"
       ],
       "leftTop4": [
         "JHSF3"
@@ -560,11 +578,11 @@
       "top4": [
         "CYRE4",
         "CALI3",
-        "SOND6",
-        "TECN3"
+        "TECN3",
+        "TEND3"
       ],
-      "buys": 111,
-      "sells": 171,
+      "buys": 110,
+      "sells": 172,
       "evaluated": 282
     },
     "long": {
@@ -590,6 +608,24 @@
       ],
       "newSells": [],
       "movers": [
+        {
+          "ticker": "AGRO3",
+          "name": "Brasilagro",
+          "price": 19.27,
+          "score": 58,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 48,
+            "valuation": 92,
+            "growth": 15,
+            "risk": 82,
+            "confidence": 97
+          },
+          "previousScore": 69,
+          "previousSignal": "sell",
+          "delta": -11
+        },
         {
           "ticker": "CVCB3",
           "name": "Cvc Brasil",
@@ -902,13 +938,13 @@
           "price": 38.86,
           "score": 62,
           "signal": "sell",
-          "confidence": 90,
+          "confidence": 85,
           "parts": {
             "fundamentals": 60,
             "valuation": 66,
             "growth": 55,
             "risk": 61,
-            "confidence": 90
+            "confidence": 85
           },
           "previousScore": 63,
           "previousSignal": "sell",
@@ -969,6 +1005,24 @@
       ],
       "movers": [
         {
+          "ticker": "AGRO3",
+          "name": "Brasilagro",
+          "price": 19.27,
+          "score": 50,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "quality": 19,
+            "dividends": 47,
+            "valuation": 92,
+            "risk": 82,
+            "confidence": 97
+          },
+          "previousScore": 57,
+          "previousSignal": "sell",
+          "delta": -7
+        },
+        {
           "ticker": "VIVA3",
           "name": "Vivara S.A.",
           "price": 23.13,
@@ -1021,6 +1075,24 @@
           "previousScore": 56,
           "previousSignal": "sell",
           "delta": -2
+        },
+        {
+          "ticker": "BRSR5",
+          "name": "Banrisul",
+          "price": 18,
+          "score": 82,
+          "signal": "buy",
+          "confidence": 93,
+          "parts": {
+            "quality": 80,
+            "dividends": 88,
+            "valuation": 94,
+            "risk": 47,
+            "confidence": 93
+          },
+          "previousScore": 83,
+          "previousSignal": "buy",
+          "delta": -1
         },
         {
           "ticker": "CSED3",
@@ -1167,6 +1239,24 @@
           "delta": 1
         },
         {
+          "ticker": "BALM3",
+          "name": "Baumer",
+          "price": 26,
+          "score": 64,
+          "signal": "sell",
+          "confidence": 93,
+          "parts": {
+            "quality": 53,
+            "dividends": 67,
+            "valuation": 84,
+            "risk": 52,
+            "confidence": 93
+          },
+          "previousScore": 65,
+          "previousSignal": "sell",
+          "delta": -1
+        },
+        {
           "ticker": "ECOR3",
           "name": "Ecorodovias",
           "price": 7.92,
@@ -1244,13 +1334,13 @@
           "price": 38.86,
           "score": 51,
           "signal": "sell",
-          "confidence": 90,
+          "confidence": 85,
           "parts": {
             "quality": 42,
             "dividends": 45,
             "valuation": 66,
             "risk": 61,
-            "confidence": 90
+            "confidence": 85
           },
           "previousScore": 52,
           "previousSignal": "sell",
@@ -1273,24 +1363,6 @@
           "previousScore": 44,
           "previousSignal": "sell",
           "delta": -1
-        },
-        {
-          "ticker": "TUPY3",
-          "name": "Tupy",
-          "price": 15.72,
-          "score": 42,
-          "signal": "sell",
-          "confidence": 98,
-          "parts": {
-            "quality": 24,
-            "dividends": 25,
-            "valuation": 92,
-            "risk": 57,
-            "confidence": 98
-          },
-          "previousScore": 41,
-          "previousSignal": "sell",
-          "delta": 1
         }
       ],
       "enteredTop4": [],
@@ -25072,7 +25144,7 @@
     },
     {
       "date": "2026-09-04",
-      "generatedAt": "2026-09-05T05:52:39.872Z",
+      "generatedAt": "2026-09-07T23:07:28.966Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -25091,11 +25163,6 @@
             "signal": "buy",
             "price": 25.6
           },
-          "SOND6": {
-            "score": 80,
-            "signal": "buy",
-            "price": 78.56
-          },
           "TECN3": {
             "score": 80,
             "signal": "buy",
@@ -25110,6 +25177,11 @@
             "score": 79,
             "signal": "buy",
             "price": 82.1
+          },
+          "SOND6": {
+            "score": 79,
+            "signal": "buy",
+            "price": 78.56
           },
           "BRSR3": {
             "score": 78,
@@ -25221,11 +25293,6 @@
             "signal": "buy",
             "price": 9.68
           },
-          "BRSR5": {
-            "score": 75,
-            "signal": "buy",
-            "price": 18
-          },
           "CLSC4": {
             "score": 75,
             "signal": "buy",
@@ -25275,6 +25342,11 @@
             "score": 74,
             "signal": "buy",
             "price": 5.98
+          },
+          "BRSR5": {
+            "score": 74,
+            "signal": "buy",
+            "price": 18
           },
           "CASH3": {
             "score": 74,
@@ -25330,11 +25402,6 @@
             "score": 74,
             "signal": "buy",
             "price": 4.97
-          },
-          "USIM6": {
-            "score": 74,
-            "signal": "buy",
-            "price": 6.47
           },
           "VLID3": {
             "score": 74,
@@ -25395,6 +25462,11 @@
             "score": 73,
             "signal": "buy",
             "price": 20.6
+          },
+          "USIM6": {
+            "score": 73,
+            "signal": "buy",
+            "price": 6.47
           },
           "VITT3": {
             "score": 73,
@@ -25480,11 +25552,6 @@
             "score": 72,
             "signal": "buy",
             "price": 23.13
-          },
-          "AGRO3": {
-            "score": 71,
-            "signal": "buy",
-            "price": 19.27
           },
           "AZTE3": {
             "score": 71,
@@ -25656,11 +25723,6 @@
             "signal": "sell",
             "price": 11.15
           },
-          "EUCA3": {
-            "score": 69,
-            "signal": "sell",
-            "price": 21.5
-          },
           "GGBR4": {
             "score": 69,
             "signal": "sell",
@@ -25740,6 +25802,11 @@
             "score": 68,
             "signal": "sell",
             "price": 6.23
+          },
+          "EUCA3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 21.5
           },
           "EVEN3": {
             "score": 68,
@@ -25840,6 +25907,11 @@
             "score": 67,
             "signal": "sell",
             "price": 0.76
+          },
+          "AGRO3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 19.27
           },
           "CMIG3": {
             "score": 66,
@@ -26401,11 +26473,6 @@
             "signal": "sell",
             "price": 13.06
           },
-          "UNIP5": {
-            "score": 54,
-            "signal": "sell",
-            "price": 57.7
-          },
           "JALL3": {
             "score": 53,
             "signal": "sell",
@@ -26415,6 +26482,11 @@
             "score": 53,
             "signal": "sell",
             "price": 14.69
+          },
+          "UNIP5": {
+            "score": 53,
+            "signal": "sell",
+            "price": 57.7
           },
           "ATED3": {
             "score": 52,
@@ -27098,11 +27170,6 @@
             "signal": "buy",
             "price": 36.99
           },
-          "AGRO3": {
-            "score": 69,
-            "signal": "sell",
-            "price": 19.27
-          },
           "BALM3": {
             "score": 69,
             "signal": "sell",
@@ -27613,6 +27680,11 @@
             "signal": "sell",
             "price": 18.99
           },
+          "AGRO3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 19.27
+          },
           "AZEV3": {
             "score": 58,
             "signal": "sell",
@@ -27925,11 +27997,6 @@
             "signal": "buy",
             "price": 11.45
           },
-          "BRSR5": {
-            "score": 83,
-            "signal": "buy",
-            "price": 18
-          },
           "PINE3": {
             "score": 83,
             "signal": "buy",
@@ -27939,6 +28006,11 @@
             "score": 83,
             "signal": "buy",
             "price": 11.14
+          },
+          "BRSR5": {
+            "score": 82,
+            "signal": "buy",
+            "price": 18
           },
           "ITSA3": {
             "score": 82,
@@ -28470,11 +28542,6 @@
             "signal": "sell",
             "price": 23.13
           },
-          "BALM3": {
-            "score": 65,
-            "signal": "sell",
-            "price": 26
-          },
           "CAMB3": {
             "score": 65,
             "signal": "sell",
@@ -28494,6 +28561,11 @@
             "score": 65,
             "signal": "sell",
             "price": 13.52
+          },
+          "BALM3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 26
           },
           "EALT4": {
             "score": 64,
@@ -28730,11 +28802,6 @@
             "signal": "sell",
             "price": 14.77
           },
-          "AGRO3": {
-            "score": 57,
-            "signal": "sell",
-            "price": 19.27
-          },
           "ALPK3": {
             "score": 57,
             "signal": "sell",
@@ -28904,6 +28971,11 @@
             "score": 51,
             "signal": "sell",
             "price": 38.87
+          },
+          "AGRO3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 19.27
           },
           "AUAU3": {
             "score": 50,
