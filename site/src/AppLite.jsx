@@ -1,117 +1,252 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import PortfolioManager from "./PortfolioManager.jsx";
-import AssetAnalysisTabs from "./AssetAnalysisTabs.jsx";
 import { normalizeAsset } from "./data/normalize-asset.js";
 import { applyIntradayQuotesIncremental, normalizeIntraday } from "./data/intraday.js";
-import { freshness } from "./quant/data-quality.js";
-import { buildQuantAnalysis } from "./quant/quant-engine.js";
 import { rankSwingCandidates } from "./swing-ranking.js";
-import "./v2.css";
-import "./v2-extra-1.css";
-import "./v2-extra-2.css";
 import "./AppLite.css";
 
 const STOCK_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/b3-fundamentals.json";
 const INTRADAY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/intraday.json";
-const ANOMALY_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/market-anomalies.json";
-const BENCHMARK_URL = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/benchmarks.json";
+const HISTORY_BASE = "https://raw.githubusercontent.com/sylenovitorr-ux/b3-score-dados/main/data/history";
+const HORIZON_MONTHS = 3;
+const HISTORY_LIMIT = 60;
+const CHOSEN_KEY = "b3-score-selected-trade-90d-v1";
+
 const money = (value) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (value) => value == null ? "N/D" : `${Number(value) > 0 ? "+" : ""}${Number(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 const num = (value, digits = 1) => value == null ? "N/D" : Number(value).toLocaleString("pt-BR", { maximumFractionDigits: digits });
-const dateBR = (value) => value ? new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR") : "N/D";
+const dateBR = (value) => value ? new Date(`${String(value).slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "N/D";
 const scoreOf = (asset) => asset?.fundamentals?.scores?.overall ?? null;
 const confidenceOf = (asset) => asset?.fundamentals?.scores?.confidence ?? null;
-function currentSaoPauloDate() { const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()).map((part) => [part.type, part.value])); return `${parts.year}-${parts.month}-${parts.day}`; }
 
 function setupLabel(status) {
-  return ({ "na-faixa": "NA FAIXA", "aguardar-pullback": "AGUARDAR PULLBACK", monitorar: "MONITORAR", invalidado: "INVALIDADO" })[status] ?? "N/D";
+  return ({
+    "na-faixa": "NA FAIXA",
+    "aguardar-pullback": "AGUARDAR ENTRADA",
+    monitorar: "MONITORAR",
+    invalidado: "INVALIDADO",
+  })[status] ?? "EM ANÁLISE";
+}
+
+function historyCandidates(rows) {
+  const eligible = rows.filter((asset) => {
+    const score = Number(scoreOf(asset));
+    const confidence = Number(confidenceOf(asset));
+    return Number.isFinite(score) && score >= 45 && Number.isFinite(confidence) && confidence >= 45 && Number(asset.volume) > 0;
+  });
+  const byLiquidity = [...eligible].sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0)).slice(0, 42);
+  const byQuality = [...eligible].sort((a, b) => Number(scoreOf(b) || 0) - Number(scoreOf(a) || 0)).slice(0, 28);
+  const seen = new Set();
+  return [...byLiquidity, ...byQuality].filter((asset) => {
+    if (seen.has(asset.ticker)) return false;
+    seen.add(asset.ticker);
+    return true;
+  }).slice(0, HISTORY_LIMIT);
+}
+
+async function fetchHistoryBundle(rows) {
+  const candidates = historyCandidates(rows);
+  const results = await Promise.allSettled(candidates.map(async (asset) => {
+    const response = await fetch(`${HISTORY_BASE}/${encodeURIComponent(asset.ticker)}.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`histórico ${asset.ticker} indisponível`);
+    const payload = await response.json();
+    const series = Array.isArray(payload?.series) ? payload.series : [];
+    if (series.length < 30) throw new Error(`histórico ${asset.ticker} insuficiente`);
+    return [asset.ticker, { series, lastDate: payload.latestDate ?? series.at(-1)?.date ?? null }];
+  }));
+  const assets = {};
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      const [ticker, data] = result.value;
+      assets[ticker] = data;
+    }
+  }
+  return { assets, requested: candidates.length, loaded: Object.keys(assets).length };
 }
 
 export default function AppLite() {
   const [assets, setAssets] = useState([]);
   const assetsRef = useRef([]);
-  const [intraday, setIntraday] = useState(null);
-  const [anomalies, setAnomalies] = useState(null);
-  const [benchmarks, setBenchmarks] = useState(null);
-  const [changedTickers, setChangedTickers] = useState([]);
-  const [page, setPage] = useState("home");
-  const [query, setQuery] = useState("");
+  const [historyBundle, setHistoryBundle] = useState({ assets: {}, requested: 0, loaded: 0 });
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [selectedTicker, setSelectedTicker] = useState(null);
-  const [swingMonths, setSwingMonths] = useState(3);
+  const [chosenTicker, setChosenTicker] = useState(() => {
+    try { return localStorage.getItem(CHOSEN_KEY); } catch { return null; }
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [asOf, setAsOf] = useState({ stockPriceAsOf: null, cvmFilesAsOf: null });
-  const publishAssets = useCallback((rows) => { assetsRef.current = rows; setAssets(rows); }, []);
+  const [asOf, setAsOf] = useState(null);
+
+  const publishAssets = useCallback((rows) => {
+    assetsRef.current = rows;
+    setAssets(rows);
+  }, []);
 
   const loadIntraday = useCallback(async (base = null) => {
     try {
       const response = await fetch(`${INTRADAY_URL}?t=${Date.now()}`, { cache: "no-store" });
       const payload = response.ok ? await response.json() : null;
       const normalized = normalizeIntraday(payload);
-      setIntraday(normalized);
       const source = base ?? assetsRef.current;
       if (source.length) {
         const result = applyIntradayQuotesIncremental(source, normalized);
         if (result.changed) publishAssets(result.assets);
-        setChangedTickers(result.changedTickers);
       }
+    } catch {
+      // O fechamento oficial continua válido quando o intraday não responde.
+    } finally {
       setLastRefresh(new Date());
-    } catch { setLastRefresh(new Date()); }
+    }
   }, [publishAssets]);
 
-  const loadSupplemental = useCallback(async () => {
-    const cacheBust = Date.now();
-    const [anomalyResult, benchmarkResult] = await Promise.allSettled([
-      fetch(`${ANOMALY_URL}?t=${cacheBust}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null),
-      fetch(`${BENCHMARK_URL}?t=${cacheBust}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : null),
-    ]);
-    if (anomalyResult.status === "fulfilled" && anomalyResult.value) setAnomalies(anomalyResult.value);
-    if (benchmarkResult.status === "fulfilled" && benchmarkResult.value) setBenchmarks(benchmarkResult.value);
-  }, []);
-
   const loadAll = useCallback(async () => {
-    setLoading(true); setError("");
+    setLoading(true);
+    setHistoryLoading(true);
+    setError("");
     try {
       const response = await fetch(`${STOCK_URL}?t=${Date.now()}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("Falha ao carregar a base B3");
+      if (!response.ok) throw new Error("Não foi possível carregar a base B3.");
       const raw = await response.json();
-      const rows = (Array.isArray(raw) ? raw : raw?.assets ?? []).map(normalizeAsset).filter((asset) => asset?.ticker && asset.kind !== "fii" && asset.price > 0);
-      if (!rows.length) throw new Error("Base de ações vazia");
+      const rows = (Array.isArray(raw) ? raw : raw?.assets ?? [])
+        .map(normalizeAsset)
+        .filter((asset) => asset?.ticker && asset.kind !== "fii" && Number(asset.price) > 0);
+      if (!rows.length) throw new Error("A base de ações veio vazia.");
       publishAssets(rows);
-      const stockPriceAsOf = rows.map((asset) => asset.date).filter(Boolean).sort().at(-1) ?? null;
-      const cvmFilesAsOf = rows.map((asset) => asset.fundamentals?.referenceDate).filter(Boolean).sort().at(-1) ?? null;
-      setAsOf({ stockPriceAsOf, cvmFilesAsOf });
-      await Promise.all([loadIntraday(rows), loadSupplemental()]);
-    } catch (err) { setError(err?.message || "Não foi possível carregar os dados."); }
-    finally { setLoading(false); }
-  }, [loadIntraday, loadSupplemental, publishAssets]);
+      setAsOf(rows.map((asset) => asset.date).filter(Boolean).sort().at(-1) ?? null);
+
+      const [bundle] = await Promise.all([
+        fetchHistoryBundle(rows),
+        loadIntraday(rows),
+      ]);
+      setHistoryBundle(bundle);
+      if (bundle.loaded < 20) throw new Error("Poucos históricos oficiais foram carregados para montar um Top 10 confiável.");
+    } catch (err) {
+      setError(err?.message || "Falha ao atualizar o radar.");
+    } finally {
+      setHistoryLoading(false);
+      setLoading(false);
+    }
+  }, [loadIntraday, publishAssets]);
 
   useEffect(() => { void loadAll(); }, [loadAll]);
-  useEffect(() => { const timer = window.setInterval(() => { if (!document.hidden) void loadIntraday(); }, 60_000); return () => window.clearInterval(timer); }, [loadIntraday]);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (!document.hidden) void loadIntraday();
+    }, 60_000);
+    return () => window.clearInterval(timer);
+  }, [loadIntraday]);
 
-  const filtered = useMemo(() => { const term = query.trim().toUpperCase(); return assets.filter((asset) => !term || asset.ticker.includes(term) || asset.name?.toUpperCase().includes(term) || asset.fundamentals?.companyName?.toUpperCase().includes(term)).sort((a, b) => (scoreOf(b) ?? -1) - (scoreOf(a) ?? -1)); }, [assets, query]);
-  const selected = useMemo(() => assets.find((asset) => asset.ticker === selectedTicker) ?? null, [assets, selectedTicker]);
-  const selectedAnomaly = selected ? anomalies?.assets?.[selected.ticker] ?? null : null;
-  const selectedAnalysis = useMemo(() => selected ? buildQuantAnalysis(selected, assets, selectedAnomaly, "swing_3_6m") : null, [selected, assets, selectedAnomaly]);
-  const swingRanking = useMemo(() => rankSwingCandidates(assets, anomalies, swingMonths), [assets, anomalies, swingMonths]);
-  const topSwing = swingRanking.slice(0, 10);
-  const officialFreshness = useMemo(() => freshness(asOf.stockPriceAsOf, "price"), [asOf.stockPriceAsOf]);
-  const liveCount = assets.filter((asset) => asset.intraday).length;
-  const units = assets.filter((asset) => asset.kind === "unit").length;
-  const stocks = assets.length - units;
+  const ranking = useMemo(
+    () => rankSwingCandidates(assets, historyBundle, HORIZON_MONTHS),
+    [assets, historyBundle],
+  );
+  const top10 = ranking.slice(0, 10);
+  const selectedRow = useMemo(() => top10.find((row) => row.asset.ticker === selectedTicker) ?? null, [top10, selectedTicker]);
+  const chosenRow = useMemo(() => top10.find((row) => row.asset.ticker === chosenTicker) ?? null, [top10, chosenTicker]);
 
-  return <main className="lite-app">
-    <header className="lite-topbar"><button className="lite-brand" onClick={() => setPage("home")}><b>B3</b><span>Score</span></button><nav><button className={page === "home" ? "active" : ""} onClick={() => setPage("home")}>Início</button><button className={page === "stocks" ? "active" : ""} onClick={() => setPage("stocks")}>Ações</button><button className={page === "swing" ? "active" : ""} onClick={() => setPage("swing")}>Top 10 Swing</button><button className={page === "portfolio" ? "active" : ""} onClick={() => setPage("portfolio")}>Carteira</button></nav><button className="lite-refresh" disabled={loading} onClick={() => void loadAll()}>{loading ? "Atualizando…" : "Atualizar"}</button></header>
+  const chooseTrade = useCallback((ticker) => {
+    setChosenTicker(ticker);
+    setSelectedTicker(null);
+    try { localStorage.setItem(CHOSEN_KEY, ticker); } catch {}
+  }, []);
 
-    {page === "home" && <div className="lite-page"><section className="lite-hero"><div><span>FOCO: AÇÕES B3</span><h1>Preço, análise, swing e disputa.</h1><p>O fechamento oficial alimenta fundamentos, histórico técnico, ranking de swing trade e carteiras. O intraday altera apenas o que realmente mudou.</p></div><div className="lite-status"><article><span>Data atual</span><b>{dateBR(currentSaoPauloDate())}</b></article><article><span>Último pregão oficial</span><b>{dateBR(asOf.stockPriceAsOf)}</b></article><article><span>Situação</span><b>{officialFreshness.label}</b></article><article><span>Intraday ativo</span><b>{liveCount} ativos</b></article></div></section>{error && <div className="lite-error">{error}</div>}<section className="lite-kpis"><article><span>Ações</span><b>{stocks}</b></article><article><span>Units</span><b>{units}</b></article><article><span>Alterados no último ciclo</span><b>{changedTickers.length}</b></article><article><span>Última consulta</span><b>{lastRefresh ? lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "N/D"}</b></article></section><section className="lite-actions"><button onClick={() => setPage("stocks")}><b>Analisar ações</b><span>Abrir histórico fundamentalista, técnico e valuation.</span></button><button onClick={() => setPage("swing")}><b>Top 10 Swing</b><span>Ranking dinâmico de 1 a 6 meses, com entrada, stop e alvo.</span></button><button onClick={() => setPage("portfolio")}><b>Carteira e disputa</b><span>Comprar, vender e competir contra a IA N+2.</span></button></section></div>}
+  return <main className="trade-app">
+    <header className="trade-topbar">
+      <div className="trade-brand"><b>B3</b><span>Score</span><small>SWING 90D</small></div>
+      <div className="trade-top-status"><span>Pregão de referência</span><b>{dateBR(asOf)}</b></div>
+      <button className="trade-refresh" type="button" disabled={loading} onClick={() => void loadAll()}>{loading ? "Atualizando…" : "Atualizar"}</button>
+    </header>
 
-    {page === "stocks" && <div className="lite-page"><section className="lite-section-head"><div><span>AÇÕES E UNITS</span><h1>Universo monitorado</h1><p>Clique em qualquer ativo para abrir novamente a análise completa, com fundamentos históricos, gráfico técnico, risco, valuation e benchmarks.</p></div><label>Pesquisar<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="PETR4, VALE3, SANB11..." /></label></section><section className="lite-stock-grid">{filtered.map((asset) => <button key={asset.ticker} className="lite-stock" onClick={() => setSelectedTicker(asset.ticker)}><div><b>{asset.ticker}</b><small>{asset.kind === "unit" ? "UNIT" : "AÇÃO"}{asset.intraday ? " · INTRADAY" : ""}</small></div><strong>{money(asset.price)}</strong><span className={(asset.changepct ?? 0) >= 0 ? "positive" : "negative"}>{pct(asset.changepct)}</span><em>Score {scoreOf(asset) ?? "N/D"}</em></button>)}</section></div>}
+    <div className="trade-shell">
+      <section className="trade-hero">
+        <div>
+          <span className="trade-eyebrow">HORIZONTE FIXO · ATÉ 90 DIAS</span>
+          <h1>10 ações. Uma escolha.</h1>
+          <p>O app filtra o mercado e mostra só as dez candidatas mais fortes para swing trade. Você compara entrada, stop, alvo e risco/retorno, abre a ficha e escolhe uma.</p>
+        </div>
+        <div className="trade-hero-stats">
+          <article><span>Horizonte</span><b>90 dias</b></article>
+          <article><span>Históricos lidos</span><b>{historyLoading ? "…" : historyBundle.loaded}</b></article>
+          <article><span>Oportunidades</span><b>{historyLoading ? "…" : top10.length}</b></article>
+        </div>
+      </section>
 
-    {page === "swing" && <div className="lite-page"><section className="lite-section-head swing-head"><div><span>RADAR SWING TRADE</span><h1>As 10 melhores para 1 a 6 meses</h1><p>Além do ranking, cada ativo recebe um plano operacional calculado a partir do histórico B3: zona de entrada, stop técnico, alvos e relação risco/retorno líquida dos custos.</p></div><label>Horizonte<select value={swingMonths} onChange={(event) => setSwingMonths(Number(event.target.value))}>{[1,2,3,4,5,6].map((month) => <option key={month} value={month}>{month} {month === 1 ? "mês" : "meses"}</option>)}</select></label></section><div className="swing-method-note"><b>Janela: {swingMonths} {swingMonths === 1 ? "mês" : "meses"}</b><span>Entrada por pullback/tendência, stop por ATR14 e suporte, alvo por resistência ou valor fundamental. O cálculo de R:R desconta 0,031% na compra e 0,031% na venda.</span></div><section className="swing-top10-grid">{topSwing.map((row, index) => { const plan = row.tradePlan; return <article className="swing-pick-card" key={row.asset.ticker}><button className="swing-pick-open" onClick={() => setSelectedTicker(row.asset.ticker)}><div className="swing-rank"><span>#{index + 1}</span><em className={`swing-${row.signal}`}>{row.signal === "forte" ? "FORTE" : row.signal === "observar" ? "OBSERVAR" : "FRACO"}</em></div><div className="swing-name"><strong>{row.asset.ticker}</strong><small>{row.asset.name || row.asset.fundamentals?.companyName}</small></div><div className="swing-score"><b>{row.score}</b><span>/100</span></div></button>{plan ? <><div className="swing-trade-strip"><article><span>Preço atual</span><b>{money(plan.current)}</b></article><article><span>Entrada</span><b>{money(plan.entryLow)} a {money(plan.entryHigh)}</b></article><article><span>Stop</span><b>{money(plan.stop)}</b><small>{pct(-plan.riskPct)}</small></article><article><span>Alvo 1</span><b>{money(plan.target)}</b><small>{pct(plan.rewardPct)}</small></article><article><span>Alvo 2</span><b>{money(plan.target2)}</b></article><article><span>Risco/retorno</span><b>{plan.riskReward == null ? "N/D" : `${num(plan.riskReward, 2)}x`}</b></article></div><div className="swing-setup-line"><b className={`setup-${plan.setupStatus}`}>{setupLabel(plan.setupStatus)}</b><span>ATR14 {money(plan.atr14)} · suporte {money(plan.support)} · resistência {money(plan.resistance)}</span></div><div className="swing-thesis"><article><b>Por que entrou no Top 10</b>{plan.reasons.length ? <ul>{plan.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul> : <p>Combinação quantitativa favorável no conjunto disponível.</p>}</article><article><b>O que pode invalidar</b>{plan.cautions.length ? <ul>{plan.cautions.map((caution) => <li key={caution}>{caution}</li>)}</ul> : <p>Nenhum alerta quantitativo adicional foi acionado.</p>}</article></div></> : <div className="lite-error">Histórico insuficiente para calcular plano operacional sem inventar níveis.</div>}<footer><span>ref. técnica {dateBR(row.technicalReferenceDate)} · cobertura {row.coverage}%</span><button onClick={() => setSelectedTicker(row.asset.ticker)}>Ver análise completa →</button></footer></article>; })}</section>{!topSwing.length && <div className="lite-error">Ainda não há histórico técnico suficiente para montar o Top 10 desta janela. O ranking não inventa dados ausentes.</div>}</div>}
+      {chosenRow && <section className="chosen-trade">
+        <div><span>SEU TRADE SELECIONADO</span><strong>{chosenRow.asset.ticker}</strong><small>{chosenRow.asset.name || chosenRow.asset.fundamentals?.companyName}</small></div>
+        <div><span>Entrada</span><b>{chosenRow.tradePlan ? `${money(chosenRow.tradePlan.entryLow)} – ${money(chosenRow.tradePlan.entryHigh)}` : "N/D"}</b></div>
+        <div><span>Stop</span><b>{money(chosenRow.tradePlan?.stop)}</b></div>
+        <div><span>Alvo</span><b>{money(chosenRow.tradePlan?.target)}</b></div>
+        <button type="button" onClick={() => setSelectedTicker(chosenRow.asset.ticker)}>Abrir plano</button>
+      </section>}
 
-    {page === "portfolio" && <div className="lite-page"><section className="lite-section-head"><div><span>CARTEIRA</span><h1>Carteira e disputa N+2</h1><p>Quando um preço muda, somente as posições daquele ticker são reprocessadas na disputa. A seleção da IA fica congelada após o início.</p></div></section><PortfolioManager assets={assets} asOf={asOf} changedTickers={changedTickers} /></div>}
+      <section className="trade-list-heading">
+        <div><span>TOP 10 AGORA</span><h2>Escolha pela relação risco × retorno</h2></div>
+        <p>{historyLoading ? "Lendo histórico oficial das ações mais líquidas…" : `Ranking calculado com ${historyBundle.loaded} históricos. Última consulta ${lastRefresh ? lastRefresh.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "N/D"}.`}</p>
+      </section>
 
-    {selected && selectedAnalysis && <div className="lite-modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setSelectedTicker(null)}><section className="lite-modal lite-modal-analysis"><header><div><span>{selected.kind === "unit" ? "UNIT" : "AÇÃO"}</span><h2>{selected.ticker}</h2><p>{selected.name || selected.fundamentals?.companyName}</p></div><button onClick={() => setSelectedTicker(null)}>Fechar</button></header><div className="lite-detail-grid"><article><span>Preço atual</span><b>{money(selected.price)}</b></article><article><span>Variação</span><b>{pct(selected.changepct)}</b></article><article><span>Score fundamental</span><b>{scoreOf(selected) ?? "N/D"}</b></article><article><span>Confiança</span><b>{confidenceOf(selected) == null ? "N/D" : `${confidenceOf(selected)}%`}</b></article><article><span>Momentum</span><b>{selectedAnalysis.components?.momentum?.value == null ? "N/D" : Math.round(selectedAnalysis.components.momentum.value)}</b></article><article><span>Risco</span><b>{selectedAnalysis.components?.risk?.value == null ? "N/D" : Math.round(selectedAnalysis.components.risk.value)}</b></article><article><span>P/L</span><b>{selected.fundamentals?.pe?.toLocaleString?.("pt-BR", { maximumFractionDigits: 2 }) ?? "N/D"}</b></article><article><span>ROE</span><b>{selected.fundamentals?.roe == null ? "N/D" : pct(selected.fundamentals.roe)}</b></article></div>{selected.intraday && <p className="lite-live-note">Cotação intradiária aplicada sobre a fotografia oficial. Fonte: {selected.intradaySource || "fonte intradiária configurada"}.</p>}<AssetAnalysisTabs asset={selected} analysis={selectedAnalysis} anomaly={selectedAnomaly} strategy="swing" coreProps={{ asset: selected, assets, anomaly: selectedAnomaly, radar: null, benchmarks }} /></section></div>}
+      {error && <div className="trade-error">{error}</div>}
+
+      {historyLoading ? <section className="trade-loading">Analisando preço, tendência, fundamentos e risco…</section> : <section className="trade-list">
+        {top10.map((row, index) => {
+          const plan = row.tradePlan;
+          const isChosen = row.asset.ticker === chosenTicker;
+          return <article className={`trade-card ${isChosen ? "chosen" : ""}`} key={row.asset.ticker}>
+            <button className="trade-card-main" type="button" onClick={() => setSelectedTicker(row.asset.ticker)}>
+              <div className="trade-rank"><span>#{index + 1}</span><em className={`setup-${plan?.setupStatus ?? "monitorar"}`}>{setupLabel(plan?.setupStatus)}</em></div>
+              <div className="trade-company"><strong>{row.asset.ticker}</strong><small>{row.asset.name || row.asset.fundamentals?.companyName || "Ação B3"}</small></div>
+              <div className="trade-price"><span>Agora</span><b>{money(row.asset.price)}</b></div>
+              <div className="trade-level"><span>Entrada</span><b>{plan ? `${money(plan.entryLow)} – ${money(plan.entryHigh)}` : "N/D"}</b></div>
+              <div className="trade-level stop"><span>Stop</span><b>{money(plan?.stop)}</b></div>
+              <div className="trade-level target"><span>Alvo</span><b>{money(plan?.target)}</b></div>
+              <div className="trade-rr"><span>R:R</span><b>{plan?.riskReward == null ? "N/D" : `${num(plan.riskReward, 2)}x`}</b></div>
+              <div className="trade-score"><span>Score</span><b>{row.score}</b></div>
+              <span className="trade-open">Ver plano ›</span>
+            </button>
+            <button className={`trade-pick ${isChosen ? "selected" : ""}`} type="button" onClick={() => chooseTrade(row.asset.ticker)}>{isChosen ? "Selecionada ✓" : "Escolher"}</button>
+          </article>;
+        })}
+        {!top10.length && !error && <div className="trade-error">Não há dados suficientes para montar dez operações sem inventar informações.</div>}
+      </section>}
+
+      <p className="trade-footnote">O ranking é quantitativo e serve para estudo. A execução, tamanho da posição e decisão final continuam sendo suas.</p>
+    </div>
+
+    {selectedRow && <div className="trade-modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setSelectedTicker(null)}>
+      <section className="trade-modal">
+        <header>
+          <div><span>PLANO DE TRADE · ATÉ 90 DIAS</span><h2>{selectedRow.asset.ticker}</h2><p>{selectedRow.asset.name || selectedRow.asset.fundamentals?.companyName}</p></div>
+          <button type="button" onClick={() => setSelectedTicker(null)}>Fechar</button>
+        </header>
+
+        <div className="trade-modal-score"><strong>{selectedRow.score}<small>/100</small></strong><div><span>{setupLabel(selectedRow.tradePlan?.setupStatus)}</span><p>Referência técnica {dateBR(selectedRow.technicalReferenceDate)}</p></div></div>
+
+        <section className="trade-plan-grid">
+          <article><span>Preço atual</span><b>{money(selectedRow.asset.price)}</b></article>
+          <article className="entry"><span>Zona de entrada</span><b>{selectedRow.tradePlan ? `${money(selectedRow.tradePlan.entryLow)} – ${money(selectedRow.tradePlan.entryHigh)}` : "N/D"}</b></article>
+          <article className="stop"><span>Stop</span><b>{money(selectedRow.tradePlan?.stop)}</b><small>{selectedRow.tradePlan?.riskPct == null ? "" : `${pct(-selectedRow.tradePlan.riskPct)} de risco`}</small></article>
+          <article className="target"><span>Alvo 1</span><b>{money(selectedRow.tradePlan?.target)}</b><small>{selectedRow.tradePlan?.rewardPct == null ? "" : `${pct(selectedRow.tradePlan.rewardPct)} potencial`}</small></article>
+          <article><span>Alvo 2</span><b>{money(selectedRow.tradePlan?.target2)}</b></article>
+          <article><span>Risco / retorno</span><b>{selectedRow.tradePlan?.riskReward == null ? "N/D" : `${num(selectedRow.tradePlan.riskReward, 2)}x`}</b></article>
+        </section>
+
+        <section className="trade-metrics">
+          <article><span>Fundamentos</span><b>{Math.round(selectedRow.fundamental)}</b></article>
+          <article><span>Momentum</span><b>{Math.round(selectedRow.momentum)}</b></article>
+          <article><span>Risco</span><b>{Math.round(selectedRow.risk)}</b></article>
+          <article><span>Liquidez</span><b>{Math.round(selectedRow.liquidity)}</b></article>
+          <article><span>RSI 14</span><b>{num(selectedRow.rsi14)}</b></article>
+          <article><span>Retorno 90d</span><b>{pct(selectedRow.horizonReturnPct)}</b></article>
+        </section>
+
+        <section className="trade-thesis">
+          <article><span>POR QUE ESTÁ NO TOP 10</span>{selectedRow.tradePlan?.reasons?.length ? <ul>{selectedRow.tradePlan.reasons.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Conjunto quantitativo favorável no universo analisado.</p>}</article>
+          <article><span>O QUE PODE INVALIDAR</span>{selectedRow.tradePlan?.cautions?.length ? <ul>{selectedRow.tradePlan.cautions.map((item) => <li key={item}>{item}</li>)}</ul> : <p>Nenhum alerta quantitativo adicional foi acionado.</p>}</article>
+        </section>
+
+        <div className="trade-tech-note"><span>ATR14 {money(selectedRow.tradePlan?.atr14)}</span><span>Suporte {money(selectedRow.tradePlan?.support)}</span><span>Resistência {money(selectedRow.tradePlan?.resistance)}</span><span>Custo considerado 0,031% por lado</span></div>
+
+        <button className={`trade-modal-pick ${selectedRow.asset.ticker === chosenTicker ? "selected" : ""}`} type="button" onClick={() => chooseTrade(selectedRow.asset.ticker)}>{selectedRow.asset.ticker === chosenTicker ? "Esta é a ação escolhida ✓" : `Escolher ${selectedRow.asset.ticker} para meu trade`}</button>
+      </section>
+    </div>}
   </main>;
 }
