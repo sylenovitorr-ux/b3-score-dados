@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-09-12T00:33:42.087538+00:00",
+  "generatedAt": "2026-09-15T00:51:27.824084+00:00",
   "source": "B3 COTAHIST seed + brapi.dev free rotation",
   "range": "1y",
   "interval": "1d",
   "policy": "full-universe seed from official B3; rotating public brapi batch missing-first then oldest-cache",
-  "universe": 651,
+  "universe": 652,
   "batchSize": 80,
   "seededThisRun": 362,
   "remoteUpdatedThisRun": 0,
@@ -12,14 +12,15 @@
   "failedThisRun": 1,
   "remoteAuthFailed": true,
   "covered": 362,
-  "missing": 289,
-  "coveragePct": 55.61,
-  "latestDate": "2026-09-10",
+  "missing": 290,
+  "coveragePct": 55.52,
+  "latestDate": "2026-09-11",
   "nextMissing": [
     "B3SA3",
     "CEGR3",
     "EQPA7",
     "JOPA4",
+    "LIGT3",
     "MAPT3",
     "MSPA3",
     "MSPA4",
@@ -64,8 +65,7 @@
     "BTRU11",
     "BTYU11",
     "CACR11",
-    "CARE11",
-    "CBOP11"
+    "CARE11"
   ],
   "failures": [
     {
