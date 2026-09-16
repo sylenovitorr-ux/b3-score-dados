@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T23:18:33.092Z",
+  "generatedAt": "2026-09-16T00:57:53.241Z",
   "referenceDate": "2026-09-15",
   "previousReferenceDate": "2026-09-14",
   "modelVersion": "b3-score-4.0",
@@ -1026,6 +1026,24 @@
           "delta": 1
         },
         {
+          "ticker": "EUCA3",
+          "name": "Eucatex",
+          "price": 21,
+          "score": 77,
+          "signal": "buy",
+          "confidence": 87,
+          "parts": {
+            "fundamentals": 75,
+            "valuation": 85,
+            "growth": 78,
+            "risk": 68,
+            "confidence": 87
+          },
+          "previousScore": 78,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
           "ticker": "BRAP4",
           "name": "Bradespar",
           "price": 21.48,
@@ -1056,24 +1074,6 @@
             "growth": 64,
             "risk": 68,
             "confidence": 96
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
-          "delta": -1
-        },
-        {
-          "ticker": "ECOR3",
-          "name": "Ecorodovias",
-          "price": 8.09,
-          "score": 68,
-          "signal": "sell",
-          "confidence": 99,
-          "parts": {
-            "fundamentals": 68,
-            "valuation": 75,
-            "growth": 56,
-            "risk": 54,
-            "confidence": 99
           },
           "previousScore": 69,
           "previousSignal": "sell",
@@ -1203,6 +1203,24 @@
           "previousScore": 68,
           "previousSignal": "sell",
           "delta": 1
+        },
+        {
+          "ticker": "EUCA3",
+          "name": "Eucatex",
+          "price": 21,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 87,
+          "parts": {
+            "quality": 66,
+            "dividends": 58,
+            "valuation": 85,
+            "risk": 68,
+            "confidence": 87
+          },
+          "previousScore": 68,
+          "previousSignal": "sell",
+          "delta": -1
         },
         {
           "ticker": "RSUL4",
@@ -1372,13 +1390,13 @@
           "price": 38.86,
           "score": 51,
           "signal": "sell",
-          "confidence": 91,
+          "confidence": 85,
           "parts": {
             "quality": 42,
             "dividends": 45,
             "valuation": 66,
             "risk": 63,
-            "confidence": 91
+            "confidence": 85
           },
           "previousScore": 52,
           "previousSignal": "sell",
@@ -1403,6 +1421,24 @@
           "delta": 1
         },
         {
+          "ticker": "FESA3",
+          "name": "Ferbasa",
+          "price": 10.99,
+          "score": 49,
+          "signal": "sell",
+          "confidence": 85,
+          "parts": {
+            "quality": 40,
+            "dividends": 52,
+            "valuation": 56,
+            "risk": 46,
+            "confidence": 85
+          },
+          "previousScore": 50,
+          "previousSignal": "sell",
+          "delta": -1
+        },
+        {
           "ticker": "TASA3",
           "name": "Taurus Armas",
           "price": 6.79,
@@ -1419,24 +1455,6 @@
           "previousScore": 40,
           "previousSignal": "sell",
           "delta": -1
-        },
-        {
-          "ticker": "EMAE4",
-          "name": "Emae",
-          "price": 34.97,
-          "score": 38,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "quality": 19,
-            "dividends": 25,
-            "valuation": 76,
-            "risk": 62,
-            "confidence": 95
-          },
-          "previousScore": 37,
-          "previousSignal": "sell",
-          "delta": 1
         }
       ],
       "enteredTop4": [],
@@ -49016,7 +49034,7 @@
     },
     {
       "date": "2026-09-15",
-      "generatedAt": "2026-09-15T23:18:33.092Z",
+      "generatedAt": "2026-09-16T00:57:53.241Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -49520,11 +49538,6 @@
             "signal": "buy",
             "price": 5.2
           },
-          "HBTS5": {
-            "score": 72,
-            "signal": "buy",
-            "price": 34.5
-          },
           "LOGG3": {
             "score": 72,
             "signal": "buy",
@@ -49624,6 +49637,11 @@
             "score": 71,
             "signal": "buy",
             "price": 2.7
+          },
+          "HBTS5": {
+            "score": 71,
+            "signal": "buy",
+            "price": 34.5
           },
           "IGTI4": {
             "score": 71,
@@ -50165,11 +50183,6 @@
             "signal": "sell",
             "price": 49.52
           },
-          "FESA3": {
-            "score": 61,
-            "signal": "sell",
-            "price": 10.99
-          },
           "HBSA3": {
             "score": 61,
             "signal": "sell",
@@ -50224,6 +50237,11 @@
             "score": 60,
             "signal": "sell",
             "price": 96.22
+          },
+          "FESA3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 10.99
           },
           "LAVV3": {
             "score": 60,
@@ -50652,11 +50670,6 @@
             "signal": "buy",
             "price": 7.52
           },
-          "EUCA3": {
-            "score": 78,
-            "signal": "buy",
-            "price": 21
-          },
           "EUCA4": {
             "score": 78,
             "signal": "buy",
@@ -50726,6 +50739,11 @@
             "score": 77,
             "signal": "buy",
             "price": 27.65
+          },
+          "EUCA3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 21
           },
           "LEVE3": {
             "score": 77,
@@ -51647,11 +51665,6 @@
             "signal": "sell",
             "price": 11.58
           },
-          "FESA3": {
-            "score": 56,
-            "signal": "sell",
-            "price": 10.99
-          },
           "JOPA3": {
             "score": 56,
             "signal": "sell",
@@ -51686,6 +51699,11 @@
             "score": 55,
             "signal": "sell",
             "price": 6.02
+          },
+          "FESA3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 10.99
           },
           "GPAR3": {
             "score": 55,
@@ -52329,11 +52347,6 @@
             "signal": "sell",
             "price": 57.25
           },
-          "EUCA3": {
-            "score": 68,
-            "signal": "sell",
-            "price": 21
-          },
           "EUCA4": {
             "score": 68,
             "signal": "sell",
@@ -52363,6 +52376,11 @@
             "score": 67,
             "signal": "sell",
             "price": 3.68
+          },
+          "EUCA3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 21
           },
           "HYPE3": {
             "score": 67,
@@ -52859,15 +52877,15 @@
             "signal": "sell",
             "price": 3.97
           },
-          "FESA3": {
-            "score": 50,
-            "signal": "sell",
-            "price": 10.99
-          },
           "TPIS3": {
             "score": 50,
             "signal": "sell",
             "price": 10.7
+          },
+          "FESA3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 10.99
           },
           "IRBR3": {
             "score": 49,
