@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-21T23:45:28.077Z",
+  "generatedAt": "2026-09-22T01:17:59.843Z",
   "referenceDate": "2026-09-21",
   "previousReferenceDate": "2026-09-18",
   "modelVersion": "b3-score-4.0",
@@ -934,6 +934,24 @@
           "delta": -1
         },
         {
+          "ticker": "SOND6",
+          "name": "Sondotecnica",
+          "price": 75,
+          "score": 81,
+          "signal": "buy",
+          "confidence": 86,
+          "parts": {
+            "fundamentals": 85,
+            "valuation": 83,
+            "growth": 85,
+            "risk": 51,
+            "confidence": 86
+          },
+          "previousScore": 82,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
           "ticker": "ITSA3",
           "name": "Itausa",
           "price": 14.5,
@@ -1130,24 +1148,6 @@
           "previousScore": 69,
           "previousSignal": "sell",
           "delta": -1
-        },
-        {
-          "ticker": "ARND3",
-          "name": "Arandu",
-          "price": 0.58,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 68,
-            "valuation": 92,
-            "growth": 45,
-            "risk": 28,
-            "confidence": 96
-          },
-          "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": 1
         }
       ],
       "enteredTop4": [],
@@ -1237,6 +1237,24 @@
           "previousScore": 56,
           "previousSignal": "sell",
           "delta": 2
+        },
+        {
+          "ticker": "SOND6",
+          "name": "Sondotecnica",
+          "price": 75,
+          "score": 79,
+          "signal": "buy",
+          "confidence": 86,
+          "parts": {
+            "quality": 88,
+            "dividends": 76,
+            "valuation": 83,
+            "risk": 51,
+            "confidence": 86
+          },
+          "previousScore": 80,
+          "previousSignal": "buy",
+          "delta": -1
         },
         {
           "ticker": "FIQE3",
@@ -1507,24 +1525,6 @@
           "previousScore": 64,
           "previousSignal": "sell",
           "delta": -1
-        },
-        {
-          "ticker": "GGPS3",
-          "name": "Gps",
-          "price": 13.25,
-          "score": 62,
-          "signal": "sell",
-          "confidence": 98,
-          "parts": {
-            "quality": 72,
-            "dividends": 42,
-            "valuation": 70,
-            "risk": 63,
-            "confidence": 98
-          },
-          "previousScore": 61,
-          "previousSignal": "sell",
-          "delta": 1
         }
       ],
       "enteredTop4": [],
@@ -64996,7 +64996,7 @@
     },
     {
       "date": "2026-09-21",
-      "generatedAt": "2026-09-21T23:45:28.077Z",
+      "generatedAt": "2026-09-22T01:17:59.843Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -66507,11 +66507,6 @@
             "signal": "buy",
             "price": 6.99
           },
-          "SOND6": {
-            "score": 82,
-            "signal": "buy",
-            "price": 75
-          },
           "TECN3": {
             "score": 82,
             "signal": "buy",
@@ -66541,6 +66536,11 @@
             "score": 81,
             "signal": "buy",
             "price": 83.75
+          },
+          "SOND6": {
+            "score": 81,
+            "signal": "buy",
+            "price": 75
           },
           "CURY3": {
             "score": 80,
@@ -67914,11 +67914,6 @@
             "signal": "buy",
             "price": 11.59
           },
-          "SOND6": {
-            "score": 80,
-            "signal": "buy",
-            "price": 75
-          },
           "WIZC3": {
             "score": 80,
             "signal": "buy",
@@ -67953,6 +67948,11 @@
             "score": 79,
             "signal": "buy",
             "price": 83.75
+          },
+          "SOND6": {
+            "score": 79,
+            "signal": "buy",
+            "price": 75
           },
           "TAEE3": {
             "score": 79,
