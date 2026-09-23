@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-23T06:09:45.704009+00:00",
-  "quoteDate": "2026-09-22",
+  "generatedAt": "2026-09-23T23:16:38.870346+00:00",
+  "quoteDate": "2026-09-10",
   "modelVersion": "1.0.0",
-  "universe": 225,
+  "universe": 3,
   "weights": {
     "fundamentals": 42,
     "technical": 32,
@@ -19,844 +19,256 @@
   ],
   "strength": [
     {
-      "ticker": "CSED3",
-      "name": "Cruzeiro Edu",
-      "price": 5.44,
-      "quoteDate": "2026-09-22",
-      "score": 79,
-      "fundamentalScore": 78,
-      "technicalScore": 87,
-      "newsScore": 52,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 21.7,
-      "return60": 44.68,
-      "historySessions": 431,
-      "entryLow": 4.35,
-      "entryHigh": 5.49,
-      "target": 7.02,
-      "defensiveExit": 4.18,
-      "potentialPct": 29.04,
-      "fairValue": 10.44,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "ticker": "BGIP3",
+      "name": "Banese",
+      "price": 49.9,
+      "quoteDate": "2026-09-10",
+      "score": 58,
+      "fundamentalScore": 70,
+      "technicalScore": 43,
+      "newsScore": 49,
+      "confidence": 50,
+      "newsCoverage": 22,
+      "return20": -7.59,
+      "return60": -3.56,
+      "historySessions": 149,
+      "entryLow": 44.57,
+      "entryHigh": 49.58,
+      "target": 54.17,
+      "defensiveExit": 42.79,
+      "potentialPct": 8.56,
+      "fairValue": 53.89,
+      "fairValueMethod": "preço ajustado pelo score fundamental",
       "headlines": [
         {
-          "title": "Cruzeiro do Sul (CSED3) registra questionamento sobre conselheiro - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxORV8wSk1sSEQ4NnVwYTVQV2czWkFTdENhclBEOUsxZWVOUU9SZEdtWGZOQXhaVzZmTUluNmJMYVE3WlBIOGxNVE9IYlRQY3E4LWR2djByRW02YS1VcGQyQlp6akZISlkzNHUzMk5MQ3RDdmpVOGRleC0zcDdZM280bVZUNDJnZFZEQ0htLXd3ei1hd3VKaHAzQkp4VW8td005VG5z?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Mon, 31 Aug 2026 07:00:00 GMT"
+          "title": "Banese (BGIP3, BGIP4) aprova pagamento de juros sobre o capital. Veja os detalhes: - financenews.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPRHJWQTlfb0NRUEZnZ0Q3dThTcnpadXh3YTFKOGR5QkhFYm90bDdwREExdzZGcjJPbmtvYUQ2TDlrX2xIS25pTm5rRzB5dk81WlRSX1ZpZk15YzF0b1pPdlpfbm1uenBGbjJJdGstRE1YLUQ4cF9ET2ZSS0NRRk8tcFJjOXRibGdqYXRyUDFSbWV6N190X2xMTWp3aExOeEY2dlROMm9QQW5QNV9PYnRfUDIxdw?oc=5",
+          "domain": "financenews.com.br",
+          "seenDate": "Thu, 09 Apr 2026 07:00:00 GMT"
         },
         {
-          "title": "Cruzeiro do Sul (CSED3) aumenta lucro em 60,6% e reduz dívida no 2T26 - Estadão",
-          "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOMjhFNmZNQ3hFNG5LUnUwblh5YmMzekhDTzBPYURncGtqMVV2Nl94SzQxbE55UFRqNGpfTnBXWTdDazlKSnQtTUNZemJIYzdnd1hxaFN0ZVktR2hpU2JaeGEtTDNkTWItblQ1R01GRVk2QzVUSWM0SWZIc3hoTVQ4MTNaLUhfUDJJZlBUVWY2a3hValpGMUlFSkRHYTBVVWVhOEl2Ujk0S1A5NVVCZkR1TmdpX0Q5NmdwTHNZTUJvNlQzWU5hZ0pmT1J3UG8?oc=5",
-          "domain": "Estadão",
-          "seenDate": "Tue, 11 Aug 2026 22:55:48 GMT"
+          "title": "BGIP3 - Banco Banese - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE9KN1lRRjNfRkJNWDBheWl1Z3pRZVVWNFpFVktDN3BtRWJ5VzZaUER4UzBUd1lEU093MWJBMnpvNWxqSmFQUHJVYXNJLUprUVViZ2c?oc=5",
+          "domain": "Investidor10",
+          "seenDate": "Sat, 23 May 2020 10:15:11 GMT"
         },
         {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "JHSF3",
-      "name": "Jhsf Part",
-      "price": 11.84,
-      "quoteDate": "2026-09-22",
-      "score": 78,
-      "fundamentalScore": 87,
-      "technicalScore": 69,
-      "newsScore": 54,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 13.96,
-      "return60": 4.5,
-      "historySessions": 431,
-      "entryLow": 10.25,
-      "entryHigh": 11.96,
-      "target": 15.96,
-      "defensiveExit": 9.84,
-      "potentialPct": 34.81,
-      "fairValue": 40.27,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "JHSF (JHSF3) lança nova fase de loteamento em Porto Feliz (SP), com vendas estimadas em R$ 3 bi - Money Times",
-          "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOWDMzUURWVGlmQWk2VTEzR1VkbzJEVTJTZW9LeENycTY0ZzVnUkk3RU82eTRzV013TWw4aWs4OWI5UFpDUGNycW1hMFpLenVEYW84RDBMc3l0NmZ0S0RUODZid1A3WmpRaTlHNkdyazhfaG1HZWxOLTNGQ0lGdWdSSE8tTng5bml2Tk1BOWtUMzYxSUUzcGExUWZfdFVWMkZTS1Q0dEphbXl5R2djc28xbw?oc=5",
-          "domain": "Money Times",
-          "seenDate": "Tue, 22 Sep 2026 20:02:00 GMT"
-        },
-        {
-          "title": "JHSF (JHSF3) lança loteamento de R$ 3 bilhões na Fazenda Boa Vista - BPMoney",
-          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOblhBd2c4WEN1TDIyVWJ4ZktkLUVsRFRsNGQxdGNORkRiemxqak40cHlNc2dFX1NrN1JBa2FkRWt1b3AzV2d3OG9RZGI0M0ZMNE5TZjFmSV95OTZ4Nko4Ukd5TXdDVlQyeUM5a21KSVFaYXg2Nm5EdXBFRUV5Y3NxcE45REJfMm5Cc0tCdzNmYldFZzdSSy1tLWtIOA?oc=5",
-          "domain": "BPMoney",
-          "seenDate": "Tue, 22 Sep 2026 21:35:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "BRSR6",
-      "name": "Banrisul",
-      "price": 15.49,
-      "quoteDate": "2026-09-22",
-      "score": 77,
-      "fundamentalScore": 84,
-      "technicalScore": 69,
-      "newsScore": 53,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 10.64,
-      "return60": 11.6,
-      "historySessions": 431,
-      "entryLow": 13.65,
-      "entryHigh": 15.64,
-      "target": 20.87,
-      "defensiveExit": 13.1,
-      "potentialPct": 34.7,
-      "fairValue": 49.76,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "Banrisul (BRSR6) | Resultado 2T26: Lucro Reage, mas Revisão do Guidance Expõe Desafios Operacionais - Genial Analisa",
-          "url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxPdHdVYTVzV09LOWpuOEhUcnNUT2NzclVxUW5heW9ELWsxeWxGb3NEUy1ZR1JCNkZCRDhObXBTTmdacWdzRmwzZEdFZTdvVTE0bnZnQWt3VTQ1MHlwTHMzOVVhQ1NSVGRVQkh2Q1BFc3pTX3lWZEpjbHNubWQ5VEExdGx0d1Nvc0dtYmkxMEZGZ3hxUGdvY1NLUzRYSDhWeUx4VlVMejNaSXlHSmlmdzFSWGFMOWZVX2wzUl83Qno1cjUyVGFhQVNmNXREVVBEYnoxNlV3c282VnU1bnQxN2hhOHZ3?oc=5",
-          "domain": "Genial Analisa",
-          "seenDate": "Thu, 13 Aug 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Banrisul (BRSR6): contrato bilionário sai mais caro e analistas mantêm venda - suno.com.br",
-          "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOOHR1SkpBelBoYVgtQlUzdXFDSXZXa2ViX2Y4SVNuTF9fX2w3RUY0UVpVejlpVHJXRG13ZGN2cXU1OTdCS013eEtQR2tsSDRkTFlPQi1pd21ST3M3Ym1XbDRCRXlUUzBUeEpJLWNHb1pOWGRlUFB0NTc1N044SzZxUtIBhgFBVV95cUxPTjdYUWpwdGk4WDlhSlFEcTRQV0xVZ2xmUmJSRDgzbkxWTVFHcWIyYjliYUlVcG9IMXhsRFRqT3pPUFkyRXgwbU1ibTJzWVNua0xpNnZOWHUya004Z1RMLTBvbTFOcWVaVUdfcmFjUjI5bU9kVlRxSEIwUWV2emxOX0MtVldRdw?oc=5",
-          "domain": "suno.com.br",
-          "seenDate": "Fri, 19 Jun 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "BMOB3",
-      "name": "Bemobi Tech",
-      "price": 28.55,
-      "quoteDate": "2026-09-22",
-      "score": 77,
-      "fundamentalScore": 77,
-      "technicalScore": 79,
-      "newsScore": 56,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 20.06,
-      "return60": 21.23,
-      "historySessions": 431,
-      "entryLow": 23.24,
-      "entryHigh": 23.24,
-      "target": 29.98,
-      "defensiveExit": 22.31,
-      "potentialPct": 5.0,
-      "fairValue": 24.43,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "BMOB3: Itaú BBA sobe preço-alvo de Bemobi e vê dividendo de quase 9% em 2027 - Investing.com Brasil - Finanças, Câmbio e Investimentos",
-          "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxQVEdWZlpqdl8tTDZSRnRWdlpXajNpMTdUVmNLYVJsN2l3N3c5UGNHQTc3ejFrdXlXTDl2cVNhR0JaZllTQUNWbkRfMzFxSVVRSU5kSW5RVERfd0N1bWxmcEhkYmNsUGxUS1podHV3NE1IWW9wN2VnTzZkU3VZWGpQajZVR05BWnhpZVVHUmdXRlc2VTlNbkZuNVJXZVRHRnVGTlRjMXRfUGhIYmt4eExudFJyVi13aGU4SFlqQ2JmM0xKQQ?oc=5",
-          "domain": "Investing.com Brasil - Finanças, Câmbio e Investimentos",
-          "seenDate": "Mon, 21 Sep 2026 14:08:00 GMT"
-        },
-        {
-          "title": "Bemobi (BMOB3): E se o software parar de ser a vantagem competitiva principal? - XP Investimentos",
-          "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxQTi1ERzBrLWs2NVQyQ3VWc1dYS2pBYW9COTNraWswQXU0eWY3TWVCUzVqWEh1dnlXeW1WT2xhUi0zeHBZRWJGZ1MzTFdDa3hHVHNxa0xoUmdMV3pPRDhwYlh6NWp1S196ak5YUXg5Y29RbFVtRWdxcExSQ1FtVWhOb0gwbHNjQVdSc3dVaWV4ZXdyYVVrWTQ3Mlh0bFpkQ2ZzS3BBOVd4MEdyaGtxLXUtWjBVRVRZeV81Nm1mRENn?oc=5",
-          "domain": "XP Investimentos",
-          "seenDate": "Thu, 25 Jun 2026 19:21:50 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "UGPA3",
-      "name": "Ultrapar",
-      "price": 39.48,
-      "quoteDate": "2026-09-22",
-      "score": 77,
-      "fundamentalScore": 72,
-      "technicalScore": 86,
-      "newsScore": 53,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 17.43,
-      "return60": 51.5,
-      "historySessions": 431,
-      "entryLow": 32.99,
-      "entryHigh": 35.15,
-      "target": 41.45,
-      "defensiveExit": 31.67,
-      "potentialPct": 5.0,
-      "fairValue": 38.21,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "Ultrapar (UGPA3) mantém rali; Hapvida (HAPV3) se aproxima da mínima histórica - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNTjRuRkt0ZG9IM3QyY01VQmNHOUFzMnh0Y2JpbWs1SDQyNjhFYVBJNHFMZTc3akY1Tm9IZXF6N0t5dWptalhxNjlIek84a3dOaDllS3NTMzNhYjRKaTM0eGY4OTFWRml6aFpDdmxjU1p1ZjQyV08zQ0V2LXIxSDRpLWJEMUpBWHMwWHh1U0g3Y1c5WVVEak5GY3Yta1dhU3NwdmhSSXk5bnIyM1VrVFBVcNIBtgFBVV95cUxQaDVFbTh2REs1QnpDU3ZzR3VFOFZIeEF6VzFzWTZnLV9VSnpWLU5kS2ZGR282X29IdU5ucFJ3UWdybmdPNzJVOG5JS2RSM28xd011UmFReTA0Rl81ZHJ6Q2xMWjNYSDdRSGFwQ2VGaWlTVGM2VXBGTU1reFRkTXpoNGpxZGQyMUM1S3VINmdVV2FnUGRsaUVucWwzanRjbHgwbklvVkM0R2JkMFJBNlVNNFc3Z0h5UQ?oc=5",
+          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
           "domain": "InfoMoney",
-          "seenDate": "Mon, 21 Sep 2026 10:10:00 GMT"
-        },
-        {
-          "title": "VBBR3, UGPA3 e AZZA3 marcam extremos de 52 semanas na B3 - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQZElXYzhUb2lQQkJFZTJqTGxEelYwZFZVeEowaUwzeWhLQ3BxUWZaeWd6c01QeW1OS3RsdVJWeW9CcDVwMlRYSUh4c21PWjIxU3F2RDFFUHNNU1ZhYzFxRUszX2liUGtSN1p4ZHNvMk91ZjdjN01SRUgzeXByejJOTkJqQ2VkQl93NGNDN1p6bUo2TjVIejBpaQ?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Sun, 20 Sep 2026 23:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
+          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
         }
       ]
     },
     {
-      "ticker": "PETR4",
-      "name": "Petrobras",
-      "price": 48.35,
-      "quoteDate": "2026-09-22",
-      "score": 76,
-      "fundamentalScore": 73,
-      "technicalScore": 79,
-      "newsScore": 54,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 16.93,
-      "return60": 27.91,
-      "historySessions": 431,
-      "entryLow": 41.38,
-      "entryHigh": 48.83,
-      "target": 64.78,
-      "defensiveExit": 39.72,
-      "potentialPct": 33.98,
-      "fairValue": 129.99,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "Petrobras (PETR4), Axia Energia (AXIA3), Americanas (AMER3) e outros destaques desta terça-feira (22) - Money Times",
-          "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxQajBPM09iNnFhVFcyUkpaNnlsM0hTMjlJSjhZOVpMUWFGOXBrVUFrUkcxZ08tTDdsTWdSanptRDNuYnh2U004YTAyOWNsc1RqdGdpbjlqZXF1U0Vqbi1ael9JRTVocEVsNUtuVmtVVnltd1pVUktHOG4tWmdHSnFTSFZFaDlsT3FUbzVjallKZzZlU0FGZTdCS29XSkZSR2dsMmZnUkdkTUF3Um9XNmJVaHpQc0xNbDdSSlYzNHlLN3Zodw?oc=5",
-          "domain": "Money Times",
-          "seenDate": "Tue, 22 Sep 2026 12:14:00 GMT"
-        },
-        {
-          "title": "Petrobras (PETR4) e MPF entram em briga pela exploração de petróleo na Foz do Amazonas. Qual é o impasse? - Seu Dinheiro",
-          "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxQUC05REFXUTQ0MmlxUWhuVHZfeWRVME4xc0otbV9aM1R2ZWl5M1lIS2JZZEx4ZlltOXJmclp3WUczYmduQUJFYXlUMmRmdmRnT1lVSU0ycG02QTdBODVqcXY4LV9hTFJ5MUNyNFV0eDI0OTUtLWItYzBsemgyMld2NEFZbXpTNnRpaGg5dkxRVGtJN1FLV25IQU9uV21jRWJvSFFvSmp4ZWk0T1JUTkNtbE50S1pBVzRacmd2SVpvOTdfcXFiUlBleUU0UVJvdzhtNllHcWtCVWNUVjBpZXNiSXFWOA?oc=5",
-          "domain": "Seu Dinheiro",
-          "seenDate": "Mon, 21 Sep 2026 13:34:36 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "CYRE4",
-      "name": "Cyrela Realt",
-      "price": 25.7,
-      "quoteDate": "2026-09-22",
-      "score": 76,
-      "fundamentalScore": 84,
-      "technicalScore": 69,
-      "newsScore": 52,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 8.35,
-      "return60": 19.7,
-      "historySessions": 181,
-      "entryLow": 21.51,
-      "entryHigh": 25.96,
-      "target": 34.04,
-      "defensiveExit": 20.65,
-      "potentialPct": 32.43,
-      "fairValue": 58.98,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "CYRE4 - Cyrela: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE53RW9zUENtTFBWLWVlaTFhQmg4LXFEX0t6MmkxaExYWDhaLVBUZjh4czdIWG84QjV3WkE0d0w2NU1zaGR0Z1dfWS1hQm4tWFBJ?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "CYRE4 : Cotação e Indicadores - Riconnect",
-          "url": "https://news.google.com/rss/articles/CBMiVEFVX3lxTFBPMlFpZVhIZWZBLUN6dTVvVEFtVkFiYXRnR203UWdqVEtOS0o2QllLcE14eTlBWTl5NEt3NnpUNDlCM0dyOWN1eGZmaFZwcmx3bkpfNA?oc=5",
-          "domain": "Riconnect",
-          "seenDate": "Thu, 17 Sep 2026 07:42:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "CYRE3",
-      "name": "Cyrela Realt",
-      "price": 27.13,
-      "quoteDate": "2026-09-22",
-      "score": 76,
-      "fundamentalScore": 82,
-      "technicalScore": 70,
-      "newsScore": 54,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": 9.7,
-      "return60": 17.85,
-      "historySessions": 431,
-      "entryLow": 22.67,
-      "entryHigh": 27.4,
-      "target": 35.71,
-      "defensiveExit": 21.77,
-      "potentialPct": 31.62,
-      "fairValue": 58.98,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "Lucro da Cyrela (CYRE3) cresce +37% no 4T25 - Nord Investimentos",
-          "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE9fRWlxVnRjWWNvUnVoU2xYdHRsaDFsUFNpSlU0NUJ5WlowZVROTGoxOERTaTJLSUdaTHdvcUZkSjdiRkZXSjFacmtMa2RNNGRqb2xUQmw1QU9oTXdWcEVRUnNEMXVhakcwR1FlZ0pqa0s5UGE3WTJFblBSMNIBgAFBVV95cUxPWTFSYkp4aXEyczRNWUdqVGJZSFJKZmhYYWZDNVRsWlQ2c19mNU9zd0lBSHpZRHk0T3NsT05tRWtYcTY5aGVPVlE4LUNGdVE3R0tRZkxRaXdvNTRXZl9JVWtFckdPbjNjUGZwNnc5d3pJT0kwVzN5a281WGl0M0ptMQ?oc=5",
-          "domain": "Nord Investimentos",
-          "seenDate": "Tue, 22 Sep 2026 01:13:49 GMT"
-        },
-        {
-          "title": "CYRE3 - Cyrela: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE5XcUkxX051TzBMM052VHNsbWtiUVByVzdkcTh0OHF1V19ZNmRNQ0NkcDU1WEJ1TWxJRk1oNnRMc0xCbXcxdVBfU2F1S2dyMWd6?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "BMGB4",
-      "name": "Banco Bmg",
-      "price": 6.12,
-      "quoteDate": "2026-09-22",
-      "score": 75,
-      "fundamentalScore": 74,
-      "technicalScore": 77,
-      "newsScore": 53,
-      "confidence": 99,
-      "newsCoverage": 24,
-      "return20": 18.83,
-      "return60": 16.13,
-      "historySessions": 431,
-      "entryLow": 5.06,
-      "entryHigh": 6.18,
-      "target": 7.79,
-      "defensiveExit": 4.86,
-      "potentialPct": 27.24,
-      "fairValue": 10.98,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "BMGB4 - Banco Bmg - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBHM2VXMXdLMTJhMUgzZzAybmYyRGRGMnB1TWVrVTF3bGc0OHpiVnFOaC1JQm1qakZKTmdKQVdxM0FnUzFjTGxYalZwNU4tQ01CSUE?oc=5",
-          "domain": "Investidor10",
-          "seenDate": "Mon, 21 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Banco BMG (BMGB4) 2T26: Retorno maior. Risco também - InvesTalk",
-          "url": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE85OWttdWVPdUl3QS1kTUlzNUZhNkU2cmdwU24zV1JmQzQzTzEzRzZMVDVCN243bWpIQVlyaGxsek50WDlMQTBpaTZReWQ5QVBRaGtpcUE2NWRrY1NYNzY4c29uSQ?oc=5",
-          "domain": "InvesTalk",
-          "seenDate": "Fri, 14 Aug 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "BBDC3",
-      "name": "Bradesco",
-      "price": 16.3,
-      "quoteDate": "2026-09-22",
-      "score": 75,
-      "fundamentalScore": 82,
-      "technicalScore": 66,
+      "ticker": "NGRD3",
+      "name": "Neogrid",
+      "price": 34.28,
+      "quoteDate": "2026-07-13",
+      "score": 57,
+      "fundamentalScore": 54,
+      "technicalScore": 52,
       "newsScore": 50,
-      "confidence": 100,
+      "confidence": 92,
       "newsCoverage": 24,
-      "return20": 10.28,
-      "return60": 3.36,
-      "historySessions": 431,
-      "entryLow": 14.52,
-      "entryHigh": 16.46,
-      "target": 20.62,
-      "defensiveExit": 13.94,
-      "potentialPct": 26.48,
-      "fairValue": 28.52,
+      "return20": 0.68,
+      "return60": 4.13,
+      "historySessions": 381,
+      "entryLow": 33.59,
+      "entryHigh": 33.59,
+      "target": 40.95,
+      "defensiveExit": 32.25,
+      "potentialPct": 19.46,
+      "fairValue": 16.31,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
       "headlines": [
         {
-          "title": "BBDC3 - Banco Bradesco - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE5kTmYyTUcza1Z4RFNlNzZ3ZGUtRDRiQzlKa29yaTYzd3A3ekR2QjItU1FoWGUteUlCRHMyVUMzenVpenhuNC1FYTZmOEZmRWJSdnc?oc=5",
+          "title": "Neogrid (NGRD3) encerra OPA; veja o prazo para vender suas ações - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPWTJfcS1hWDJqNTI3MTlzRDg1dkZsOWxTTVc3RjhSTUJtT2ZfWlU3YzNnNEszNmdlQXFYVVZjaU04dGpwVGV3cWF5X3R3RmwtVlh5MnNQV1NSVGNVV21IOHdkc1V5YUFMU19tUVgtS0g3UlNsUXpzRDEtTWR4SG5xVG1LQl9DeHlmOUkteVBiNE5sVjJwTGtGS3NqSWNSTlhZcFJUUmVOcEFZQdIBrwFBVV95cUxOZy0yc2NyV1RpZ3NpSHJiQXp1b0ZfNU9uWUdmUjNOUTh6d1ZTSkl6bUdGUFQ1Tk1JWnI1Z3lJd0ZlalhqZFNhazVNSWVfUFRzbWpCRjFuRE1qTXZBUklpcS1rU0JhOG1WdFNyU2V3ZGd0aEN5VHVQNVVBd2Nibl9Ra3VzWm5MSzF3aEtxT2l3emhiTFdDRUJmNC1zMlVUUmRNRGtGQWs0TDZlY2x0UnpN?oc=5",
           "domain": "Investidor10",
-          "seenDate": "Wed, 23 Sep 2026 04:33:00 GMT"
+          "seenDate": "Tue, 02 Jun 2026 20:07:07 GMT"
         },
         {
-          "title": "BBDC3 - Banco Bradesco: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE5HbzlvOWVuRHZpMXdFbFBMX2lvVWNDcjgtbkdRS3Vac0JkVlRmQnB1OE5aN01oSXhSckFid2xueXFIc1VVdExXd0xFbmFEYmEt?oc=5",
+          "title": "Neogrid (NGRD3) avança para fechar capital; entenda o que muda para os investidores - suno.com.br",
+          "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNUEo2OFpnMjFaUEFqdXYzYzd6VFF2bzVRSXRjWEdXSGFNSnRMbHRRWmlxUmpzSHVYSUdmWDZXNG95TTh4d2NHd3NxWUxXU2JlX21HUV9nZm5nUkZVLWQxU29UUXdZd2RJYWg1QzFteGVvWjlTVHpzOFVHZXpwRVpmNndoQmVhbmvSAYwBQVVfeXFMTzV1ZVgzZVFBa0JjNVR2RnN0LWl4ZGEzVXVQU3hXclUxdV9iOE9XR051NHhYVW15aUN1UTJWWjhvWWI3ZEV5YW11SWRPWnA3N0hPZTNoQWoyMGdpRzJUV1dIdjZRMlNrX2VzUDZmYms4OTRzM2JDRlpNTnQza1VZYjFoV0JCUUZ3YklYdFk?oc=5",
+          "domain": "suno.com.br",
+          "seenDate": "Fri, 22 May 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "domain": "InfoMoney",
+          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
+        }
+      ]
+    },
+    {
+      "ticker": "PEAB3",
+      "name": "Par Al Bahia",
+      "price": 38.86,
+      "quoteDate": "2026-09-10",
+      "score": 57,
+      "fundamentalScore": 56,
+      "technicalScore": 51,
+      "newsScore": 48,
+      "confidence": 95,
+      "newsCoverage": 21,
+      "return20": -2.9,
+      "return60": 12.25,
+      "historySessions": 117,
+      "entryLow": 38.08,
+      "entryHigh": 38.08,
+      "target": 40.8,
+      "defensiveExit": 36.56,
+      "potentialPct": 5.0,
+      "fairValue": 33.19,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "PEAB3 - Companhia de Participações Aliança da Bahia: cotação, dividendos e indicadores - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE90V1RsaXU1WGE2TzdlLTNmNWRxTGRuTlEtWGgtaGYwTURyd0J5SUxra2psMEU3dmx3dzZLbXNSUWtNQ1FpM1c5NU5aRE1KUHo3?oc=5",
           "domain": "Visno Invest",
           "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
         },
         {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
+          "title": "Fato relevante Aliança da Bahia (PEAB3, PEAB4): arbitragem contra Rede D'Or - ativovirtual.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQVWdzeWVjYVBTNjhmV2lKVEZ0cGc2QjRtTl9NSHhMSUxMektjdW1nNTVUOVFpdC1XTV9fZ2pKMGktUlRkaVA4cnBBZnNEUXZBTldUVnpvVjJTRXZJSlZZdFlVUHA3YUpVc1hGdDFJMHE4ME9jaU94TWxUN0tmSkRYSElOM3RtOW5OQlRyeVA2dFZjNHhReXpnS3VEWFdDdlJvVHdKcGNmR0ZRRTZfSkhSNjBBcE5kalJnWWc?oc=5",
+          "domain": "ativovirtual.com.br",
+          "seenDate": "Thu, 03 Sep 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "domain": "InfoMoney",
+          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
         }
       ]
     }
   ],
   "pressure": [
     {
-      "ticker": "IFCM3",
-      "name": "Infracomm",
-      "price": 1.55,
-      "quoteDate": "2026-09-22",
-      "score": 57,
-      "fundamentalScore": 43,
-      "technicalScore": 24,
-      "newsScore": 54,
-      "confidence": 89,
-      "newsCoverage": 24,
-      "return20": -13.89,
-      "return60": -29.22,
-      "historySessions": 431,
-      "entryLow": 1.14,
-      "entryHigh": 1.18,
-      "target": 1.16,
-      "defensiveExit": 1.49,
-      "potentialPct": -25.27,
-      "fairValue": 0.04,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "Infracommerce (IFCM3) Vende Créditos Judiciais para Reforçar Caixa sem Diluir Acionistas - Forbes Brasil",
-          "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQemtOekF0bzVDZjRaNVFudFByUWw4YmRLQWp2N2VFQThpcFJBNDhtMmdtMjJzTmlPUkcxRFRxU1FteEdrSVI0UTZaT0FKal9IT0hIUEV4bnVCNWJMVHRZTC1aalJuQy1qR2hSQ01CTVJjQU1waFRKN2hOa0ZjVU83TE1zTjREZmMzb2lGNk13bC1LdFlJX0tiUVNuQllwYWhoTzNVdzZ3?oc=5",
-          "domain": "Forbes Brasil",
-          "seenDate": "Tue, 28 Jul 2026 07:00:00 GMT"
-        },
-        {
-          "title": "IFCM3 - Infracommerce: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE4tSlgxa3Ntal9OVDIyTDRZLVUtb0l2R3ZZd1pjdC1BejBwaTVjY0IxQjlXbERYZ2Nxc2JmRTBsaEZHQzAyRFZkZ0tqMTRpMFZB?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "RCSL4",
-      "name": "Recrusul",
-      "price": 0.3,
-      "quoteDate": "2026-09-22",
-      "score": 57,
-      "fundamentalScore": 50,
-      "technicalScore": 13,
-      "newsScore": 49,
-      "confidence": 94,
-      "newsCoverage": 24,
-      "return20": -60.0,
-      "return60": -34.78,
-      "historySessions": 431,
-      "entryLow": 0.29,
-      "entryHigh": 0.3,
-      "target": 0.29,
-      "defensiveExit": 0.29,
-      "potentialPct": -3.0,
-      "fairValue": 0.31,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": [
-        {
-          "title": "Recrusul Sa ( RCSL3 - ADVFN",
-          "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE9EOEg1MW5Id0FKV292OWUzVnVmTXdydWxRNGpGM01yS3c2TG85YzNSWDJyS1BoVm55d1hxVlNleEc2UEpVQm8wUGhEYnAzRVVXRC1DZVFB?oc=5",
-          "domain": "ADVFN",
-          "seenDate": "Tue, 22 Sep 2026 18:53:38 GMT"
-        },
-        {
-          "title": "RCSL4 salta 7,3% e Ibovespa abre em alta na B3 hoje - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPUktuakdzenBIcWlIZnBYRGNGTHJ6WUc2aUxrSGpSMVFYMG5TRlBzSTFMUzFhWFhRZmp3MzhWc2lJQWpfdkZyY2JXUjNIRUMxc0QxcW1NTkswTGNxY1VFa3hmc0JZWkJxUWtnUGFZTE50R3Y4UTZ6a095bUk4NkpTUlJ4dkhuUC1yX3RpcHdVTUk?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Wed, 02 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "AZUL3",
-      "name": "Azul",
-      "price": 17.07,
-      "quoteDate": "2026-09-22",
-      "score": 52,
-      "fundamentalScore": 51,
-      "technicalScore": 26,
-      "newsScore": 51,
-      "confidence": 100,
-      "newsCoverage": 24,
-      "return20": -11.65,
-      "return60": -26.42,
-      "historySessions": 108,
-      "entryLow": 15.21,
-      "entryHigh": 15.83,
-      "target": 15.52,
-      "defensiveExit": 15.21,
-      "potentialPct": -9.08,
-      "fairValue": 17.21,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": [
-        {
-          "title": "Ações da Azul (AZUL3): entenda a mudança da AZUL4 e como investir - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPeUYwQ1MtRlZ3MTVqV0RjaVlyUFMtVlNSQW5mbVFodHpQNUxveGhPNV9tdnZGZGFYNUY4b0hGcFE4RVFOeURYdDE0cWhndHdiTFYxS1poTmtLa19sNXZ4TndsMzdTNFhWc1ZXdFRkT3hseGFGUUlob0xxY1ItOGxya2hvd1RtRm1Tam5NTjZNdC1rUV9kRU05OVBDa3NnMWI5UEFoQlhlVldxNnfSAbABQVVfeXFMTXo0WFdubThhRkdhTnJpb2pGMlNFN05NSkpiUGdpNFhGMEgtRGF1eHdKRnF4VklnOHlBU256WGdwUG1IdFMzWDNLOFdOeE94OGNIdTJsNDVMdllQWkU4UlBpRHRCM3o0MFJOTUVjUlp1VzJkdkpoQ3lVNXBhQWRIaUdZNnFSWEZMSnBpMDhxdHY5WFQ4dmI5MVdad1JZMUstell2RVhvTGVMMlVSWDZidm0?oc=5",
-          "domain": "Investidor10",
-          "seenDate": "Wed, 26 Aug 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Azul (AZUL;AZUL3) estreia em alta na Bolsa de Nova York; ações também sobem na B3 - Money Times",
-          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNM3hzRVV5eEMwako3TVFtMnpIU01uNG1CcXJzaTItT3ZHeHZ5dWRmelMtMkJQa3RFSnBBOHJacF9tYVNWT3FqeFVtdlhKQzhDbkQ5X3pNczBDUjB2bzRDMGpRUE03ZkVfc0JEazBaWkdZTkZocjY3NWR6NU16M0s2TmZHdlBwcWllWHpKMXlmT1dnbDM4MFgzQW8xVU4xbWhqeUt5Q21pTjhKWnNyckZRRGpqWQ?oc=5",
-          "domain": "Money Times",
-          "seenDate": "Thu, 09 Jul 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "SAPR3",
-      "name": "Sanepar",
-      "price": 7.58,
-      "quoteDate": "2026-09-22",
-      "score": 52,
-      "fundamentalScore": 39,
-      "technicalScore": 50,
-      "newsScore": 52,
-      "confidence": 50,
-      "newsCoverage": 24,
-      "return20": 3.55,
-      "return60": -10.3,
-      "historySessions": 431,
-      "entryLow": 6.98,
-      "entryHigh": 7.26,
-      "target": 7.12,
-      "defensiveExit": 6.98,
-      "potentialPct": -6.07,
-      "fairValue": 7.25,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": [
-        {
-          "title": "SAPR3 - Sanepar - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE9mYjV2bjBIWDV4Y2ZZU2I2MEZvTEVzcWhjc2NpTXFkVmlHY0p1cnplUWtDVmZySlFLNkJvaUVBVE0xNnU2ZlBQOUJ1a1BSMEtOX2c?oc=5",
-          "domain": "Investidor10",
-          "seenDate": "Mon, 21 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "SANEPAR ON (SAPR3) Preço da ação - ADVFN",
-          "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPV2dIY1B4dEFzUjB0MnZnWmtCWW5HeUhJaS1JTndIWXJzLUQ0X1FMTjlIaDB5cjNPSk1GMVdXa00xQlhhc1ZMWmF3QTk3emY5RjNXdUExcDB6cmNfMjQyeGVYT1ZLdnJ6S1U3R3prZmctWHI2V0F3T0ZNM2lDZkIyVF9MNHlmNmR2?oc=5",
-          "domain": "ADVFN",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "COCE5",
-      "name": "Coelce",
-      "price": 31.1,
-      "quoteDate": "2026-09-22",
-      "score": 52,
-      "fundamentalScore": 47,
-      "technicalScore": 43,
-      "newsScore": 50,
-      "confidence": 50,
-      "newsCoverage": 24,
-      "return20": -1.27,
-      "return60": 3.22,
-      "historySessions": 431,
-      "entryLow": 29.45,
-      "entryHigh": 30.65,
-      "target": 30.05,
-      "defensiveExit": 29.95,
-      "potentialPct": -3.39,
-      "fairValue": 30.73,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": [
-        {
-          "title": "COCE5 : Cotação e Indicadores - Riconnect",
-          "url": "https://news.google.com/rss/articles/CBMiVEFVX3lxTE4wbjZvbEZYVGs3S3MzS016ZTh2amNXWm1sWTNYcTJGVmRUV3JTT2ZOd0ZaSzZTYTFGNEE3dHNqbGV2aDZuLVJDWEJob196NngzUHU3Tg?oc=5",
-          "domain": "Riconnect",
-          "seenDate": "Fri, 04 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "COCE5 - Coelce - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE10N0lKN0xRb2d1YkFVQzNQM0ZiUDR6VUY4cmFVQkpKMjBHX2VMNlVmWTlBY21UU2lpa3RMQTEtMmUxbHEtY2VlbVFhQ1FMeDdWLVE?oc=5",
-          "domain": "Investidor10",
-          "seenDate": "Tue, 23 Jun 2020 05:41:25 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "AZEV4",
-      "name": "Azevedo",
-      "price": 1.26,
-      "quoteDate": "2026-09-22",
-      "score": 52,
-      "fundamentalScore": 56,
-      "technicalScore": 22,
-      "newsScore": 51,
-      "confidence": 89,
-      "newsCoverage": 24,
-      "return20": -18.71,
-      "return60": -22.7,
-      "historySessions": 431,
-      "entryLow": 1.2,
-      "entryHigh": 1.25,
-      "target": 1.22,
-      "defensiveExit": 1.22,
-      "potentialPct": -3.0,
-      "fairValue": 2.42,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "AZEV4 - Azevedo & Travassos: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE9fZlFOVUZrV3hpLXFaNGY1TVF2VFUwTVhneFNYMldFc1lRdDcwdVhNdURVYUc1ZWU2VU1JYW9fb0pzbVBkTi1ydFZqV0xfdVhx?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "AZEVEDO PN - 🏗️🏗️🏗️ Azev3 / Azev4 🏗️🏗️🏗️ Página 493 de 493 - ADVFN",
-          "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE41S3U1X1ZFVTYtaDJsYTlOTXZrOGJGZWFXOWZqdU5xYVF2THY2aWlKcTdCNU1acWcyVnczVmhHQ3NlQnVhaDE5dGJVVTlZZHFXT3lMY0RlMS0?oc=5",
-          "domain": "ADVFN",
-          "seenDate": "Fri, 18 Sep 2026 19:05:32 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "SAPR4",
-      "name": "Sanepar",
-      "price": 6.86,
-      "quoteDate": "2026-09-22",
-      "score": 51,
-      "fundamentalScore": 39,
+      "ticker": "NGRD3",
+      "name": "Neogrid",
+      "price": 34.28,
+      "quoteDate": "2026-07-13",
+      "score": 43,
+      "fundamentalScore": 54,
       "technicalScore": 52,
       "newsScore": 50,
-      "confidence": 50,
+      "confidence": 92,
       "newsCoverage": 24,
-      "return20": 3.63,
-      "return60": -3.92,
-      "historySessions": 431,
-      "entryLow": 6.31,
-      "entryHigh": 6.57,
-      "target": 6.44,
-      "defensiveExit": 6.31,
-      "potentialPct": -6.12,
-      "fairValue": 6.56,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
+      "return20": 0.68,
+      "return60": 4.13,
+      "historySessions": 381,
+      "entryLow": 27.53,
+      "entryHigh": 28.66,
+      "target": 28.09,
+      "defensiveExit": 32.93,
+      "potentialPct": -18.05,
+      "fairValue": 16.31,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
       "headlines": [
         {
-          "title": "Lucro da Sanepar (SAPR4) desaba -71% no 1T26, para R$ 352,7 milhões - Nord Investimentos",
-          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1Cd3VOWW9UVkllVkl1M2E2WnRwZVRESlFYZkJXR3VTLUtuQlBRdEpIS1I3VGJvbUlNa284ajdLV2Z0TWotVjhkZkRUX3Q0YVNrUkx6Z0xPMU1Zd3F4c0VYQU54OVE0VWEyQzJqSzViNTQ2TmZDMjJmSnBIeFTSAYIBQVVfeXFMTjFXbGV3cFdCWjFxa1VYZjdpX1Q2MHltdFpZOUZRSlRMRWdfc016eC1wcVVoUmhwV0NlWFFza0RxdmFpWlJ1YzNhMlljcUdEazlydU43SnVBcEY4UExXUzFNdlBsTDhjV29wTHlBUzNwblBnbDZvbUp0QzNxcFhPOTdLdw?oc=5",
-          "domain": "Nord Investimentos",
-          "seenDate": "Wed, 27 May 2026 15:32:00 GMT"
+          "title": "Neogrid (NGRD3) encerra OPA; veja o prazo para vender suas ações - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPWTJfcS1hWDJqNTI3MTlzRDg1dkZsOWxTTVc3RjhSTUJtT2ZfWlU3YzNnNEszNmdlQXFYVVZjaU04dGpwVGV3cWF5X3R3RmwtVlh5MnNQV1NSVGNVV21IOHdkc1V5YUFMU19tUVgtS0g3UlNsUXpzRDEtTWR4SG5xVG1LQl9DeHlmOUkteVBiNE5sVjJwTGtGS3NqSWNSTlhZcFJUUmVOcEFZQdIBrwFBVV95cUxOZy0yc2NyV1RpZ3NpSHJiQXp1b0ZfNU9uWUdmUjNOUTh6d1ZTSkl6bUdGUFQ1Tk1JWnI1Z3lJd0ZlalhqZFNhazVNSWVfUFRzbWpCRjFuRE1qTXZBUklpcS1rU0JhOG1WdFNyU2V3ZGd0aEN5VHVQNVVBd2Nibl9Ra3VzWm5MSzF3aEtxT2l3emhiTFdDRUJmNC1zMlVUUmRNRGtGQWs0TDZlY2x0UnpN?oc=5",
+          "domain": "Investidor10",
+          "seenDate": "Tue, 02 Jun 2026 20:07:07 GMT"
         },
         {
-          "title": "SBSP3, CSMG3 ou SAPR4? Comparação revela três riscos que podem decidir a melhor ação de saneamento - A Revista",
-          "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxQSEVhQ0FJTDUtWHlTbTYzZm9tMW42VmZ6b3MzSjR1bVNLY0RaaWd0R0Q5RDJ5TTdmX1drdXJjOTRJbTJfZjZzOWh6eERxdkdnd25BTG5jMGJDOFY5M3lDS193blJuVmpUZkJXQXhDd3hFcFlIbVZVRG14TS1zQ25DUjdNU0MxVGUwRk5PRmlKWEd3bm80SHpBZ2R1cTFDa0t6dG1LRjd4SkhmT05JbWVBRlRTckpWMkQ1Q2w4MjNZTGZOb3RFWnc?oc=5",
-          "domain": "A Revista",
-          "seenDate": "Mon, 31 Aug 2026 23:26:10 GMT"
+          "title": "Neogrid (NGRD3) avança para fechar capital; entenda o que muda para os investidores - suno.com.br",
+          "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNUEo2OFpnMjFaUEFqdXYzYzd6VFF2bzVRSXRjWEdXSGFNSnRMbHRRWmlxUmpzSHVYSUdmWDZXNG95TTh4d2NHd3NxWUxXU2JlX21HUV9nZm5nUkZVLWQxU29UUXdZd2RJYWg1QzFteGVvWjlTVHpzOFVHZXpwRVpmNndoQmVhbmvSAYwBQVVfeXFMTzV1ZVgzZVFBa0JjNVR2RnN0LWl4ZGEzVXVQU3hXclUxdV9iOE9XR051NHhYVW15aUN1UTJWWjhvWWI3ZEV5YW11SWRPWnA3N0hPZTNoQWoyMGdpRzJUV1dIdjZRMlNrX2VzUDZmYms4OTRzM2JDRlpNTnQza1VZYjFoV0JCUUZ3YklYdFk?oc=5",
+          "domain": "suno.com.br",
+          "seenDate": "Fri, 22 May 2026 07:00:00 GMT"
         },
         {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
+          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "domain": "InfoMoney",
+          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
         }
       ]
     },
     {
-      "ticker": "SAPR11",
-      "name": "Sanepar",
-      "price": 34.81,
-      "quoteDate": "2026-09-22",
-      "score": 51,
-      "fundamentalScore": 39,
+      "ticker": "PEAB3",
+      "name": "Par Al Bahia",
+      "price": 38.86,
+      "quoteDate": "2026-09-10",
+      "score": 43,
+      "fundamentalScore": 56,
       "technicalScore": 51,
-      "newsScore": 51,
-      "confidence": 50,
-      "newsCoverage": 24,
-      "return20": 3.45,
-      "return60": -6.07,
-      "historySessions": 431,
-      "entryLow": 32.2,
-      "entryHigh": 33.52,
-      "target": 32.86,
-      "defensiveExit": 32.2,
-      "potentialPct": -5.6,
-      "fairValue": 33.28,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
+      "newsScore": 48,
+      "confidence": 95,
+      "newsCoverage": 21,
+      "return20": -2.9,
+      "return60": 12.25,
+      "historySessions": 117,
+      "entryLow": 35.16,
+      "entryHigh": 36.59,
+      "target": 35.87,
+      "defensiveExit": 37.73,
+      "potentialPct": -7.68,
+      "fairValue": 33.19,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
       "headlines": [
         {
-          "title": "Sanepar (SAPR11) 2T26: provisão adicional referente aos precatórios polui trimestre; negativo. - InvesTalk",
-          "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxOMHN5VDJ1bThMa1dVd0N6bkZtMGViUVo0MWgzZHpnV180OHZXVWxiajktQ2pURFlpdG10QUZvakRIZ0EzSENFUnZuR2dIUmFWMWh4R0tWcktfM1YzM2hycGo4QlcxaDNIN0g2dTBueGlxOFVOSlF1MExTcElaRjdxd1NYZw?oc=5",
-          "domain": "InvesTalk",
-          "seenDate": "Fri, 14 Aug 2026 07:00:00 GMT"
-        },
-        {
-          "title": "SAPR11 - Sanepar: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBqZ0l0QXh1ZTctZGlJUDJXcnZ4RVdsR3Z0azVYdkRVbW1ucW9iRHk3UmlvbXducHd5dF9SSGlvNmtqaEZNX1FYdVJWVFFBalBsMlE?oc=5",
+          "title": "PEAB3 - Companhia de Participações Aliança da Bahia: cotação, dividendos e indicadores - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE90V1RsaXU1WGE2TzdlLTNmNWRxTGRuTlEtWGgtaGYwTURyd0J5SUxra2psMEU3dmx3dzZLbXNSUWtNQ1FpM1c5NU5aRE1KUHo3?oc=5",
           "domain": "Visno Invest",
           "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
         },
         {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
+          "title": "Fato relevante Aliança da Bahia (PEAB3, PEAB4): arbitragem contra Rede D'Or - ativovirtual.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQVWdzeWVjYVBTNjhmV2lKVEZ0cGc2QjRtTl9NSHhMSUxMektjdW1nNTVUOVFpdC1XTV9fZ2pKMGktUlRkaVA4cnBBZnNEUXZBTldUVnpvVjJTRXZJSlZZdFlVUHA3YUpVc1hGdDFJMHE4ME9jaU94TWxUN0tmSkRYSElOM3RtOW5OQlRyeVA2dFZjNHhReXpnS3VEWFdDdlJvVHdKcGNmR0ZRRTZfSkhSNjBBcE5kalJnWWc?oc=5",
+          "domain": "ativovirtual.com.br",
+          "seenDate": "Thu, 03 Sep 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "domain": "InfoMoney",
+          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
         }
       ]
     },
     {
-      "ticker": "GFSA3",
-      "name": "Gafisa",
-      "price": 0.26,
-      "quoteDate": "2026-09-22",
-      "score": 50,
-      "fundamentalScore": 37,
-      "technicalScore": 54,
+      "ticker": "BGIP3",
+      "name": "Banese",
+      "price": 49.9,
+      "quoteDate": "2026-09-10",
+      "score": 42,
+      "fundamentalScore": 70,
+      "technicalScore": 43,
       "newsScore": 49,
-      "confidence": 92,
-      "newsCoverage": 24,
-      "return20": 23.81,
-      "return60": -76.58,
-      "historySessions": 431,
-      "entryLow": 0.19,
-      "entryHigh": 0.2,
-      "target": 0.2,
-      "defensiveExit": 0.2,
-      "potentialPct": -23.7,
-      "fairValue": 0.04,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "confidence": 50,
+      "newsCoverage": 22,
+      "return20": -7.59,
+      "return60": -3.56,
+      "historySessions": 149,
+      "entryLow": 43.25,
+      "entryHigh": 45.01,
+      "target": 44.13,
+      "defensiveExit": 43.25,
+      "potentialPct": -11.56,
+      "fairValue": 53.89,
+      "fairValueMethod": "preço ajustado pelo score fundamental",
       "headlines": [
         {
-          "title": "GFSA3: por que a Gafisa adiou o balanço duas vezes - EBC Financial Group",
-          "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxQQlF0TFdXT3dIVFNzZ1ZmWVdKUElpLWNGeWMtR21WV2RWYzhFQ1hCSUtraVNSQzJOYlpJQ2VLRXI0TGFSOXVBZkMtWTB0LTZ1RTZCbWVndFJxZUlHS1AtczQxQ2QtSmtXQzREU3RLd3M0X2tKTlpUTkNTVTVfUlFuNHJNdFU?oc=5",
-          "domain": "EBC Financial Group",
-          "seenDate": "Tue, 22 Sep 2026 21:16:00 GMT"
+          "title": "Banese (BGIP3, BGIP4) aprova pagamento de juros sobre o capital. Veja os detalhes: - financenews.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPRHJWQTlfb0NRUEZnZ0Q3dThTcnpadXh3YTFKOGR5QkhFYm90bDdwREExdzZGcjJPbmtvYUQ2TDlrX2xIS25pTm5rRzB5dk81WlRSX1ZpZk15YzF0b1pPdlpfbm1uenBGbjJJdGstRE1YLUQ4cF9ET2ZSS0NRRk8tcFJjOXRibGdqYXRyUDFSbWV6N190X2xMTWp3aExOeEY2dlROMm9QQW5QNV9PYnRfUDIxdw?oc=5",
+          "domain": "financenews.com.br",
+          "seenDate": "Thu, 09 Apr 2026 07:00:00 GMT"
         },
         {
-          "title": "GAFISA ON (GFSA3) Preço da ação - ADVFN",
-          "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQaVB1V3ZuR0RkTl8weWtFR0owa1ZVbEYtQnFRak5HLTRWNmhjVmlMR0FMQmw3WjV1M1hyeVB6U2VvR3FraVRETDhNc0hTdFJGYXFqTmhlSFV3enJqdzB0VDFPTENZYU9IamYtQXpYOE1WM3R1cGNjc1d2ZzF1dFNNbVJ4Uy1oeEE?oc=5",
-          "domain": "ADVFN",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
+          "title": "BGIP3 - Banco Banese - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
+          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE9KN1lRRjNfRkJNWDBheWl1Z3pRZVVWNFpFVktDN3BtRWJ5VzZaUER4UzBUd1lEU093MWJBMnpvNWxqSmFQUHJVYXNJLUprUVViZ2c?oc=5",
+          "domain": "Investidor10",
+          "seenDate": "Sat, 23 May 2020 10:15:11 GMT"
         },
         {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "CVCB3",
-      "name": "Cvc Brasil",
-      "price": 1.4,
-      "quoteDate": "2026-09-22",
-      "score": 50,
-      "fundamentalScore": 48,
-      "technicalScore": 35,
-      "newsScore": 48,
-      "confidence": 94,
-      "newsCoverage": 24,
-      "return20": -19.54,
-      "return60": 2.94,
-      "historySessions": 431,
-      "entryLow": 1.07,
-      "entryHigh": 1.12,
-      "target": 1.1,
-      "defensiveExit": 1.3,
-      "potentialPct": -21.72,
-      "fairValue": 0.4,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "CVCB3 melhora resultados, mas ainda enfrenta desafios para recuperar confiança do mercado - A Revista",
-          "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNMm1mWWNEYnV5TEZ3bVlsY3N0b1NjcTNaSmg2YlFSaXRuRnFjS3Z3eUtVWGFtRlVuODF6NS1xZmFZVm05VTRfUzNuU3BxNWMxazE2UlBHUVM0VG5QT0xVRld1cGg5ZWdlejVGYXhJNkd4MFRFc3p2WTRhalN5ZWFUclBKVGs0aklhOEVFb3R3M3FTTDVJeFJjZE5qWEhzYTFyTVNOWmZCWGhVUFJtRmJKdnNuMG84NTI0bUow?oc=5",
-          "domain": "A Revista",
-          "seenDate": "Tue, 22 Sep 2026 20:41:12 GMT"
-        },
-        {
-          "title": "CVC (CVCB3) fatura mais, mas não resiste à Selic e tem prejuízo de R$ 75 milhões no 3º trimestre - trademap.com.br",
-          "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTFBXaXNIVzY1VFlWbXNwWExXTTQ5cGZqT003cUgzeDFwN0E0c3VQZl9ObGR6cUJMU2pjOG4zY2VndndzMDV3eF9mcDlNaXVWSUZLd3QwMnZldkE?oc=5",
-          "domain": "trademap.com.br",
-          "seenDate": "Fri, 18 Sep 2026 23:08:26 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em alta após dia volátil, com melhora externa - Valor Econômico",
-          "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQTjJYcjJtMWY4dGNRRTZNRUpiWkhFVHJBR3h3enBqSHhwWktPci1jenFleXB1bG5MTVM5aGpHaXYwVDM4T0xZRHB3LVZRR0Y5N2x0WFVFZXpQOTJwZTZ5aHFfNlpOQkhqTTk4Z2c5a3E1WFFpY3FJUTdQU29nMWpjZDdselNkM2hyN3FHLWxRdmUtc2xvc01uQ3BnWVlhYlkzOXpKZGp1NDVvVUNIX1BtYThHVF83dEtZ0gHHAUFVX3lxTE1IVHpYaW82T2R2amZvZVlBbGdNdXZzVkF2eHVXb3V6ZkhFWXNJR1BheUk5RG1SR0ZDbHdNcG9hTHFmOUl5SzRHQzY5djlKY1RZMHUxMUwwMG11clZLbHFsMkNVMksxSzJpOWJMWWJJVi0zMUxyOVNxbVA0WnpHck5VcFpDbDlrZGJVeF9FeEhRT2JocC1LZ1FCaHFWTmJ0dDRnOVRNd1J0WmdyajBkVGpQWklPaGJwT29BNWUzdWhWeXBTTzF4Zms?oc=5",
-          "domain": "Valor Econômico",
-          "seenDate": "Tue, 22 Sep 2026 20:23:53 GMT"
+          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "domain": "InfoMoney",
+          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
         }
       ]
     }
