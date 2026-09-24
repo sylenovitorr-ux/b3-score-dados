@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-24T06:17:53.837402+00:00",
+  "generatedAt": "2026-09-24T23:31:07.178180+00:00",
   "quoteDate": "2026-09-10",
   "modelVersion": "1.0.0",
-  "universe": 3,
+  "universe": 2,
   "weights": {
     "fundamentals": 42,
     "technical": 32,
@@ -19,66 +19,24 @@
   ],
   "strength": [
     {
-      "ticker": "BGIP3",
-      "name": "Banese",
-      "price": 49.9,
-      "quoteDate": "2026-09-10",
-      "score": 58,
-      "fundamentalScore": 70,
-      "technicalScore": 43,
-      "newsScore": 49,
-      "confidence": 50,
-      "newsCoverage": 22,
-      "return20": -7.59,
-      "return60": -3.56,
-      "historySessions": 149,
-      "entryLow": 44.57,
-      "entryHigh": 49.58,
-      "target": 54.17,
-      "defensiveExit": 42.79,
-      "potentialPct": 8.56,
-      "fairValue": 53.89,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": [
-        {
-          "title": "Banese (BGIP3, BGIP4) aprova pagamento de juros sobre o capital. Veja os detalhes: - financenews.com.br",
-          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPRHJWQTlfb0NRUEZnZ0Q3dThTcnpadXh3YTFKOGR5QkhFYm90bDdwREExdzZGcjJPbmtvYUQ2TDlrX2xIS25pTm5rRzB5dk81WlRSX1ZpZk15YzF0b1pPdlpfbm1uenBGbjJJdGstRE1YLUQ4cF9ET2ZSS0NRRk8tcFJjOXRibGdqYXRyUDFSbWV6N190X2xMTWp3aExOeEY2dlROMm9QQW5QNV9PYnRfUDIxdw?oc=5",
-          "domain": "financenews.com.br",
-          "seenDate": "Thu, 09 Apr 2026 07:00:00 GMT"
-        },
-        {
-          "title": "BGIP3 - Banco Banese - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE9KN1lRRjNfRkJNWDBheWl1Z3pRZVVWNFpFVktDN3BtRWJ5VzZaUER4UzBUd1lEU093MWJBMnpvNWxqSmFQUHJVYXNJLUprUVViZ2c?oc=5",
-          "domain": "Investidor10",
-          "seenDate": "Sat, 23 May 2020 10:15:11 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
-          "domain": "InfoMoney",
-          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
-        }
-      ]
-    },
-    {
       "ticker": "NGRD3",
       "name": "Neogrid",
       "price": 34.28,
       "quoteDate": "2026-07-13",
       "score": 57,
       "fundamentalScore": 54,
-      "technicalScore": 52,
-      "newsScore": 50,
+      "technicalScore": 53,
+      "newsScore": 51,
       "confidence": 92,
       "newsCoverage": 24,
-      "return20": 0.68,
-      "return60": 4.13,
-      "historySessions": 381,
+      "return20": null,
+      "return60": null,
+      "historySessions": 0,
       "entryLow": 33.59,
       "entryHigh": 33.59,
-      "target": 40.95,
+      "target": 35.99,
       "defensiveExit": 32.25,
-      "potentialPct": 19.46,
+      "potentialPct": 5.0,
       "fairValue": 16.31,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
       "headlines": [
@@ -95,10 +53,10 @@
           "seenDate": "Fri, 22 May 2026 07:00:00 GMT"
         },
         {
-          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "title": "Ibovespa tem nova queda e dólar, mais uma alta, com eleição e exterior; Vale perde 1% - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOWDlmSmNNWTFBTVJJcDhJcXI3ZTFWcTZUUmlUZ0M3amQyNXdiTURiQTB2dWU2VVZneEN4MVdYMnZiQkgzVWVxRFZZa284Z1RxaE9Fd3I1UWs2Wm5ITUo2bnY5VkFSTDJYNVZtZGdqVFRpdklESVF0STA0elFSTGJDT0dRNUFMNDZGd1IxWTBMbw?oc=5",
           "domain": "InfoMoney",
-          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
+          "seenDate": "Thu, 24 Sep 2026 20:36:35 GMT"
         }
       ]
     },
@@ -107,15 +65,15 @@
       "name": "Par Al Bahia",
       "price": 38.86,
       "quoteDate": "2026-09-10",
-      "score": 57,
+      "score": 56,
       "fundamentalScore": 56,
-      "technicalScore": 51,
+      "technicalScore": 50,
       "newsScore": 48,
       "confidence": 95,
-      "newsCoverage": 21,
-      "return20": -2.9,
-      "return60": 12.25,
-      "historySessions": 117,
+      "newsCoverage": 22,
+      "return20": null,
+      "return60": null,
+      "historySessions": 0,
       "entryLow": 38.08,
       "entryHigh": 38.08,
       "target": 40.8,
@@ -131,21 +89,63 @@
           "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
         },
         {
-          "title": "Fato relevante Aliança da Bahia (PEAB3, PEAB4): arbitragem contra Rede D'Or - ativovirtual.com.br",
-          "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQVWdzeWVjYVBTNjhmV2lKVEZ0cGc2QjRtTl9NSHhMSUxMektjdW1nNTVUOVFpdC1XTV9fZ2pKMGktUlRkaVA4cnBBZnNEUXZBTldUVnpvVjJTRXZJSlZZdFlVUHA3YUpVc1hGdDFJMHE4ME9jaU94TWxUN0tmSkRYSElOM3RtOW5OQlRyeVA2dFZjNHhReXpnS3VEWFdDdlJvVHdKcGNmR0ZRRTZfSkhSNjBBcE5kalJnWWc?oc=5",
+          "title": "Fato relevante Aliança da Bahia (PEAB3, PEAB4): arbitragem sobre ajuste de preço - ativovirtual.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxQeEd5STM5MEV3QTR1bURFWlE5SU5kT3RmRnhaem9OU0V4ck4xZ1BZSFVYWl9FdjcyajlFY0REVndnR29YSDJjMHNtdWowcTVSOU5SQ2E3V2IyZEJCQjBiYmR4bjNDc2dXU1Rwd1pLN2pVRzhOUDVCcVM0YjBObTJYbHVnV3BCekVxdmF3bE8tRHJKSnhZU2pkeUhHcmo0TkpOWnVfSDV1cHVpVXlOMGc3N1E3M01lcV8wVm9rbzlEcEQ?oc=5",
           "domain": "ativovirtual.com.br",
-          "seenDate": "Thu, 03 Sep 2026 07:00:00 GMT"
+          "seenDate": "Mon, 07 Sep 2026 03:46:11 GMT"
         },
         {
-          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "title": "Ibovespa tem nova queda e dólar, mais uma alta, com eleição e exterior; Vale perde 1% - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOWDlmSmNNWTFBTVJJcDhJcXI3ZTFWcTZUUmlUZ0M3amQyNXdiTURiQTB2dWU2VVZneEN4MVdYMnZiQkgzVWVxRFZZa284Z1RxaE9Fd3I1UWs2Wm5ITUo2bnY5VkFSTDJYNVZtZGdqVFRpdklESVF0STA0elFSTGJDT0dRNUFMNDZGd1IxWTBMbw?oc=5",
           "domain": "InfoMoney",
-          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
+          "seenDate": "Thu, 24 Sep 2026 20:36:35 GMT"
         }
       ]
     }
   ],
   "pressure": [
+    {
+      "ticker": "PEAB3",
+      "name": "Par Al Bahia",
+      "price": 38.86,
+      "quoteDate": "2026-09-10",
+      "score": 44,
+      "fundamentalScore": 56,
+      "technicalScore": 50,
+      "newsScore": 48,
+      "confidence": 95,
+      "newsCoverage": 22,
+      "return20": null,
+      "return60": null,
+      "historySessions": 0,
+      "entryLow": 35.16,
+      "entryHigh": 36.59,
+      "target": 35.87,
+      "defensiveExit": 38.08,
+      "potentialPct": -7.68,
+      "fairValue": 33.19,
+      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
+      "headlines": [
+        {
+          "title": "PEAB3 - Companhia de Participações Aliança da Bahia: cotação, dividendos e indicadores - Visno Invest",
+          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE90V1RsaXU1WGE2TzdlLTNmNWRxTGRuTlEtWGgtaGYwTURyd0J5SUxra2psMEU3dmx3dzZLbXNSUWtNQ1FpM1c5NU5aRE1KUHo3?oc=5",
+          "domain": "Visno Invest",
+          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
+        },
+        {
+          "title": "Fato relevante Aliança da Bahia (PEAB3, PEAB4): arbitragem sobre ajuste de preço - ativovirtual.com.br",
+          "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxQeEd5STM5MEV3QTR1bURFWlE5SU5kT3RmRnhaem9OU0V4ck4xZ1BZSFVYWl9FdjcyajlFY0REVndnR29YSDJjMHNtdWowcTVSOU5SQ2E3V2IyZEJCQjBiYmR4bjNDc2dXU1Rwd1pLN2pVRzhOUDVCcVM0YjBObTJYbHVnV3BCekVxdmF3bE8tRHJKSnhZU2pkeUhHcmo0TkpOWnVfSDV1cHVpVXlOMGc3N1E3M01lcV8wVm9rbzlEcEQ?oc=5",
+          "domain": "ativovirtual.com.br",
+          "seenDate": "Mon, 07 Sep 2026 03:46:11 GMT"
+        },
+        {
+          "title": "Ibovespa tem nova queda e dólar, mais uma alta, com eleição e exterior; Vale perde 1% - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOWDlmSmNNWTFBTVJJcDhJcXI3ZTFWcTZUUmlUZ0M3amQyNXdiTURiQTB2dWU2VVZneEN4MVdYMnZiQkgzVWVxRFZZa284Z1RxaE9Fd3I1UWs2Wm5ITUo2bnY5VkFSTDJYNVZtZGdqVFRpdklESVF0STA0elFSTGJDT0dRNUFMNDZGd1IxWTBMbw?oc=5",
+          "domain": "InfoMoney",
+          "seenDate": "Thu, 24 Sep 2026 20:36:35 GMT"
+        }
+      ]
+    },
     {
       "ticker": "NGRD3",
       "name": "Neogrid",
@@ -153,17 +153,17 @@
       "quoteDate": "2026-07-13",
       "score": 43,
       "fundamentalScore": 54,
-      "technicalScore": 52,
-      "newsScore": 50,
+      "technicalScore": 53,
+      "newsScore": 51,
       "confidence": 92,
       "newsCoverage": 24,
-      "return20": 0.68,
-      "return60": 4.13,
-      "historySessions": 381,
+      "return20": null,
+      "return60": null,
+      "historySessions": 0,
       "entryLow": 27.53,
       "entryHigh": 28.66,
       "target": 28.09,
-      "defensiveExit": 32.93,
+      "defensiveExit": 33.22,
       "potentialPct": -18.05,
       "fairValue": 16.31,
       "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
@@ -181,94 +181,10 @@
           "seenDate": "Fri, 22 May 2026 07:00:00 GMT"
         },
         {
-          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
+          "title": "Ibovespa tem nova queda e dólar, mais uma alta, com eleição e exterior; Vale perde 1% - InfoMoney",
+          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOWDlmSmNNWTFBTVJJcDhJcXI3ZTFWcTZUUmlUZ0M3amQyNXdiTURiQTB2dWU2VVZneEN4MVdYMnZiQkgzVWVxRFZZa284Z1RxaE9Fd3I1UWs2Wm5ITUo2bnY5VkFSTDJYNVZtZGdqVFRpdklESVF0STA0elFSTGJDT0dRNUFMNDZGd1IxWTBMbw?oc=5",
           "domain": "InfoMoney",
-          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "PEAB3",
-      "name": "Par Al Bahia",
-      "price": 38.86,
-      "quoteDate": "2026-09-10",
-      "score": 43,
-      "fundamentalScore": 56,
-      "technicalScore": 51,
-      "newsScore": 48,
-      "confidence": 95,
-      "newsCoverage": 21,
-      "return20": -2.9,
-      "return60": 12.25,
-      "historySessions": 117,
-      "entryLow": 35.16,
-      "entryHigh": 36.59,
-      "target": 35.87,
-      "defensiveExit": 37.73,
-      "potentialPct": -7.68,
-      "fairValue": 33.19,
-      "fairValueMethod": "LPA×P/L-alvo + VPA×P/VP-alvo",
-      "headlines": [
-        {
-          "title": "PEAB3 - Companhia de Participações Aliança da Bahia: cotação, dividendos e indicadores - Visno Invest",
-          "url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE90V1RsaXU1WGE2TzdlLTNmNWRxTGRuTlEtWGgtaGYwTURyd0J5SUxra2psMEU3dmx3dzZLbXNSUWtNQ1FpM1c5NU5aRE1KUHo3?oc=5",
-          "domain": "Visno Invest",
-          "seenDate": "Fri, 18 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Fato relevante Aliança da Bahia (PEAB3, PEAB4): arbitragem contra Rede D'Or - ativovirtual.com.br",
-          "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQVWdzeWVjYVBTNjhmV2lKVEZ0cGc2QjRtTl9NSHhMSUxMektjdW1nNTVUOVFpdC1XTV9fZ2pKMGktUlRkaVA4cnBBZnNEUXZBTldUVnpvVjJTRXZJSlZZdFlVUHA3YUpVc1hGdDFJMHE4ME9jaU94TWxUN0tmSkRYSElOM3RtOW5OQlRyeVA2dFZjNHhReXpnS3VEWFdDdlJvVHdKcGNmR0ZRRTZfSkhSNjBBcE5kalJnWWc?oc=5",
-          "domain": "ativovirtual.com.br",
-          "seenDate": "Thu, 03 Sep 2026 07:00:00 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
-          "domain": "InfoMoney",
-          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
-        }
-      ]
-    },
-    {
-      "ticker": "BGIP3",
-      "name": "Banese",
-      "price": 49.9,
-      "quoteDate": "2026-09-10",
-      "score": 42,
-      "fundamentalScore": 70,
-      "technicalScore": 43,
-      "newsScore": 49,
-      "confidence": 50,
-      "newsCoverage": 22,
-      "return20": -7.59,
-      "return60": -3.56,
-      "historySessions": 149,
-      "entryLow": 43.25,
-      "entryHigh": 45.01,
-      "target": 44.13,
-      "defensiveExit": 43.25,
-      "potentialPct": -11.56,
-      "fairValue": 53.89,
-      "fairValueMethod": "preço ajustado pelo score fundamental",
-      "headlines": [
-        {
-          "title": "Banese (BGIP3, BGIP4) aprova pagamento de juros sobre o capital. Veja os detalhes: - financenews.com.br",
-          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPRHJWQTlfb0NRUEZnZ0Q3dThTcnpadXh3YTFKOGR5QkhFYm90bDdwREExdzZGcjJPbmtvYUQ2TDlrX2xIS25pTm5rRzB5dk81WlRSX1ZpZk15YzF0b1pPdlpfbm1uenBGbjJJdGstRE1YLUQ4cF9ET2ZSS0NRRk8tcFJjOXRibGdqYXRyUDFSbWV6N190X2xMTWp3aExOeEY2dlROMm9QQW5QNV9PYnRfUDIxdw?oc=5",
-          "domain": "financenews.com.br",
-          "seenDate": "Thu, 09 Apr 2026 07:00:00 GMT"
-        },
-        {
-          "title": "BGIP3 - Banco Banese - Resultados, Dividendos, Cotação e Indicadores - Investidor10",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE9KN1lRRjNfRkJNWDBheWl1Z3pRZVVWNFpFVktDN3BtRWJ5VzZaUER4UzBUd1lEU093MWJBMnpvNWxqSmFQUHJVYXNJLUprUVViZ2c?oc=5",
-          "domain": "Investidor10",
-          "seenDate": "Sat, 23 May 2020 10:15:11 GMT"
-        },
-        {
-          "title": "Ibovespa fecha em queda, em linha com exterior, mas com Petrobras em alta; Dólar sobe - InfoMoney",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQMlYyZV9tVWMwYk1oZmFKa3J5d05yZW5HS0YwaXdtSFVxajNzTjRXeXhpZDNGYXBpSUVtQnYwT3dFd0MtM0pGZGU1NlRybzlQa3ZRRkotQy1Nd1BWbEN4UGxPNDBld25nNlUxQVNUUmJSdWZkNEVxYkxNSTQxbjFYeF9CM0pZY0ZFZ3N4Tlk2cw?oc=5",
-          "domain": "InfoMoney",
-          "seenDate": "Wed, 23 Sep 2026 20:28:00 GMT"
+          "seenDate": "Thu, 24 Sep 2026 20:36:35 GMT"
         }
       ]
     }
