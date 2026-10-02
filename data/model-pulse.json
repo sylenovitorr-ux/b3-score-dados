@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T02:32:54.185Z",
+  "generatedAt": "2026-10-02T07:07:29.790Z",
   "referenceDate": "2026-10-01",
   "previousReferenceDate": "2026-09-30",
   "modelVersion": "b3-score-4.0",
@@ -370,24 +370,6 @@
       ],
       "movers": [
         {
-          "ticker": "BRKM6",
-          "name": "Braskem",
-          "price": 5.3,
-          "score": 36,
-          "signal": "sell",
-          "confidence": 88,
-          "parts": {
-            "fundamentals": 44,
-            "valuation": 40,
-            "momentum": 20,
-            "risk": 26,
-            "confidence": 88
-          },
-          "previousScore": 47,
-          "previousSignal": "sell",
-          "delta": -11
-        },
-        {
           "ticker": "MILS3",
           "name": "Mills",
           "price": 15.99,
@@ -728,6 +710,24 @@
           "previousScore": 73,
           "previousSignal": "buy",
           "delta": -3
+        },
+        {
+          "ticker": "HBRE3",
+          "name": "Hbr Realty",
+          "price": 2.62,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 100,
+          "parts": {
+            "fundamentals": 59,
+            "valuation": 90,
+            "momentum": 69,
+            "risk": 48,
+            "confidence": 100
+          },
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -3
         }
       ],
       "enteredTop4": [
@@ -866,13 +866,13 @@
           "price": 4.1,
           "score": 45,
           "signal": "sell",
-          "confidence": 97,
+          "confidence": 96,
           "parts": {
             "fundamentals": 44,
             "valuation": 40,
             "growth": 42,
-            "risk": 35,
-            "confidence": 97
+            "risk": 34,
+            "confidence": 96
           },
           "previousScore": 43,
           "previousSignal": "sell",
@@ -96746,7 +96746,7 @@
     },
     {
       "date": "2026-10-01",
-      "generatedAt": "2026-10-02T02:32:54.185Z",
+      "generatedAt": "2026-10-02T07:07:29.790Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -97480,6 +97480,11 @@
             "signal": "sell",
             "price": 34.58
           },
+          "AMOB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 12.12
+          },
           "ARND3": {
             "score": 67,
             "signal": "sell",
@@ -97584,11 +97589,6 @@
             "score": 67,
             "signal": "sell",
             "price": 15.63
-          },
-          "AMOB3": {
-            "score": 66,
-            "signal": "sell",
-            "price": 12.12
           },
           "BRAP4": {
             "score": 66,
@@ -98130,13 +98130,18 @@
             "signal": "sell",
             "price": 0.95
           },
+          "BRKM6": {
+            "score": 44,
+            "signal": "sell",
+            "price": 5.3
+          },
           "GFSA3": {
             "score": 44,
             "signal": "sell",
             "price": 0.24
           },
           "BRKM3": {
-            "score": 37,
+            "score": 38,
             "signal": "sell",
             "price": 4.05
           },
@@ -98144,11 +98149,6 @@
             "score": 36,
             "signal": "sell",
             "price": 4.1
-          },
-          "BRKM6": {
-            "score": 36,
-            "signal": "sell",
-            "price": 5.3
           },
           "BIED3": {
             "score": 35,
@@ -98161,7 +98161,7 @@
             "price": 1.3
           },
           "ONCO3": {
-            "score": 28,
+            "score": 30,
             "signal": "sell",
             "price": 1.01
           }
@@ -99542,15 +99542,15 @@
             "signal": "sell",
             "price": 4.1
           },
+          "BRKM6": {
+            "score": 45,
+            "signal": "sell",
+            "price": 5.3
+          },
           "RVEE3": {
             "score": 44,
             "signal": "sell",
             "price": 0.7
-          },
-          "BRKM6": {
-            "score": 43,
-            "signal": "sell",
-            "price": 5.3
           },
           "CSAN3": {
             "score": 42,
@@ -100214,11 +100214,6 @@
             "signal": "sell",
             "price": 43.26
           },
-          "BALM3": {
-            "score": 63,
-            "signal": "sell",
-            "price": 22
-          },
           "EALT3": {
             "score": 63,
             "signal": "sell",
@@ -100258,6 +100253,11 @@
             "score": 63,
             "signal": "sell",
             "price": 18.22
+          },
+          "BALM3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 22
           },
           "CGRA4": {
             "score": 62,
