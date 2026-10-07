@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T02:40:41.662Z",
+  "generatedAt": "2026-10-07T07:24:48.034Z",
   "referenceDate": "2026-10-06",
   "previousReferenceDate": "2026-10-05",
   "modelVersion": "b3-score-4.0",
@@ -460,6 +460,24 @@
       ],
       "movers": [
         {
+          "ticker": "BRKM6",
+          "name": "Braskem",
+          "price": 3.72,
+          "score": 48,
+          "signal": "sell",
+          "confidence": 82,
+          "parts": {
+            "fundamentals": 44,
+            "valuation": 40,
+            "momentum": 53,
+            "risk": 41,
+            "confidence": 82
+          },
+          "previousScore": 38,
+          "previousSignal": "sell",
+          "delta": 10
+        },
+        {
           "ticker": "IRBR3",
           "name": "Irbbrasil Re",
           "price": 66.12,
@@ -795,24 +813,6 @@
             "momentum": 61,
             "risk": 40,
             "confidence": 95
-          },
-          "previousScore": 75,
-          "previousSignal": "buy",
-          "delta": -3
-        },
-        {
-          "ticker": "FIQE3",
-          "name": "Unifique",
-          "price": 5.79,
-          "score": 72,
-          "signal": "buy",
-          "confidence": 99,
-          "parts": {
-            "fundamentals": 79,
-            "valuation": 75,
-            "momentum": 64,
-            "risk": 56,
-            "confidence": 99
           },
           "previousScore": 75,
           "previousSignal": "buy",
@@ -109009,7 +109009,7 @@
     },
     {
       "date": "2026-10-06",
-      "generatedAt": "2026-10-07T02:40:41.662Z",
+      "generatedAt": "2026-10-07T07:24:48.034Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -110043,6 +110043,11 @@
             "signal": "sell",
             "price": 17.97
           },
+          "BALM3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 22
+          },
           "BBSE3": {
             "score": 63,
             "signal": "sell",
@@ -110122,11 +110127,6 @@
             "score": 62,
             "signal": "sell",
             "price": 15.4
-          },
-          "BALM3": {
-            "score": 62,
-            "signal": "sell",
-            "price": 22
           },
           "CVCB3": {
             "score": 62,
@@ -110378,6 +110378,11 @@
             "signal": "sell",
             "price": 2.8
           },
+          "BRKM6": {
+            "score": 48,
+            "signal": "sell",
+            "price": 3.72
+          },
           "MEAL3": {
             "score": 46,
             "signal": "sell",
@@ -110393,15 +110398,15 @@
             "signal": "sell",
             "price": 0.66
           },
-          "BRKM3": {
-            "score": 39,
-            "signal": "sell",
-            "price": 4.12
-          },
           "BIED3": {
             "score": 38,
             "signal": "sell",
             "price": 5.58
+          },
+          "BRKM3": {
+            "score": 38,
+            "signal": "sell",
+            "price": 4.12
           },
           "GFSA3": {
             "score": 38,
@@ -110409,14 +110414,9 @@
             "price": 0.4
           },
           "BRKM5": {
-            "score": 36,
+            "score": 35,
             "signal": "sell",
             "price": 4.1
-          },
-          "BRKM6": {
-            "score": 36,
-            "signal": "sell",
-            "price": 3.72
           },
           "IFCM3": {
             "score": 35,
@@ -111095,6 +111095,11 @@
             "signal": "sell",
             "price": 0.57
           },
+          "BALM3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 22
+          },
           "BRAV3": {
             "score": 67,
             "signal": "sell",
@@ -111159,11 +111164,6 @@
             "score": 66,
             "signal": "sell",
             "price": 1.37
-          },
-          "BALM3": {
-            "score": 66,
-            "signal": "sell",
-            "price": 22
           },
           "BMEB4": {
             "score": 66,
@@ -111795,13 +111795,8 @@
             "signal": "sell",
             "price": 4.12
           },
-          "BRKM5": {
-            "score": 45,
-            "signal": "sell",
-            "price": 4.1
-          },
           "BRKM6": {
-            "score": 44,
+            "score": 45,
             "signal": "sell",
             "price": 3.72
           },
@@ -111814,6 +111809,11 @@
             "score": 44,
             "signal": "sell",
             "price": 0.66
+          },
+          "BRKM5": {
+            "score": 43,
+            "signal": "sell",
+            "price": 4.1
           },
           "CSAN3": {
             "score": 41,
@@ -112447,6 +112447,11 @@
             "signal": "sell",
             "price": 17.15
           },
+          "BALM3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 22
+          },
           "CPLE3": {
             "score": 63,
             "signal": "sell",
@@ -112491,11 +112496,6 @@
             "score": 63,
             "signal": "sell",
             "price": 19
-          },
-          "BALM3": {
-            "score": 62,
-            "signal": "sell",
-            "price": 22
           },
           "KEPL3": {
             "score": 62,
@@ -112817,6 +112817,11 @@
             "signal": "sell",
             "price": 38
           },
+          "TPIS3": {
+            "score": 51,
+            "signal": "sell",
+            "price": 10.93
+          },
           "AGRO3": {
             "score": 50,
             "signal": "sell",
@@ -112831,11 +112836,6 @@
             "score": 50,
             "signal": "sell",
             "price": 13.78
-          },
-          "TPIS3": {
-            "score": 50,
-            "signal": "sell",
-            "price": 10.93
           },
           "EQTL3": {
             "score": 49,
