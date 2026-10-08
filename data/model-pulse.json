@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T00:50:03.104Z",
+  "generatedAt": "2026-10-08T02:23:58.804Z",
   "referenceDate": "2026-10-07",
   "previousReferenceDate": "2026-10-06",
   "modelVersion": "b3-score-4.0",
@@ -284,19 +284,19 @@
           "ticker": "BRKM6",
           "name": "Braskem",
           "price": 3.72,
-          "score": 35,
+          "score": 33,
           "signal": "sell",
-          "confidence": 85,
+          "confidence": 81,
           "parts": {
             "fundamentals": 44,
             "valuation": 40,
             "momentum": 15,
-            "risk": 24,
-            "confidence": 85
+            "risk": 15,
+            "confidence": 81
           },
           "previousScore": 48,
           "previousSignal": "sell",
-          "delta": -13
+          "delta": -15
         },
         {
           "ticker": "MNDL3",
@@ -826,6 +826,24 @@
           "delta": -3
         },
         {
+          "ticker": "BRKM6",
+          "name": "Braskem",
+          "price": 3.72,
+          "score": 42,
+          "signal": "sell",
+          "confidence": 82,
+          "parts": {
+            "fundamentals": 44,
+            "valuation": 40,
+            "growth": 42,
+            "risk": 15,
+            "confidence": 82
+          },
+          "previousScore": 45,
+          "previousSignal": "sell",
+          "delta": -3
+        },
+        {
           "ticker": "ITSA3",
           "name": "Itausa",
           "price": 16.04,
@@ -984,24 +1002,6 @@
             "confidence": 91
           },
           "previousScore": 60,
-          "previousSignal": "sell",
-          "delta": -2
-        },
-        {
-          "ticker": "BRKM6",
-          "name": "Braskem",
-          "price": 3.72,
-          "score": 43,
-          "signal": "sell",
-          "confidence": 86,
-          "parts": {
-            "fundamentals": 44,
-            "valuation": 40,
-            "growth": 42,
-            "risk": 24,
-            "confidence": 86
-          },
-          "previousScore": 45,
           "previousSignal": "sell",
           "delta": -2
         },
@@ -112592,7 +112592,7 @@
     },
     {
       "date": "2026-10-07",
-      "generatedAt": "2026-10-08T00:50:03.104Z",
+      "generatedAt": "2026-10-08T02:23:58.804Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -113992,19 +113992,19 @@
             "price": 0.4
           },
           "BRKM5": {
-            "score": 35,
+            "score": 36,
             "signal": "sell",
             "price": 4.1
-          },
-          "BRKM6": {
-            "score": 35,
-            "signal": "sell",
-            "price": 3.72
           },
           "IFCM3": {
             "score": 35,
             "signal": "sell",
             "price": 1.32
+          },
+          "BRKM6": {
+            "score": 33,
+            "signal": "sell",
+            "price": 3.72
           },
           "ONCO3": {
             "score": 27,
@@ -115389,7 +115389,7 @@
             "price": 0.69
           },
           "BRKM6": {
-            "score": 43,
+            "score": 42,
             "signal": "sell",
             "price": 3.72
           },
