@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T03:03:33.879Z",
+  "generatedAt": "2026-10-09T07:31:01.752Z",
   "referenceDate": "2026-10-08",
   "previousReferenceDate": "2026-10-07",
   "modelVersion": "b3-score-4.0",
@@ -568,6 +568,24 @@
           "delta": -4
         },
         {
+          "ticker": "BRKM3",
+          "name": "Braskem",
+          "price": 4.49,
+          "score": 43,
+          "signal": "sell",
+          "confidence": 93,
+          "parts": {
+            "fundamentals": 44,
+            "valuation": 40,
+            "momentum": 39,
+            "risk": 35,
+            "confidence": 93
+          },
+          "previousScore": 39,
+          "previousSignal": "sell",
+          "delta": 4
+        },
+        {
           "ticker": "PETR3",
           "name": "Petrobras",
           "price": 61.93,
@@ -705,24 +723,6 @@
             "valuation": 69,
             "momentum": 58,
             "risk": 69,
-            "confidence": 96
-          },
-          "previousScore": 70,
-          "previousSignal": "buy",
-          "delta": -3
-        },
-        {
-          "ticker": "HAPV3",
-          "name": "Hapvida",
-          "price": 8.82,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 71,
-            "valuation": 92,
-            "momentum": 52,
-            "risk": 33,
             "confidence": 96
           },
           "previousScore": 70,
@@ -116608,7 +116608,7 @@
     },
     {
       "date": "2026-10-08",
-      "generatedAt": "2026-10-09T03:03:33.879Z",
+      "generatedAt": "2026-10-09T07:31:01.752Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -117998,7 +117998,7 @@
             "price": 3.42
           },
           "BRKM3": {
-            "score": 42,
+            "score": 43,
             "signal": "sell",
             "price": 4.49
           },
@@ -119394,15 +119394,15 @@
             "signal": "sell",
             "price": 8.48
           },
+          "BRKM3": {
+            "score": 45,
+            "signal": "sell",
+            "price": 4.49
+          },
           "BRKM5": {
-            "score": 44,
+            "score": 45,
             "signal": "sell",
             "price": 4.38
-          },
-          "BRKM6": {
-            "score": 44,
-            "signal": "sell",
-            "price": 4
           },
           "IRBR3": {
             "score": 44,
@@ -119414,10 +119414,10 @@
             "signal": "sell",
             "price": 0.66
           },
-          "BRKM3": {
+          "BRKM6": {
             "score": 43,
             "signal": "sell",
-            "price": 4.49
+            "price": 4
           },
           "PCAR3": {
             "score": 43,
