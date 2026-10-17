@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-17T01:30:34.379Z",
+  "generatedAt": "2026-10-17T05:43:23.562Z",
   "referenceDate": "2026-10-16",
   "previousReferenceDate": "2026-10-15",
   "modelVersion": "b3-score-4.0",
@@ -77,6 +77,24 @@
           "previousScore": 68,
           "previousSignal": "sell",
           "delta": 2
+        },
+        {
+          "ticker": "CEBR5",
+          "name": "Ceb",
+          "price": 25.15,
+          "score": 70,
+          "signal": "buy",
+          "confidence": 100,
+          "parts": {
+            "fundamentals": 78,
+            "valuation": 70,
+            "momentum": 50,
+            "risk": 82,
+            "confidence": 100
+          },
+          "previousScore": 69,
+          "previousSignal": "sell",
+          "delta": 1
         },
         {
           "ticker": "CMIG4",
@@ -389,24 +407,6 @@
           "delta": -4
         },
         {
-          "ticker": "PCAR3",
-          "name": "P.Acucar-Cbd",
-          "price": 2.93,
-          "score": 46,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 37,
-            "valuation": 42,
-            "momentum": 52,
-            "risk": 38,
-            "confidence": 95
-          },
-          "previousScore": 42,
-          "previousSignal": "sell",
-          "delta": 4
-        },
-        {
           "ticker": "TRIS3",
           "name": "Trisul",
           "price": 6.34,
@@ -657,6 +657,24 @@
           "previousScore": 73,
           "previousSignal": "buy",
           "delta": 2
+        },
+        {
+          "ticker": "MNPR3",
+          "name": "Minupar",
+          "price": 3.99,
+          "score": 75,
+          "signal": "buy",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 82,
+            "valuation": 84,
+            "momentum": 68,
+            "risk": 43,
+            "confidence": 97
+          },
+          "previousScore": 73,
+          "previousSignal": "buy",
+          "delta": 2
         }
       ],
       "enteredTop4": [
@@ -673,8 +691,8 @@
         "JHSF3",
         "MDNE3"
       ],
-      "buys": 138,
-      "sells": 146,
+      "buys": 139,
+      "sells": 145,
       "evaluated": 284
     },
     "long": {
@@ -822,6 +840,24 @@
             "confidence": 98
           },
           "previousScore": 54,
+          "previousSignal": "sell",
+          "delta": -2
+        },
+        {
+          "ticker": "BRKM6",
+          "name": "Braskem",
+          "price": 3.5,
+          "score": 42,
+          "signal": "sell",
+          "confidence": 88,
+          "parts": {
+            "fundamentals": 44,
+            "valuation": 40,
+            "growth": 42,
+            "risk": 17,
+            "confidence": 88
+          },
+          "previousScore": 44,
           "previousSignal": "sell",
           "delta": -2
         },
@@ -1020,24 +1056,6 @@
             "confidence": 98
           },
           "previousScore": 72,
-          "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "VBBR3",
-          "name": "Vibra",
-          "price": 36.65,
-          "score": 71,
-          "signal": "buy",
-          "confidence": 100,
-          "parts": {
-            "fundamentals": 71,
-            "valuation": 80,
-            "growth": 41,
-            "risk": 79,
-            "confidence": 100
-          },
-          "previousScore": 70,
           "previousSignal": "buy",
           "delta": 1
         }
@@ -136396,7 +136414,7 @@
     },
     {
       "date": "2026-10-16",
-      "generatedAt": "2026-10-17T01:30:34.379Z",
+      "generatedAt": "2026-10-17T05:43:23.562Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -136640,6 +136658,11 @@
             "signal": "buy",
             "price": 25.6
           },
+          "IGTI3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 4.17
+          },
           "ISAE3": {
             "score": 75,
             "signal": "buy",
@@ -136719,11 +136742,6 @@
             "score": 74,
             "signal": "buy",
             "price": 10.5
-          },
-          "IGTI3": {
-            "score": 74,
-            "signal": "buy",
-            "price": 4.17
           },
           "PETR3": {
             "score": 74,
@@ -137015,6 +137033,11 @@
             "signal": "buy",
             "price": 5.07
           },
+          "CEBR5": {
+            "score": 70,
+            "signal": "buy",
+            "price": 25.15
+          },
           "CMIG3": {
             "score": 70,
             "signal": "buy",
@@ -137104,11 +137127,6 @@
             "score": 69,
             "signal": "sell",
             "price": 11.31
-          },
-          "CEBR5": {
-            "score": 69,
-            "signal": "sell",
-            "price": 25.15
           },
           "EALT4": {
             "score": 69,
@@ -137610,11 +137628,6 @@
             "signal": "sell",
             "price": 18.93
           },
-          "WLMM3": {
-            "score": 60,
-            "signal": "sell",
-            "price": 18.15
-          },
           "AZEV4": {
             "score": 59,
             "signal": "sell",
@@ -137669,6 +137682,11 @@
             "score": 59,
             "signal": "sell",
             "price": 60.05
+          },
+          "WLMM3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 18.15
           },
           "BIOM3": {
             "score": 58,
@@ -137781,14 +137799,9 @@
             "price": 0.67
           },
           "PCAR3": {
-            "score": 46,
+            "score": 43,
             "signal": "sell",
             "price": 2.93
-          },
-          "BRKM3": {
-            "score": 42,
-            "signal": "sell",
-            "price": 4.04
           },
           "IFCM3": {
             "score": 42,
@@ -137799,6 +137812,11 @@
             "score": 40,
             "signal": "sell",
             "price": 0.92
+          },
+          "BRKM3": {
+            "score": 39,
+            "signal": "sell",
+            "price": 4.04
           },
           "BIED3": {
             "score": 36,
@@ -137811,12 +137829,12 @@
             "price": 4.04
           },
           "BRKM6": {
-            "score": 35,
+            "score": 34,
             "signal": "sell",
             "price": 3.5
           },
           "ONCO3": {
-            "score": 28,
+            "score": 29,
             "signal": "sell",
             "price": 1.04
           }
@@ -138702,11 +138720,6 @@
             "signal": "sell",
             "price": 6.46
           },
-          "WLMM3": {
-            "score": 63,
-            "signal": "sell",
-            "price": 18.15
-          },
           "BBAS3": {
             "score": 62,
             "signal": "sell",
@@ -138761,6 +138774,11 @@
             "score": 62,
             "signal": "sell",
             "price": 13
+          },
+          "WLMM3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 18.15
           },
           "AXIA3": {
             "score": 61,
@@ -139192,15 +139210,15 @@
             "signal": "sell",
             "price": 0.67
           },
-          "BRKM6": {
-            "score": 43,
-            "signal": "sell",
-            "price": 3.5
-          },
           "PCAR3": {
             "score": 43,
             "signal": "sell",
             "price": 2.93
+          },
+          "BRKM6": {
+            "score": 42,
+            "signal": "sell",
+            "price": 3.5
           },
           "ENJU3": {
             "score": 42,
@@ -139584,6 +139602,11 @@
             "signal": "buy",
             "price": 166.48
           },
+          "IGTI3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 4.17
+          },
           "IGTI4": {
             "score": 71,
             "signal": "buy",
@@ -139638,11 +139661,6 @@
             "score": 70,
             "signal": "buy",
             "price": 31.36
-          },
-          "IGTI3": {
-            "score": 70,
-            "signal": "buy",
-            "price": 4.17
           },
           "SMFT3": {
             "score": 70,
@@ -139919,6 +139937,11 @@
             "signal": "sell",
             "price": 25.1
           },
+          "CGRA4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 25.39
+          },
           "EMBJ3": {
             "score": 61,
             "signal": "sell",
@@ -139968,11 +139991,6 @@
             "score": 60,
             "signal": "sell",
             "price": 11.31
-          },
-          "CGRA4": {
-            "score": 60,
-            "signal": "sell",
-            "price": 25.39
           },
           "GGPS3": {
             "score": 60,
