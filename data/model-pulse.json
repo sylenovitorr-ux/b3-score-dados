@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-20T23:31:23.851Z",
+  "generatedAt": "2026-10-21T01:07:47.732Z",
   "referenceDate": "2026-10-20",
   "previousReferenceDate": "2026-10-19",
   "modelVersion": "b3-score-4.0",
@@ -73,24 +73,6 @@
             "momentum": 66,
             "risk": 74,
             "confidence": 96
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
-          "delta": 1
-        },
-        {
-          "ticker": "EALT3",
-          "name": "Aco Altona",
-          "price": 13.79,
-          "score": 70,
-          "signal": "buy",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 62,
-            "valuation": 76,
-            "momentum": 76,
-            "risk": 51,
-            "confidence": 95
           },
           "previousScore": 69,
           "previousSignal": "sell",
@@ -594,8 +576,8 @@
         "CYRE4",
         "CALI3"
       ],
-      "buys": 135,
-      "sells": 149,
+      "buys": 134,
+      "sells": 150,
       "evaluated": 284
     },
     "long": {
@@ -144320,7 +144302,7 @@
     },
     {
       "date": "2026-10-20",
-      "generatedAt": "2026-10-20T23:31:23.851Z",
+      "generatedAt": "2026-10-21T01:07:47.732Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -144934,11 +144916,6 @@
             "signal": "buy",
             "price": 50.07
           },
-          "EALT3": {
-            "score": 70,
-            "signal": "buy",
-            "price": 13.79
-          },
           "EUCA3": {
             "score": 70,
             "signal": "buy",
@@ -145013,6 +144990,11 @@
             "score": 69,
             "signal": "sell",
             "price": 35.8
+          },
+          "EALT3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 13.79
           },
           "EALT4": {
             "score": 69,
@@ -146131,11 +146113,6 @@
             "signal": "buy",
             "price": 12.75
           },
-          "CLSC3": {
-            "score": 73,
-            "signal": "buy",
-            "price": 166.48
-          },
           "CSUD3": {
             "score": 73,
             "signal": "buy",
@@ -146165,6 +146142,11 @@
             "score": 72,
             "signal": "buy",
             "price": 27.17
+          },
+          "CLSC3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 166.48
           },
           "ETER3": {
             "score": 72,
@@ -146466,11 +146448,6 @@
             "signal": "sell",
             "price": 3.25
           },
-          "EALT3": {
-            "score": 66,
-            "signal": "sell",
-            "price": 13.79
-          },
           "HBSA3": {
             "score": 66,
             "signal": "sell",
@@ -146515,6 +146492,11 @@
             "score": 65,
             "signal": "sell",
             "price": 79.99
+          },
+          "EALT3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 13.79
           },
           "FLRY3": {
             "score": 65,
@@ -147908,11 +147890,6 @@
             "signal": "sell",
             "price": 11.27
           },
-          "EALT3": {
-            "score": 59,
-            "signal": "sell",
-            "price": 13.79
-          },
           "HBRE3": {
             "score": 59,
             "signal": "sell",
@@ -147942,6 +147919,11 @@
             "score": 58,
             "signal": "sell",
             "price": 3.25
+          },
+          "EALT3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 13.79
           },
           "SYNE3": {
             "score": 58,
