@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T23:44:14.216Z",
+  "generatedAt": "2026-10-23T01:05:20.842Z",
   "referenceDate": "2026-10-22",
   "previousReferenceDate": "2026-10-21",
   "modelVersion": "b3-score-4.0",
@@ -10,19 +10,19 @@
           "ticker": "BEES3",
           "name": "Banestes",
           "price": 10.09,
-          "score": 73,
+          "score": 72,
           "signal": "buy",
-          "confidence": 97,
+          "confidence": 96,
           "parts": {
             "fundamentals": 66,
             "valuation": 80,
             "momentum": 68,
-            "risk": 83,
-            "confidence": 97
+            "risk": 80,
+            "confidence": 96
           },
           "previousScore": 69,
           "previousSignal": "sell",
-          "delta": 4
+          "delta": 3
         },
         {
           "ticker": "PNVL3",
@@ -207,6 +207,24 @@
           "delta": -1
         },
         {
+          "ticker": "EUCA3",
+          "name": "Eucatex",
+          "price": 25,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 91,
+          "parts": {
+            "fundamentals": 74,
+            "valuation": 80,
+            "momentum": 55,
+            "risk": 64,
+            "confidence": 91
+          },
+          "previousScore": 70,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
           "ticker": "WIZC3",
           "name": "Wiz Co",
           "price": 6.97,
@@ -278,24 +296,6 @@
           },
           "previousScore": 72,
           "previousSignal": "buy",
-          "delta": 4
-        },
-        {
-          "ticker": "BEES3",
-          "name": "Banestes",
-          "price": 10.09,
-          "score": 73,
-          "signal": "buy",
-          "confidence": 97,
-          "parts": {
-            "fundamentals": 66,
-            "valuation": 80,
-            "momentum": 68,
-            "risk": 83,
-            "confidence": 97
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
           "delta": 4
         },
         {
@@ -569,6 +569,24 @@
           "delta": 3
         },
         {
+          "ticker": "BEES3",
+          "name": "Banestes",
+          "price": 10.09,
+          "score": 72,
+          "signal": "buy",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 66,
+            "valuation": 80,
+            "momentum": 68,
+            "risk": 80,
+            "confidence": 96
+          },
+          "previousScore": 69,
+          "previousSignal": "sell",
+          "delta": 3
+        },
+        {
           "ticker": "PNVL3",
           "name": "Dimed",
           "price": 15.54,
@@ -595,8 +613,8 @@
         "CYRE4",
         "CALI3"
       ],
-      "buys": 143,
-      "sells": 142,
+      "buys": 142,
+      "sells": 143,
       "evaluated": 285
     },
     "long": {
@@ -946,20 +964,20 @@
           "delta": -1
         },
         {
-          "ticker": "RECV3",
-          "name": "Petrorecsa",
-          "price": 12.24,
-          "score": 78,
+          "ticker": "DOHL4",
+          "name": "Dohler",
+          "price": 3.61,
+          "score": 80,
           "signal": "buy",
-          "confidence": 99,
+          "confidence": 91,
           "parts": {
-            "fundamentals": 80,
-            "valuation": 88,
-            "growth": 64,
-            "risk": 63,
-            "confidence": 99
+            "fundamentals": 77,
+            "valuation": 93,
+            "growth": 78,
+            "risk": 71,
+            "confidence": 91
           },
-          "previousScore": 79,
+          "previousScore": 81,
           "previousSignal": "buy",
           "delta": -1
         }
@@ -152348,7 +152366,7 @@
     },
     {
       "date": "2026-10-22",
-      "generatedAt": "2026-10-22T23:44:14.216Z",
+      "generatedAt": "2026-10-23T01:05:20.842Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -152787,11 +152805,6 @@
             "signal": "buy",
             "price": 0.94
           },
-          "BEES3": {
-            "score": 73,
-            "signal": "buy",
-            "price": 10.09
-          },
           "CEBR3": {
             "score": 73,
             "signal": "buy",
@@ -152841,6 +152854,11 @@
             "score": 72,
             "signal": "buy",
             "price": 28.67
+          },
+          "BEES3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 10.09
           },
           "CAML3": {
             "score": 72,
@@ -153037,11 +153055,6 @@
             "signal": "buy",
             "price": 13.06
           },
-          "EUCA3": {
-            "score": 70,
-            "signal": "buy",
-            "price": 25
-          },
           "RENT3": {
             "score": 70,
             "signal": "buy",
@@ -153096,6 +153109,11 @@
             "score": 69,
             "signal": "sell",
             "price": 31.09
+          },
+          "EUCA3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 25
           },
           "INTB3": {
             "score": 69,
@@ -153402,11 +153420,6 @@
             "signal": "sell",
             "price": 18.49
           },
-          "PATI4": {
-            "score": 64,
-            "signal": "sell",
-            "price": 35.45
-          },
           "USIM3": {
             "score": 64,
             "signal": "sell",
@@ -153481,6 +153494,11 @@
             "score": 63,
             "signal": "sell",
             "price": 28.69
+          },
+          "PATI4": {
+            "score": 63,
+            "signal": "sell",
+            "price": 35.45
           },
           "TCSA3": {
             "score": 63,
@@ -153839,11 +153857,6 @@
             "signal": "buy",
             "price": 11.32
           },
-          "DOHL4": {
-            "score": 81,
-            "signal": "buy",
-            "price": 3.61
-          },
           "LPSB3": {
             "score": 81,
             "signal": "buy",
@@ -153873,6 +153886,11 @@
             "score": 80,
             "signal": "buy",
             "price": 32.24
+          },
+          "DOHL4": {
+            "score": 80,
+            "signal": "buy",
+            "price": 3.61
           },
           "IGTI11": {
             "score": 80,
@@ -154764,11 +154782,6 @@
             "signal": "sell",
             "price": 29.27
           },
-          "PATI3": {
-            "score": 60,
-            "signal": "sell",
-            "price": 28.69
-          },
           "RAPT3": {
             "score": 60,
             "signal": "sell",
@@ -154803,6 +154816,11 @@
             "score": 59,
             "signal": "sell",
             "price": 20.01
+          },
+          "PATI3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 28.69
           },
           "RAIL3": {
             "score": 59,
@@ -155139,11 +155157,6 @@
             "signal": "sell",
             "price": 66.94
           },
-          "BRKM6": {
-            "score": 44,
-            "signal": "sell",
-            "price": 3.73
-          },
           "RVEE3": {
             "score": 44,
             "signal": "sell",
@@ -155158,6 +155171,11 @@
             "score": 44,
             "signal": "sell",
             "price": 9.87
+          },
+          "BRKM6": {
+            "score": 43,
+            "signal": "sell",
+            "price": 3.73
           },
           "PCAR3": {
             "score": 43,
@@ -155676,11 +155694,6 @@
             "signal": "sell",
             "price": 17.55
           },
-          "EUCA3": {
-            "score": 67,
-            "signal": "sell",
-            "price": 25
-          },
           "EVEN3": {
             "score": 67,
             "signal": "sell",
@@ -155715,6 +155728,11 @@
             "score": 66,
             "signal": "sell",
             "price": 31.09
+          },
+          "EUCA3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 25
           },
           "HYPE3": {
             "score": 66,
@@ -156131,11 +156149,6 @@
             "signal": "sell",
             "price": 60.02
           },
-          "PATI4": {
-            "score": 52,
-            "signal": "sell",
-            "price": 35.45
-          },
           "QUAL3": {
             "score": 52,
             "signal": "sell",
@@ -156145,6 +156158,11 @@
             "score": 51,
             "signal": "sell",
             "price": 13.06
+          },
+          "PATI4": {
+            "score": 51,
+            "signal": "sell",
+            "price": 35.45
           },
           "PEAB3": {
             "score": 51,
