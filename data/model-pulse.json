@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T23:37:37.881Z",
+  "generatedAt": "2026-10-24T01:13:48.900Z",
   "referenceDate": "2026-10-23",
   "previousReferenceDate": "2026-10-22",
   "modelVersion": "b3-score-4.0",
@@ -653,9 +653,9 @@
         "CYRE4",
         "BMGB4"
       ],
-      "buys": 145,
+      "buys": 146,
       "sells": 140,
-      "evaluated": 285
+      "evaluated": 286
     },
     "long": {
       "newBuys": [],
@@ -1049,9 +1049,9 @@
         "TEND3",
         "MDNE3"
       ],
-      "buys": 112,
+      "buys": 113,
       "sells": 173,
-      "evaluated": 285
+      "evaluated": 286
     },
     "dividends": {
       "newBuys": [
@@ -1499,8 +1499,8 @@
         "VULC3"
       ],
       "buys": 78,
-      "sells": 147,
-      "evaluated": 225
+      "sells": 148,
+      "evaluated": 226
     }
   },
   "history": [
@@ -156358,7 +156358,7 @@
     },
     {
       "date": "2026-10-23",
-      "generatedAt": "2026-10-23T23:37:37.881Z",
+      "generatedAt": "2026-10-24T01:13:48.900Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -156446,6 +156446,11 @@
             "score": 79,
             "signal": "buy",
             "price": 8.14
+          },
+          "DOHL3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 6.46
           },
           "ECOM3": {
             "score": 79,
@@ -156837,11 +156842,6 @@
             "signal": "buy",
             "price": 49.79
           },
-          "DOHL4": {
-            "score": 73,
-            "signal": "buy",
-            "price": 3.56
-          },
           "FIQE3": {
             "score": 73,
             "signal": "buy",
@@ -156926,6 +156926,11 @@
             "score": 72,
             "signal": "buy",
             "price": 17.77
+          },
+          "DOHL4": {
+            "score": 72,
+            "signal": "buy",
+            "price": 3.56
           },
           "ECOR3": {
             "score": 72,
@@ -157844,11 +157849,6 @@
             "signal": "buy",
             "price": 11.56
           },
-          "DOHL4": {
-            "score": 81,
-            "signal": "buy",
-            "price": 3.56
-          },
           "MNPR3": {
             "score": 81,
             "signal": "buy",
@@ -157893,6 +157893,16 @@
             "score": 79,
             "signal": "buy",
             "price": 35.57
+          },
+          "DOHL3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 6.46
+          },
+          "DOHL4": {
+            "score": 79,
+            "signal": "buy",
+            "price": 3.56
           },
           "ITSA3": {
             "score": 79,
@@ -159701,11 +159711,6 @@
             "signal": "sell",
             "price": 38.68
           },
-          "DOHL4": {
-            "score": 66,
-            "signal": "sell",
-            "price": 3.56
-          },
           "EGIE3": {
             "score": 66,
             "signal": "sell",
@@ -159735,6 +159740,11 @@
             "score": 65,
             "signal": "sell",
             "price": 8.61
+          },
+          "DOHL4": {
+            "score": 65,
+            "signal": "sell",
+            "price": 3.56
           },
           "EUCA3": {
             "score": 65,
@@ -159800,6 +159810,11 @@
             "score": 64,
             "signal": "sell",
             "price": 22
+          },
+          "DOHL3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 6.46
           },
           "EALT4": {
             "score": 64,
