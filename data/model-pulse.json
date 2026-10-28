@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T00:14:13.862Z",
+  "generatedAt": "2026-10-28T01:55:46.666Z",
   "referenceDate": "2026-10-27",
   "previousReferenceDate": "2026-10-26",
   "modelVersion": "b3-score-4.0",
@@ -164747,7 +164747,7 @@
     },
     {
       "date": "2026-10-27",
-      "generatedAt": "2026-10-28T00:14:13.862Z",
+      "generatedAt": "2026-10-28T01:55:46.666Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -166161,8 +166161,13 @@
             "signal": "sell",
             "price": 5.5
           },
-          "BRKM3": {
+          "BRKM6": {
             "score": 35,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "BRKM3": {
+            "score": 34,
             "signal": "sell",
             "price": 3.71
           },
@@ -166170,11 +166175,6 @@
             "score": 34,
             "signal": "sell",
             "price": 3.7
-          },
-          "BRKM6": {
-            "score": 34,
-            "signal": "sell",
-            "price": 2.98
           },
           "MEAL3": {
             "score": 33,
@@ -166233,15 +166233,15 @@
             "signal": "buy",
             "price": 23.01
           },
-          "OFSA3": {
-            "score": 83,
-            "signal": "buy",
-            "price": 26.76
-          },
           "CYRE3": {
             "score": 82,
             "signal": "buy",
             "price": 19.01
+          },
+          "OFSA3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 26.76
           },
           "PINE4": {
             "score": 82,
