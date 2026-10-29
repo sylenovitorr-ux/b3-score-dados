@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T02:48:11.754Z",
+  "generatedAt": "2026-10-29T07:12:03.345Z",
   "referenceDate": "2026-10-28",
   "previousReferenceDate": "2026-10-27",
   "modelVersion": "b3-score-4.0",
@@ -897,6 +897,42 @@
           "delta": 3
         },
         {
+          "ticker": "BRKM3",
+          "name": "Braskem",
+          "price": 3.46,
+          "score": 45,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 44,
+            "valuation": 40,
+            "growth": 42,
+            "risk": 40,
+            "confidence": 97
+          },
+          "previousScore": 42,
+          "previousSignal": "sell",
+          "delta": 3
+        },
+        {
+          "ticker": "BRKM5",
+          "name": "Braskem",
+          "price": 3.37,
+          "score": 45,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 44,
+            "valuation": 40,
+            "growth": 42,
+            "risk": 34,
+            "confidence": 97
+          },
+          "previousScore": 42,
+          "previousSignal": "sell",
+          "delta": 3
+        },
+        {
           "ticker": "BBDC3",
           "name": "Bradesco",
           "price": 13.38,
@@ -1073,42 +1109,6 @@
             "confidence": 96
           },
           "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "BEES4",
-          "name": "Banestes",
-          "price": 9.61,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 91,
-          "parts": {
-            "fundamentals": 66,
-            "valuation": 80,
-            "growth": 48,
-            "risk": 65,
-            "confidence": 91
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
-          "delta": -2
-        },
-        {
-          "ticker": "VIVT3",
-          "name": "Telef Brasil",
-          "price": 30.74,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 64,
-            "valuation": 69,
-            "growth": 71,
-            "risk": 56,
-            "confidence": 96
-          },
-          "previousScore": 65,
           "previousSignal": "sell",
           "delta": 2
         }
@@ -168419,7 +168419,7 @@
     },
     {
       "date": "2026-10-28",
-      "generatedAt": "2026-10-29T02:48:11.754Z",
+      "generatedAt": "2026-10-29T07:12:03.345Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -169828,23 +169828,23 @@
             "signal": "sell",
             "price": 2.35
           },
+          "BRKM3": {
+            "score": 37,
+            "signal": "sell",
+            "price": 3.46
+          },
           "BIED3": {
             "score": 36,
             "signal": "sell",
             "price": 5.5
           },
-          "BRKM3": {
-            "score": 36,
-            "signal": "sell",
-            "price": 3.46
-          },
           "BRKM5": {
-            "score": 35,
+            "score": 36,
             "signal": "sell",
             "price": 3.37
           },
           "BRKM6": {
-            "score": 33,
+            "score": 34,
             "signal": "sell",
             "price": 2.98
           },
@@ -169895,6 +169895,11 @@
             "signal": "buy",
             "price": 17.05
           },
+          "OFSA3": {
+            "score": 84,
+            "signal": "buy",
+            "price": 26.22
+          },
           "TEND3": {
             "score": 84,
             "signal": "buy",
@@ -169909,11 +169914,6 @@
             "score": 83,
             "signal": "buy",
             "price": 8.77
-          },
-          "OFSA3": {
-            "score": 83,
-            "signal": "buy",
-            "price": 26.22
           },
           "CYRE3": {
             "score": 82,
@@ -171246,12 +171246,12 @@
             "price": 2.14
           },
           "BRKM3": {
-            "score": 44,
+            "score": 45,
             "signal": "sell",
             "price": 3.46
           },
           "BRKM5": {
-            "score": 44,
+            "score": 45,
             "signal": "sell",
             "price": 3.37
           },
