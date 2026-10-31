@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-31T00:13:04.600Z",
+  "generatedAt": "2026-10-31T01:58:25.799Z",
   "referenceDate": "2026-10-30",
   "previousReferenceDate": "2026-10-29",
   "modelVersion": "b3-score-4.0",
@@ -1053,6 +1053,24 @@
           "delta": 2
         },
         {
+          "ticker": "SAUD3",
+          "name": "Bradsaude",
+          "price": 14.1,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "quality": 65,
+            "dividends": 70,
+            "valuation": 59,
+            "risk": 64,
+            "confidence": 96
+          },
+          "previousScore": 65,
+          "previousSignal": "sell",
+          "delta": 2
+        },
+        {
           "ticker": "EALT3",
           "name": "Aco Altona",
           "price": 12,
@@ -1281,24 +1299,6 @@
             "valuation": 80,
             "risk": 60,
             "confidence": 98
-          },
-          "previousScore": 65,
-          "previousSignal": "sell",
-          "delta": 1
-        },
-        {
-          "ticker": "EUCA3",
-          "name": "Eucatex",
-          "price": 20.48,
-          "score": 66,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "quality": 66,
-            "dividends": 58,
-            "valuation": 85,
-            "risk": 47,
-            "confidence": 95
           },
           "previousScore": 65,
           "previousSignal": "sell",
@@ -176233,7 +176233,7 @@
     },
     {
       "date": "2026-10-30",
-      "generatedAt": "2026-10-31T00:13:04.600Z",
+      "generatedAt": "2026-10-31T01:58:25.799Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -179631,6 +179631,11 @@
             "signal": "sell",
             "price": 10.08
           },
+          "SAUD3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 14.1
+          },
           "TOTS3": {
             "score": 67,
             "signal": "sell",
@@ -179695,11 +179700,6 @@
             "score": 65,
             "signal": "sell",
             "price": 40.65
-          },
-          "SAUD3": {
-            "score": 65,
-            "signal": "sell",
-            "price": 14.1
           },
           "ANIM3": {
             "score": 64,
