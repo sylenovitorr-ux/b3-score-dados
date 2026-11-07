@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T00:28:35.242Z",
+  "generatedAt": "2026-11-07T02:30:09.101Z",
   "referenceDate": "2026-11-06",
   "previousReferenceDate": "2026-11-05",
   "modelVersion": "b3-score-4.0",
@@ -1111,24 +1111,6 @@
           "delta": -2
         },
         {
-          "ticker": "BRSR5",
-          "name": "Banrisul",
-          "price": 15.64,
-          "score": 83,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "quality": 80,
-            "dividends": 92,
-            "valuation": 94,
-            "risk": 43,
-            "confidence": 96
-          },
-          "previousScore": 84,
-          "previousSignal": "buy",
-          "delta": -1
-        },
-        {
           "ticker": "TEND3",
           "name": "Tenda",
           "price": 16.92,
@@ -1271,6 +1253,24 @@
           "previousScore": 64,
           "previousSignal": "sell",
           "delta": 1
+        },
+        {
+          "ticker": "LAVV3",
+          "name": "Lavvi",
+          "price": 8.17,
+          "score": 63,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "quality": 83,
+            "dividends": 67,
+            "valuation": 21,
+            "risk": 29,
+            "confidence": 95
+          },
+          "previousScore": 64,
+          "previousSignal": "sell",
+          "delta": -1
         }
       ],
       "enteredTop4": [],
@@ -192273,7 +192273,7 @@
     },
     {
       "date": "2026-11-06",
-      "generatedAt": "2026-11-07T00:28:35.242Z",
+      "generatedAt": "2026-11-07T02:30:09.101Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -193708,7 +193708,7 @@
             "price": 4.54
           },
           "ONCO3": {
-            "score": 27,
+            "score": 28,
             "signal": "sell",
             "price": 0.98
           }
@@ -194634,11 +194634,6 @@
             "signal": "sell",
             "price": 2.6
           },
-          "PEAB3": {
-            "score": 63,
-            "signal": "sell",
-            "price": 35
-          },
           "RAPT3": {
             "score": 63,
             "signal": "sell",
@@ -194658,6 +194653,11 @@
             "score": 62,
             "signal": "sell",
             "price": 1.05
+          },
+          "PEAB3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 35
           },
           "PRIO3": {
             "score": 62,
@@ -195140,7 +195140,7 @@
             "price": 4.54
           },
           "ONCO3": {
-            "score": 27,
+            "score": 28,
             "signal": "sell",
             "price": 0.98
           },
@@ -195166,6 +195166,11 @@
             "signal": "buy",
             "price": 17.41
           },
+          "BRSR5": {
+            "score": 84,
+            "signal": "buy",
+            "price": 15.64
+          },
           "BRSR6": {
             "score": 84,
             "signal": "buy",
@@ -195175,11 +195180,6 @@
             "score": 84,
             "signal": "buy",
             "price": 10
-          },
-          "BRSR5": {
-            "score": 83,
-            "signal": "buy",
-            "price": 15.64
           },
           "PSSA3": {
             "score": 82,
