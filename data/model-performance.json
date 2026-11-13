@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-12T08:27:04.915Z",
+  "generatedAt": "2026-11-13T01:34:30.691Z",
   "modelVersion": "b3-score-4.0",
   "firstSnapshotDate": "2026-08-14",
-  "lastSnapshotDate": "2026-11-11",
-  "snapshotCount": 52,
-  "evaluatedObservations": 23627,
+  "lastSnapshotDate": "2026-11-12",
+  "snapshotCount": 53,
+  "evaluatedObservations": 24350,
   "methodology": "Placar prospectivo. Cada fotografia usa o sinal que foi efetivamente registrado naquele pregão e mede o preço 20, 60 ou 120 sessões depois. Não cria sinais históricos retroativos.",
   "caveats": [
     "COMPRA é avaliada pela frequência de retorno positivo e retorno médio posterior.",
@@ -19,14 +19,14 @@
   "strategies": {
     "swing": {
       "20s": {
-        "sample": 8162,
-        "buySample": 3549,
-        "sellSample": 4613,
-        "buyPositiveRatePct": 55.1,
-        "buyAverageReturnPct": 3.07,
-        "buyMedianReturnPct": 2.13,
-        "sellNonPositiveRatePct": 46.8,
-        "sellAverageFollowingReturnPct": 6.41,
+        "sample": 8415,
+        "buySample": 3676,
+        "sellSample": 4739,
+        "buyPositiveRatePct": 53.4,
+        "buyAverageReturnPct": 2.22,
+        "buyMedianReturnPct": 1.41,
+        "sellNonPositiveRatePct": 48,
+        "sellAverageFollowingReturnPct": 5.79,
         "bands": {
           "85+": {
             "sample": 2,
@@ -39,66 +39,66 @@
             "sellAverageFollowingReturnPct": null
           },
           "80–84": {
-            "sample": 180,
-            "buySample": 180,
+            "sample": 188,
+            "buySample": 188,
             "sellSample": 0,
-            "buyPositiveRatePct": 62.2,
-            "buyAverageReturnPct": 1.66,
-            "buyMedianReturnPct": 7.57,
+            "buyPositiveRatePct": 59.6,
+            "buyAverageReturnPct": 0.34,
+            "buyMedianReturnPct": 6.28,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "75–79": {
-            "sample": 1082,
-            "buySample": 1082,
+            "sample": 1124,
+            "buySample": 1124,
             "sellSample": 0,
-            "buyPositiveRatePct": 55.6,
-            "buyAverageReturnPct": 1.72,
-            "buyMedianReturnPct": 2.48,
+            "buyPositiveRatePct": 53.7,
+            "buyAverageReturnPct": 0.69,
+            "buyMedianReturnPct": 1.65,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "70–74": {
-            "sample": 2285,
-            "buySample": 2285,
+            "sample": 2362,
+            "buySample": 2362,
             "sellSample": 0,
-            "buyPositiveRatePct": 54.3,
-            "buyAverageReturnPct": 3.82,
-            "buyMedianReturnPct": 1.79,
+            "buyPositiveRatePct": 52.8,
+            "buyAverageReturnPct": 3.08,
+            "buyMedianReturnPct": 1.25,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "60–69": {
-            "sample": 3428,
+            "sample": 3522,
             "buySample": 0,
-            "sellSample": 3428,
+            "sellSample": 3522,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 46.1,
-            "sellAverageFollowingReturnPct": 6.4
+            "sellNonPositiveRatePct": 47.4,
+            "sellAverageFollowingReturnPct": 5.64
           },
           "0–59": {
-            "sample": 1185,
+            "sample": 1217,
             "buySample": 0,
-            "sellSample": 1185,
+            "sellSample": 1217,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 48.9,
-            "sellAverageFollowingReturnPct": 6.41
+            "sellNonPositiveRatePct": 49.8,
+            "sellAverageFollowingReturnPct": 6.21
           }
         }
       },
       "60s": {
-        "sample": 233,
-        "buySample": 50,
-        "sellSample": 183,
-        "buyPositiveRatePct": 54,
-        "buyAverageReturnPct": -0.55,
-        "buyMedianReturnPct": 0.88,
-        "sellNonPositiveRatePct": 44.8,
-        "sellAverageFollowingReturnPct": 9.2,
+        "sample": 237,
+        "buySample": 51,
+        "sellSample": 186,
+        "buyPositiveRatePct": 52.9,
+        "buyAverageReturnPct": -0.78,
+        "buyMedianReturnPct": 0.41,
+        "sellNonPositiveRatePct": 44.6,
+        "sellAverageFollowingReturnPct": 9.02,
         "bands": {
           "80–84": {
             "sample": 1,
@@ -121,34 +121,34 @@
             "sellAverageFollowingReturnPct": null
           },
           "70–74": {
-            "sample": 37,
-            "buySample": 37,
+            "sample": 38,
+            "buySample": 38,
             "sellSample": 0,
-            "buyPositiveRatePct": 59.5,
-            "buyAverageReturnPct": 1.19,
+            "buyPositiveRatePct": 57.9,
+            "buyAverageReturnPct": 0.82,
             "buyMedianReturnPct": 1.64,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "60–69": {
-            "sample": 122,
+            "sample": 123,
             "buySample": 0,
-            "sellSample": 122,
+            "sellSample": 123,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 43.4,
-            "sellAverageFollowingReturnPct": 11.83
+            "sellNonPositiveRatePct": 43.1,
+            "sellAverageFollowingReturnPct": 11.78
           },
           "0–59": {
-            "sample": 61,
+            "sample": 63,
             "buySample": 0,
-            "sellSample": 61,
+            "sellSample": 63,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 47.5,
-            "sellAverageFollowingReturnPct": 3.93
+            "sellNonPositiveRatePct": 47.6,
+            "sellAverageFollowingReturnPct": 3.63
           }
         }
       },
@@ -166,86 +166,86 @@
     },
     "long": {
       "20s": {
-        "sample": 8162,
-        "buySample": 3598,
-        "sellSample": 4564,
-        "buyPositiveRatePct": 56.5,
-        "buyAverageReturnPct": 2.52,
-        "buyMedianReturnPct": 2.8,
-        "sellNonPositiveRatePct": 47.9,
-        "sellAverageFollowingReturnPct": 6.87,
+        "sample": 8415,
+        "buySample": 3704,
+        "sellSample": 4711,
+        "buyPositiveRatePct": 55.1,
+        "buyAverageReturnPct": 1.85,
+        "buyMedianReturnPct": 2.12,
+        "sellNonPositiveRatePct": 49.3,
+        "sellAverageFollowingReturnPct": 6.09,
         "bands": {
           "85+": {
-            "sample": 218,
-            "buySample": 218,
+            "sample": 222,
+            "buySample": 222,
             "sellSample": 0,
-            "buyPositiveRatePct": 61.9,
-            "buyAverageReturnPct": 1.94,
-            "buyMedianReturnPct": 5.39,
+            "buyPositiveRatePct": 60.8,
+            "buyAverageReturnPct": 1.42,
+            "buyMedianReturnPct": 5.26,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "80–84": {
-            "sample": 647,
-            "buySample": 647,
+            "sample": 664,
+            "buySample": 664,
             "sellSample": 0,
-            "buyPositiveRatePct": 57,
-            "buyAverageReturnPct": 1.46,
-            "buyMedianReturnPct": 1.97,
+            "buyPositiveRatePct": 55.9,
+            "buyAverageReturnPct": 0.79,
+            "buyMedianReturnPct": 1.63,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "75–79": {
-            "sample": 1435,
-            "buySample": 1435,
+            "sample": 1479,
+            "buySample": 1479,
             "sellSample": 0,
-            "buyPositiveRatePct": 59.9,
-            "buyAverageReturnPct": 3.38,
-            "buyMedianReturnPct": 4.37,
+            "buyPositiveRatePct": 58.1,
+            "buyAverageReturnPct": 2.69,
+            "buyMedianReturnPct": 3.7,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "70–74": {
-            "sample": 1298,
-            "buySample": 1298,
+            "sample": 1339,
+            "buySample": 1339,
             "sellSample": 0,
-            "buyPositiveRatePct": 51.5,
-            "buyAverageReturnPct": 2.21,
-            "buyMedianReturnPct": 0.45,
+            "buyPositiveRatePct": 50.5,
+            "buyAverageReturnPct": 1.52,
+            "buyMedianReturnPct": 0.09,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "60–69": {
-            "sample": 2835,
+            "sample": 2914,
             "buySample": 0,
-            "sellSample": 2835,
+            "sellSample": 2914,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 43.2,
-            "sellAverageFollowingReturnPct": 9.53
+            "sellNonPositiveRatePct": 44.6,
+            "sellAverageFollowingReturnPct": 8.7
           },
           "0–59": {
-            "sample": 1729,
+            "sample": 1797,
             "buySample": 0,
-            "sellSample": 1729,
+            "sellSample": 1797,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 55.6,
-            "sellAverageFollowingReturnPct": 2.51
+            "sellNonPositiveRatePct": 57,
+            "sellAverageFollowingReturnPct": 1.87
           }
         }
       },
       "60s": {
-        "sample": 233,
-        "buySample": 99,
-        "sellSample": 134,
-        "buyPositiveRatePct": 51.5,
-        "buyAverageReturnPct": -0.37,
-        "buyMedianReturnPct": 0.4,
-        "sellNonPositiveRatePct": 42.5,
-        "sellAverageFollowingReturnPct": 12.63,
+        "sample": 237,
+        "buySample": 100,
+        "sellSample": 137,
+        "buyPositiveRatePct": 52,
+        "buyAverageReturnPct": -0.3,
+        "buyMedianReturnPct": 0.41,
+        "sellNonPositiveRatePct": 43.1,
+        "sellAverageFollowingReturnPct": 12.18,
         "bands": {
           "85+": {
             "sample": 7,
@@ -258,11 +258,11 @@
             "sellAverageFollowingReturnPct": null
           },
           "80–84": {
-            "sample": 18,
-            "buySample": 18,
+            "sample": 19,
+            "buySample": 19,
             "sellSample": 0,
-            "buyPositiveRatePct": 16.7,
-            "buyAverageReturnPct": -10.16,
+            "buyPositiveRatePct": 21.1,
+            "buyAverageReturnPct": -9.31,
             "buyMedianReturnPct": -8.81,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
@@ -288,24 +288,24 @@
             "sellAverageFollowingReturnPct": null
           },
           "60–69": {
-            "sample": 91,
+            "sample": 93,
             "buySample": 0,
-            "sellSample": 91,
+            "sellSample": 93,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 42.9,
-            "sellAverageFollowingReturnPct": 16.42
+            "sellNonPositiveRatePct": 43,
+            "sellAverageFollowingReturnPct": 15.95
           },
           "0–59": {
-            "sample": 43,
+            "sample": 44,
             "buySample": 0,
-            "sellSample": 43,
+            "sellSample": 44,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 41.9,
-            "sellAverageFollowingReturnPct": 4.61
+            "sellNonPositiveRatePct": 43.2,
+            "sellAverageFollowingReturnPct": 4.2
           }
         }
       },
@@ -323,86 +323,86 @@
     },
     "dividends": {
       "20s": {
-        "sample": 6643,
-        "buySample": 2620,
-        "sellSample": 4023,
-        "buyPositiveRatePct": 60,
-        "buyAverageReturnPct": 3.11,
-        "buyMedianReturnPct": 3.62,
-        "sellNonPositiveRatePct": 46,
-        "sellAverageFollowingReturnPct": 7.01,
+        "sample": 6848,
+        "buySample": 2697,
+        "sellSample": 4151,
+        "buyPositiveRatePct": 58.5,
+        "buyAverageReturnPct": 2.49,
+        "buyMedianReturnPct": 3.14,
+        "sellNonPositiveRatePct": 47.5,
+        "sellAverageFollowingReturnPct": 6.1,
         "bands": {
           "85+": {
-            "sample": 74,
-            "buySample": 74,
+            "sample": 76,
+            "buySample": 76,
             "sellSample": 0,
-            "buyPositiveRatePct": 70.3,
-            "buyAverageReturnPct": 3.27,
-            "buyMedianReturnPct": 6.08,
+            "buyPositiveRatePct": 68.4,
+            "buyAverageReturnPct": 2.64,
+            "buyMedianReturnPct": 5.79,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "80–84": {
-            "sample": 411,
-            "buySample": 411,
+            "sample": 424,
+            "buySample": 424,
             "sellSample": 0,
-            "buyPositiveRatePct": 59.1,
-            "buyAverageReturnPct": 1.31,
-            "buyMedianReturnPct": 5.03,
+            "buyPositiveRatePct": 57.3,
+            "buyAverageReturnPct": 0.55,
+            "buyMedianReturnPct": 4.68,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "75–79": {
-            "sample": 748,
-            "buySample": 748,
+            "sample": 764,
+            "buySample": 764,
             "sellSample": 0,
-            "buyPositiveRatePct": 63.6,
-            "buyAverageReturnPct": 3.36,
-            "buyMedianReturnPct": 4.48,
+            "buyPositiveRatePct": 62.4,
+            "buyAverageReturnPct": 2.79,
+            "buyMedianReturnPct": 3.94,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "70–74": {
-            "sample": 1387,
-            "buySample": 1387,
+            "sample": 1433,
+            "buySample": 1433,
             "sellSample": 0,
-            "buyPositiveRatePct": 57.7,
-            "buyAverageReturnPct": 3.49,
-            "buyMedianReturnPct": 2.63,
+            "buyPositiveRatePct": 56.2,
+            "buyAverageReturnPct": 2.89,
+            "buyMedianReturnPct": 2.13,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
           "60–69": {
-            "sample": 2041,
+            "sample": 2103,
             "buySample": 0,
-            "sellSample": 2041,
+            "sellSample": 2103,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 47.9,
-            "sellAverageFollowingReturnPct": 9.89
+            "sellNonPositiveRatePct": 49,
+            "sellAverageFollowingReturnPct": 9.08
           },
           "0–59": {
-            "sample": 1982,
+            "sample": 2048,
             "buySample": 0,
-            "sellSample": 1982,
+            "sellSample": 2048,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 44.1,
-            "sellAverageFollowingReturnPct": 4.05
+            "sellNonPositiveRatePct": 45.8,
+            "sellAverageFollowingReturnPct": 3.04
           }
         }
       },
       "60s": {
-        "sample": 194,
-        "buySample": 77,
-        "sellSample": 117,
-        "buyPositiveRatePct": 58.4,
-        "buyAverageReturnPct": 0.28,
-        "buyMedianReturnPct": 2.51,
-        "sellNonPositiveRatePct": 44.4,
-        "sellAverageFollowingReturnPct": 9.03,
+        "sample": 198,
+        "buySample": 78,
+        "sellSample": 120,
+        "buyPositiveRatePct": 59,
+        "buyAverageReturnPct": 0.35,
+        "buyMedianReturnPct": 3.36,
+        "sellNonPositiveRatePct": 45,
+        "sellAverageFollowingReturnPct": 8.61,
         "bands": {
           "85+": {
             "sample": 2,
@@ -415,12 +415,12 @@
             "sellAverageFollowingReturnPct": null
           },
           "80–84": {
-            "sample": 13,
-            "buySample": 13,
+            "sample": 14,
+            "buySample": 14,
             "sellSample": 0,
-            "buyPositiveRatePct": 30.8,
-            "buyAverageReturnPct": -5.51,
-            "buyMedianReturnPct": -8.19,
+            "buyPositiveRatePct": 35.7,
+            "buyAverageReturnPct": -4.69,
+            "buyMedianReturnPct": -7.67,
             "sellNonPositiveRatePct": null,
             "sellAverageFollowingReturnPct": null
           },
@@ -445,24 +445,24 @@
             "sellAverageFollowingReturnPct": null
           },
           "60–69": {
-            "sample": 55,
+            "sample": 57,
             "buySample": 0,
-            "sellSample": 55,
+            "sellSample": 57,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 52.7,
-            "sellAverageFollowingReturnPct": 14.85
+            "sellNonPositiveRatePct": 52.6,
+            "sellAverageFollowingReturnPct": 14.15
           },
           "0–59": {
-            "sample": 62,
+            "sample": 63,
             "buySample": 0,
-            "sellSample": 62,
+            "sellSample": 63,
             "buyPositiveRatePct": null,
             "buyAverageReturnPct": null,
             "buyMedianReturnPct": null,
-            "sellNonPositiveRatePct": 37.1,
-            "sellAverageFollowingReturnPct": 3.87
+            "sellNonPositiveRatePct": 38.1,
+            "sellAverageFollowingReturnPct": 3.59
           }
         }
       },
