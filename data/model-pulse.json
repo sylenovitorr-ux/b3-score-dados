@@ -1,77 +1,41 @@
 {
-  "generatedAt": "2026-11-18T08:38:51.686Z",
-  "referenceDate": "2026-11-17",
-  "previousReferenceDate": "2026-11-16",
+  "generatedAt": "2026-11-19T02:07:35.115Z",
+  "referenceDate": "2026-11-18",
+  "previousReferenceDate": "2026-11-17",
   "modelVersion": "b3-score-4.0",
   "events": {
     "swing": {
       "newBuys": [
         {
-          "ticker": "PFRM3",
-          "name": "Profarma",
-          "price": 7.31,
+          "ticker": "BRSR6",
+          "name": "Banrisul",
+          "price": 12.58,
           "score": 71,
           "signal": "buy",
-          "confidence": 96,
+          "confidence": 95,
           "parts": {
-            "fundamentals": 74,
-            "valuation": 93,
-            "momentum": 54,
+            "fundamentals": 85,
+            "valuation": 94,
+            "momentum": 40,
             "risk": 52,
-            "confidence": 96
-          },
-          "previousScore": 68,
-          "previousSignal": "sell",
-          "delta": 3
-        },
-        {
-          "ticker": "CEBR5",
-          "name": "Ceb",
-          "price": 23.09,
-          "score": 71,
-          "signal": "buy",
-          "confidence": 94,
-          "parts": {
-            "fundamentals": 80,
-            "valuation": 75,
-            "momentum": 55,
-            "risk": 70,
-            "confidence": 94
+            "confidence": 95
           },
           "previousScore": 69,
           "previousSignal": "sell",
           "delta": 2
         },
         {
-          "ticker": "BBDC4",
-          "name": "Bradesco",
-          "price": 14.41,
-          "score": 70,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 87,
-            "valuation": 94,
-            "momentum": 35,
-            "risk": 50,
-            "confidence": 96
-          },
-          "previousScore": 68,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "GOAU4",
+          "ticker": "GOAU3",
           "name": "Gerdau Met",
-          "price": 10.94,
+          "price": 9.99,
           "score": 70,
           "signal": "buy",
           "confidence": 97,
           "parts": {
             "fundamentals": 65,
             "valuation": 85,
-            "momentum": 62,
-            "risk": 67,
+            "momentum": 63,
+            "risk": 66,
             "confidence": 97
           },
           "previousScore": 68,
@@ -79,746 +43,854 @@
           "delta": 2
         },
         {
-          "ticker": "BBDC3",
-          "name": "Bradesco",
-          "price": 13.19,
+          "ticker": "PINE4",
+          "name": "Pine",
+          "price": 10.8,
+          "score": 70,
+          "signal": "buy",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 84,
+            "valuation": 86,
+            "momentum": 48,
+            "risk": 40,
+            "confidence": 95
+          },
+          "previousScore": 69,
+          "previousSignal": "sell",
+          "delta": 1
+        },
+        {
+          "ticker": "WIZC3",
+          "name": "Wiz Co",
+          "price": 6.28,
           "score": 70,
           "signal": "buy",
           "confidence": 96,
           "parts": {
-            "fundamentals": 87,
-            "valuation": 94,
-            "momentum": 36,
-            "risk": 52,
+            "fundamentals": 82,
+            "valuation": 86,
+            "momentum": 47,
+            "risk": 51,
             "confidence": 96
           },
           "previousScore": 69,
           "previousSignal": "sell",
           "delta": 1
+        }
+      ],
+      "newSells": [
+        {
+          "ticker": "MLAS3",
+          "name": "Multilaser",
+          "price": 2.19,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 72,
+            "valuation": 92,
+            "momentum": 42,
+            "risk": 48,
+            "confidence": 95
+          },
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -6
+        },
+        {
+          "ticker": "SANB3",
+          "name": "Santander Br",
+          "price": 14.1,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 69,
+            "valuation": 88,
+            "momentum": 44,
+            "risk": 67,
+            "confidence": 97
+          },
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -5
+        },
+        {
+          "ticker": "SANB11",
+          "name": "Santander Br",
+          "price": 28.15,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 67,
+            "valuation": 88,
+            "momentum": 43,
+            "risk": 68,
+            "confidence": 96
+          },
+          "previousScore": 71,
+          "previousSignal": "buy",
+          "delta": -5
+        },
+        {
+          "ticker": "SANB4",
+          "name": "Santander Br",
+          "price": 14.09,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 69,
+            "valuation": 88,
+            "momentum": 51,
+            "risk": 67,
+            "confidence": 97
+          },
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -3
         },
         {
           "ticker": "MOTV3",
           "name": "Motiva Sa",
-          "price": 15.69,
-          "score": 70,
-          "signal": "buy",
+          "price": 15.8,
+          "score": 67,
+          "signal": "sell",
           "confidence": 96,
           "parts": {
             "fundamentals": 77,
             "valuation": 83,
-            "momentum": 53,
-            "risk": 53,
-            "confidence": 96
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
-          "delta": 1
-        }
-      ],
-      "newSells": [
-        {
-          "ticker": "NUTR3",
-          "name": "Nutriplant",
-          "price": 2.93,
-          "score": 66,
-          "signal": "sell",
-          "confidence": 93,
-          "parts": {
-            "fundamentals": 64,
-            "valuation": 80,
-            "momentum": 68,
-            "risk": 30,
-            "confidence": 93
-          },
-          "previousScore": 71,
-          "previousSignal": "buy",
-          "delta": -5
-        },
-        {
-          "ticker": "CURY3",
-          "name": "Cury S/A",
-          "price": 26.31,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 85,
-            "valuation": 73,
-            "momentum": 43,
-            "risk": 51,
-            "confidence": 95
-          },
-          "previousScore": 70,
-          "previousSignal": "buy",
-          "delta": -3
-        },
-        {
-          "ticker": "RSUL4",
-          "name": "Riosulense",
-          "price": 41.03,
-          "score": 68,
-          "signal": "sell",
-          "confidence": 94,
-          "parts": {
-            "fundamentals": 75,
-            "valuation": 92,
-            "momentum": 46,
-            "risk": 52,
-            "confidence": 94
-          },
-          "previousScore": 70,
-          "previousSignal": "buy",
-          "delta": -2
-        },
-        {
-          "ticker": "FIQE3",
-          "name": "Unifique",
-          "price": 5.6,
-          "score": 69,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 81,
-            "valuation": 80,
-            "momentum": 49,
-            "risk": 52,
+            "momentum": 44,
+            "risk": 54,
             "confidence": 96
           },
           "previousScore": 70,
-          "previousSignal": "buy",
-          "delta": -1
-        }
-      ],
-      "movers": [
-        {
-          "ticker": "BRKM6",
-          "name": "Braskem",
-          "price": 3.68,
-          "score": 51,
-          "signal": "sell",
-          "confidence": 71,
-          "parts": {
-            "fundamentals": 43,
-            "valuation": 60,
-            "momentum": 53,
-            "risk": 41,
-            "confidence": 71
-          },
-          "previousScore": 37,
-          "previousSignal": "sell",
-          "delta": 14
-        },
-        {
-          "ticker": "BRSR5",
-          "name": "Banrisul",
-          "price": 17,
-          "score": 77,
-          "signal": "buy",
-          "confidence": 94,
-          "parts": {
-            "fundamentals": 84,
-            "valuation": 94,
-            "momentum": 66,
-            "risk": 44,
-            "confidence": 94
-          },
-          "previousScore": 71,
-          "previousSignal": "buy",
-          "delta": 6
-        },
-        {
-          "ticker": "NUTR3",
-          "name": "Nutriplant",
-          "price": 2.93,
-          "score": 66,
-          "signal": "sell",
-          "confidence": 93,
-          "parts": {
-            "fundamentals": 64,
-            "valuation": 80,
-            "momentum": 68,
-            "risk": 30,
-            "confidence": 93
-          },
-          "previousScore": 71,
-          "previousSignal": "buy",
-          "delta": -5
-        },
-        {
-          "ticker": "WLMM4",
-          "name": "Wlm Ind Com",
-          "price": 14.66,
-          "score": 62,
-          "signal": "sell",
-          "confidence": 92,
-          "parts": {
-            "fundamentals": 68,
-            "valuation": 85,
-            "momentum": 42,
-            "risk": 38,
-            "confidence": 92
-          },
-          "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": -4
-        },
-        {
-          "ticker": "AZEV4",
-          "name": "Azevedo",
-          "price": 0.75,
-          "score": 50,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 54,
-            "valuation": 76,
-            "momentum": 25,
-            "risk": 33,
-            "confidence": 96
-          },
-          "previousScore": 54,
-          "previousSignal": "sell",
-          "delta": -4
-        },
-        {
-          "ticker": "SLCE3",
-          "name": "Slc Agricola",
-          "price": 18.06,
-          "score": 72,
-          "signal": "buy",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 73,
-            "valuation": 70,
-            "momentum": 73,
-            "risk": 62,
-            "confidence": 95
-          },
-          "previousScore": 75,
           "previousSignal": "buy",
           "delta": -3
         },
         {
           "ticker": "PFRM3",
           "name": "Profarma",
-          "price": 7.31,
-          "score": 71,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 74,
-            "valuation": 93,
-            "momentum": 54,
-            "risk": 52,
-            "confidence": 96
-          },
-          "previousScore": 68,
-          "previousSignal": "sell",
-          "delta": 3
-        },
-        {
-          "ticker": "CURY3",
-          "name": "Cury S/A",
-          "price": 26.31,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 85,
-            "valuation": 73,
-            "momentum": 43,
-            "risk": 51,
-            "confidence": 95
-          },
-          "previousScore": 70,
-          "previousSignal": "buy",
-          "delta": -3
-        },
-        {
-          "ticker": "EALT4",
-          "name": "Aco Altona",
-          "price": 10.2,
-          "score": 64,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 66,
-            "valuation": 85,
-            "momentum": 44,
-            "risk": 61,
-            "confidence": 95
-          },
-          "previousScore": 67,
-          "previousSignal": "sell",
-          "delta": -3
-        },
-        {
-          "ticker": "LJQQ3",
-          "name": "Quero-Quero",
-          "price": 1.14,
-          "score": 62,
-          "signal": "sell",
-          "confidence": 94,
-          "parts": {
-            "fundamentals": 60,
-            "valuation": 92,
-            "momentum": 50,
-            "risk": 28,
-            "confidence": 94
-          },
-          "previousScore": 59,
-          "previousSignal": "sell",
-          "delta": 3
-        },
-        {
-          "ticker": "CASH3",
-          "name": "Meliuz",
-          "price": 3.74,
-          "score": 60,
-          "signal": "sell",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 75,
-            "valuation": 92,
-            "momentum": 23,
-            "risk": 38,
-            "confidence": 95
-          },
-          "previousScore": 63,
-          "previousSignal": "sell",
-          "delta": -3
-        },
-        {
-          "ticker": "SCAR3",
-          "name": "Sao Carlos",
-          "price": 11.45,
-          "score": 58,
-          "signal": "sell",
-          "confidence": 91,
-          "parts": {
-            "fundamentals": 59,
-            "valuation": 66,
-            "momentum": 53,
-            "risk": 33,
-            "confidence": 91
-          },
-          "previousScore": 55,
-          "previousSignal": "sell",
-          "delta": 3
-        },
-        {
-          "ticker": "IFCM3",
-          "name": "Infracomm",
-          "price": 0.98,
-          "score": 54,
-          "signal": "sell",
-          "confidence": 91,
-          "parts": {
-            "fundamentals": 66,
-            "valuation": 92,
-            "momentum": 15,
-            "risk": 33,
-            "confidence": 91
-          },
-          "previousScore": 57,
-          "previousSignal": "sell",
-          "delta": -3
-        },
-        {
-          "ticker": "CEBR3",
-          "name": "Ceb",
-          "price": 23.59,
-          "score": 71,
-          "signal": "buy",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 80,
-            "valuation": 75,
-            "momentum": 54,
-            "risk": 66,
-            "confidence": 95
-          },
-          "previousScore": 73,
-          "previousSignal": "buy",
-          "delta": -2
-        },
-        {
-          "ticker": "CEBR5",
-          "name": "Ceb",
-          "price": 23.09,
-          "score": 71,
-          "signal": "buy",
-          "confidence": 94,
-          "parts": {
-            "fundamentals": 80,
-            "valuation": 75,
-            "momentum": 55,
-            "risk": 70,
-            "confidence": 94
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "BBDC4",
-          "name": "Bradesco",
-          "price": 14.41,
-          "score": 70,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 87,
-            "valuation": 94,
-            "momentum": 35,
-            "risk": 50,
-            "confidence": 96
-          },
-          "previousScore": 68,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "GOAU4",
-          "name": "Gerdau Met",
-          "price": 10.94,
-          "score": 70,
-          "signal": "buy",
-          "confidence": 97,
-          "parts": {
-            "fundamentals": 65,
-            "valuation": 85,
-            "momentum": 62,
-            "risk": 67,
-            "confidence": 97
-          },
-          "previousScore": 68,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "GGBR4",
-          "name": "Gerdau",
-          "price": 24.69,
+          "price": 7.48,
           "score": 69,
-          "signal": "sell",
-          "confidence": 97,
-          "parts": {
-            "fundamentals": 64,
-            "valuation": 75,
-            "momentum": 64,
-            "risk": 71,
-            "confidence": 97
-          },
-          "previousScore": 67,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "GGBR3",
-          "name": "Gerdau",
-          "price": 20.95,
-          "score": 68,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 64,
-            "valuation": 75,
-            "momentum": 61,
-            "risk": 70,
-            "confidence": 96
-          },
-          "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "INTB3",
-          "name": "Intelbras",
-          "price": 15.57,
-          "score": 68,
           "signal": "sell",
           "confidence": 96,
           "parts": {
             "fundamentals": 73,
-            "valuation": 80,
-            "momentum": 56,
-            "risk": 47,
-            "confidence": 96
-          },
-          "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": 2
-        }
-      ],
-      "enteredTop4": [
-        "SOND6"
-      ],
-      "leftTop4": [
-        "SOND5"
-      ],
-      "top4": [
-        "CALI3",
-        "SOND6",
-        "ARND3",
-        "DOHL3"
-      ],
-      "buys": 45,
-      "sells": 244,
-      "evaluated": 289
-    },
-    "long": {
-      "newBuys": [],
-      "newSells": [
-        {
-          "ticker": "CSED3",
-          "name": "Cruzeiro Edu",
-          "price": 3.85,
-          "score": 69,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "fundamentals": 67,
-            "valuation": 73,
-            "growth": 85,
-            "risk": 34,
+            "valuation": 90,
+            "momentum": 51,
+            "risk": 52,
             "confidence": 96
           },
           "previousScore": 71,
+          "previousSignal": "buy",
+          "delta": -2
+        },
+        {
+          "ticker": "BALM4",
+          "name": "Baumer",
+          "price": 15.69,
+          "score": 68,
+          "signal": "sell",
+          "confidence": 93,
+          "parts": {
+            "fundamentals": 72,
+            "valuation": 84,
+            "momentum": 58,
+            "risk": 37,
+            "confidence": 93
+          },
+          "previousScore": 70,
+          "previousSignal": "buy",
+          "delta": -2
+        },
+        {
+          "ticker": "GMAT3",
+          "name": "Grupo Mateus",
+          "price": 4.05,
+          "score": 68,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 80,
+            "valuation": 93,
+            "momentum": 43,
+            "risk": 33,
+            "confidence": 95
+          },
+          "previousScore": 70,
           "previousSignal": "buy",
           "delta": -2
         }
       ],
       "movers": [
         {
+          "ticker": "VTRU3",
+          "name": "Vitrueduca",
+          "price": 14.3,
+          "score": 61,
+          "signal": "sell",
+          "confidence": 94,
+          "parts": {
+            "fundamentals": 71,
+            "valuation": 92,
+            "momentum": 30,
+            "risk": 40,
+            "confidence": 94
+          },
+          "previousScore": 68,
+          "previousSignal": "sell",
+          "delta": -7
+        },
+        {
           "ticker": "AZEV3",
           "name": "Azevedo",
-          "price": 11.47,
+          "price": 10.85,
           "score": 58,
           "signal": "sell",
-          "confidence": 96,
+          "confidence": 95,
           "parts": {
             "fundamentals": 54,
             "valuation": 76,
-            "growth": 52,
-            "risk": 32,
+            "momentum": 52,
+            "risk": 33,
+            "confidence": 95
+          },
+          "previousScore": 65,
+          "previousSignal": "sell",
+          "delta": -7
+        },
+        {
+          "ticker": "SOND6",
+          "name": "Sondotecnica",
+          "price": 75,
+          "score": 76,
+          "signal": "buy",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 84,
+            "valuation": 83,
+            "momentum": 67,
+            "risk": 51,
+            "confidence": 96
+          },
+          "previousScore": 82,
+          "previousSignal": "buy",
+          "delta": -6
+        },
+        {
+          "ticker": "MLAS3",
+          "name": "Multilaser",
+          "price": 2.19,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 72,
+            "valuation": 92,
+            "momentum": 42,
+            "risk": 48,
+            "confidence": 95
+          },
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -6
+        },
+        {
+          "ticker": "SANB3",
+          "name": "Santander Br",
+          "price": 14.1,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 69,
+            "valuation": 88,
+            "momentum": 44,
+            "risk": 67,
+            "confidence": 97
+          },
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -5
+        },
+        {
+          "ticker": "SANB11",
+          "name": "Santander Br",
+          "price": 28.15,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 67,
+            "valuation": 88,
+            "momentum": 43,
+            "risk": 68,
+            "confidence": 96
+          },
+          "previousScore": 71,
+          "previousSignal": "buy",
+          "delta": -5
+        },
+        {
+          "ticker": "BEEF3",
+          "name": "Minerva",
+          "price": 3.71,
+          "score": 54,
+          "signal": "sell",
+          "confidence": 94,
+          "parts": {
+            "fundamentals": 63,
+            "valuation": 57,
+            "momentum": 43,
+            "risk": 30,
+            "confidence": 94
+          },
+          "previousScore": 59,
+          "previousSignal": "sell",
+          "delta": -5
+        },
+        {
+          "ticker": "MILS3",
+          "name": "Mills",
+          "price": 16.35,
+          "score": 74,
+          "signal": "buy",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 79,
+            "valuation": 80,
+            "momentum": 58,
+            "risk": 85,
+            "confidence": 97
+          },
+          "previousScore": 78,
+          "previousSignal": "buy",
+          "delta": -4
+        },
+        {
+          "ticker": "WLMM4",
+          "name": "Wlm Ind Com",
+          "price": 15.3,
+          "score": 66,
+          "signal": "sell",
+          "confidence": 93,
+          "parts": {
+            "fundamentals": 68,
+            "valuation": 85,
+            "momentum": 55,
+            "risk": 39,
+            "confidence": 93
+          },
+          "previousScore": 62,
+          "previousSignal": "sell",
+          "delta": 4
+        },
+        {
+          "ticker": "MGEL4",
+          "name": "Mangels Indl",
+          "price": 5.15,
+          "score": 61,
+          "signal": "sell",
+          "confidence": 93,
+          "parts": {
+            "fundamentals": 65,
+            "valuation": 88,
+            "momentum": 43,
+            "risk": 31,
+            "confidence": 93
+          },
+          "previousScore": 57,
+          "previousSignal": "sell",
+          "delta": 4
+        },
+        {
+          "ticker": "MGLU3",
+          "name": "Magaz Luiza",
+          "price": 8.32,
+          "score": 59,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 56,
+            "valuation": 92,
+            "momentum": 45,
+            "risk": 31,
             "confidence": 96
           },
           "previousScore": 63,
           "previousSignal": "sell",
-          "delta": -5
+          "delta": -4
         },
         {
-          "ticker": "AZEV4",
-          "name": "Azevedo",
-          "price": 0.75,
-          "score": 58,
+          "ticker": "TPIS3",
+          "name": "Triunfo Part",
+          "price": 11.99,
+          "score": 59,
           "signal": "sell",
-          "confidence": 98,
+          "confidence": 88,
           "parts": {
-            "fundamentals": 54,
+            "fundamentals": 39,
             "valuation": 76,
-            "growth": 52,
-            "risk": 33,
-            "confidence": 98
+            "momentum": 72,
+            "risk": 42,
+            "confidence": 88
           },
           "previousScore": 63,
           "previousSignal": "sell",
-          "delta": -5
+          "delta": -4
         },
         {
-          "ticker": "ARML3",
-          "name": "Armac",
-          "price": 4.13,
-          "score": 58,
+          "ticker": "RAIL3",
+          "name": "Rumo S.A.",
+          "price": 16.74,
+          "score": 57,
+          "signal": "sell",
+          "confidence": 94,
+          "parts": {
+            "fundamentals": 58,
+            "valuation": 58,
+            "momentum": 52,
+            "risk": 52,
+            "confidence": 94
+          },
+          "previousScore": 61,
+          "previousSignal": "sell",
+          "delta": -4
+        },
+        {
+          "ticker": "LIGT3",
+          "name": "Light S/A",
+          "price": 2.86,
+          "score": 47,
+          "signal": "sell",
+          "confidence": 90,
+          "parts": {
+            "fundamentals": 49,
+            "valuation": 56,
+            "momentum": 33,
+            "risk": 40,
+            "confidence": 90
+          },
+          "previousScore": 51,
+          "previousSignal": "sell",
+          "delta": -4
+        },
+        {
+          "ticker": "MNPR3",
+          "name": "Minupar",
+          "price": 3.55,
+          "score": 70,
+          "signal": "buy",
+          "confidence": 93,
+          "parts": {
+            "fundamentals": 83,
+            "valuation": 88,
+            "momentum": 48,
+            "risk": 41,
+            "confidence": 93
+          },
+          "previousScore": 73,
+          "previousSignal": "buy",
+          "delta": -3
+        },
+        {
+          "ticker": "SANB4",
+          "name": "Santander Br",
+          "price": 14.09,
+          "score": 69,
           "signal": "sell",
           "confidence": 97,
           "parts": {
-            "fundamentals": 61,
-            "valuation": 68,
-            "growth": 41,
-            "risk": 33,
+            "fundamentals": 69,
+            "valuation": 88,
+            "momentum": 51,
+            "risk": 67,
             "confidence": 97
           },
-          "previousScore": 61,
+          "previousScore": 72,
+          "previousSignal": "buy",
+          "delta": -3
+        },
+        {
+          "ticker": "LAVV3",
+          "name": "Lavvi",
+          "price": 7.85,
+          "score": 68,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 85,
+            "valuation": 93,
+            "momentum": 38,
+            "risk": 32,
+            "confidence": 95
+          },
+          "previousScore": 65,
+          "previousSignal": "sell",
+          "delta": 3
+        },
+        {
+          "ticker": "MOTV3",
+          "name": "Motiva Sa",
+          "price": 15.8,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 77,
+            "valuation": 83,
+            "momentum": 44,
+            "risk": 54,
+            "confidence": 96
+          },
+          "previousScore": 70,
+          "previousSignal": "buy",
+          "delta": -3
+        },
+        {
+          "ticker": "ABEV3",
+          "name": "Ambev S/A",
+          "price": 16.07,
+          "score": 65,
+          "signal": "sell",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 65,
+            "valuation": 65,
+            "momentum": 57,
+            "risk": 76,
+            "confidence": 95
+          },
+          "previousScore": 68,
           "previousSignal": "sell",
           "delta": -3
         },
         {
-          "ticker": "CEBR5",
-          "name": "Ceb",
-          "price": 23.09,
-          "score": 79,
+          "ticker": "CXSE3",
+          "name": "Caixa Seguri",
+          "price": 20.5,
+          "score": 65,
+          "signal": "sell",
+          "confidence": 94,
+          "parts": {
+            "fundamentals": 69,
+            "valuation": 56,
+            "momentum": 60,
+            "risk": 73,
+            "confidence": 94
+          },
+          "previousScore": 68,
+          "previousSignal": "sell",
+          "delta": -3
+        }
+      ],
+      "enteredTop4": [
+        "SOND5"
+      ],
+      "leftTop4": [
+        "SOND6"
+      ],
+      "top4": [
+        "CALI3",
+        "SOND5",
+        "DOHL3",
+        "ARND3"
+      ],
+      "buys": 41,
+      "sells": 248,
+      "evaluated": 289
+    },
+    "long": {
+      "newBuys": [
+        {
+          "ticker": "CSED3",
+          "name": "Cruzeiro Edu",
+          "price": 3.56,
+          "score": 71,
           "signal": "buy",
           "confidence": 96,
           "parts": {
-            "fundamentals": 80,
-            "valuation": 75,
-            "growth": 78,
-            "risk": 70,
+            "fundamentals": 69,
+            "valuation": 80,
+            "growth": 85,
+            "risk": 34,
             "confidence": 96
           },
-          "previousScore": 77,
-          "previousSignal": "buy",
+          "previousScore": 69,
+          "previousSignal": "sell",
           "delta": 2
+        }
+      ],
+      "newSells": [],
+      "movers": [
+        {
+          "ticker": "TPIS3",
+          "name": "Triunfo Part",
+          "price": 11.99,
+          "score": 46,
+          "signal": "sell",
+          "confidence": 90,
+          "parts": {
+            "fundamentals": 39,
+            "valuation": 76,
+            "growth": 15,
+            "risk": 42,
+            "confidence": 90
+          },
+          "previousScore": 51,
+          "previousSignal": "sell",
+          "delta": -5
         },
         {
-          "ticker": "DEXP4",
-          "name": "Dexxos Par",
-          "price": 6.91,
-          "score": 77,
-          "signal": "buy",
+          "ticker": "MRVE3",
+          "name": "Mrv",
+          "price": 4.77,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 68,
+            "valuation": 85,
+            "growth": 52,
+            "risk": 34,
+            "confidence": 97
+          },
+          "previousScore": 64,
+          "previousSignal": "sell",
+          "delta": 3
+        },
+        {
+          "ticker": "BEEF3",
+          "name": "Minerva",
+          "price": 3.71,
+          "score": 64,
+          "signal": "sell",
           "confidence": 96,
           "parts": {
-            "fundamentals": 78,
-            "valuation": 93,
-            "growth": 56,
-            "risk": 58,
+            "fundamentals": 63,
+            "valuation": 57,
+            "growth": 87,
+            "risk": 30,
             "confidence": 96
           },
-          "previousScore": 75,
+          "previousScore": 67,
+          "previousSignal": "sell",
+          "delta": -3
+        },
+        {
+          "ticker": "LAVV3",
+          "name": "Lavvi",
+          "price": 7.85,
+          "score": 82,
+          "signal": "buy",
+          "confidence": 97,
+          "parts": {
+            "fundamentals": 85,
+            "valuation": 93,
+            "growth": 85,
+            "risk": 32,
+            "confidence": 97
+          },
+          "previousScore": 80,
           "previousSignal": "buy",
           "delta": 2
         },
         {
           "ticker": "SLCE3",
           "name": "Slc Agricola",
-          "price": 18.06,
-          "score": 73,
+          "price": 17.88,
+          "score": 75,
           "signal": "buy",
           "confidence": 97,
           "parts": {
-            "fundamentals": 73,
-            "valuation": 70,
+            "fundamentals": 74,
+            "valuation": 75,
             "growth": 78,
-            "risk": 62,
+            "risk": 63,
             "confidence": 97
           },
-          "previousScore": 75,
+          "previousScore": 73,
           "previousSignal": "buy",
-          "delta": -2
+          "delta": 2
         },
         {
           "ticker": "CSED3",
           "name": "Cruzeiro Edu",
-          "price": 3.85,
-          "score": 69,
-          "signal": "sell",
+          "price": 3.56,
+          "score": 71,
+          "signal": "buy",
           "confidence": 96,
           "parts": {
-            "fundamentals": 67,
-            "valuation": 73,
+            "fundamentals": 69,
+            "valuation": 80,
             "growth": 85,
             "risk": 34,
             "confidence": 96
           },
-          "previousScore": 71,
-          "previousSignal": "buy",
+          "previousScore": 69,
+          "previousSignal": "sell",
+          "delta": 2
+        },
+        {
+          "ticker": "CGRA4",
+          "name": "Grazziotin",
+          "price": 20.9,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 98,
+          "parts": {
+            "fundamentals": 69,
+            "valuation": 90,
+            "growth": 35,
+            "risk": 66,
+            "confidence": 98
+          },
+          "previousScore": 67,
+          "previousSignal": "sell",
+          "delta": 2
+        },
+        {
+          "ticker": "CGRA3",
+          "name": "Grazziotin",
+          "price": 21.69,
+          "score": 68,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "fundamentals": 69,
+            "valuation": 90,
+            "growth": 35,
+            "risk": 54,
+            "confidence": 96
+          },
+          "previousScore": 66,
+          "previousSignal": "sell",
+          "delta": 2
+        },
+        {
+          "ticker": "TTEN3",
+          "name": "3Tentos",
+          "price": 11.85,
+          "score": 67,
+          "signal": "sell",
+          "confidence": 98,
+          "parts": {
+            "fundamentals": 64,
+            "valuation": 69,
+            "growth": 78,
+            "risk": 46,
+            "confidence": 98
+          },
+          "previousScore": 69,
+          "previousSignal": "sell",
           "delta": -2
         },
         {
-          "ticker": "HBSA3",
-          "name": "Hidrovias",
-          "price": 3.13,
-          "score": 67,
+          "ticker": "GRND3",
+          "name": "Grendene",
+          "price": 3.7,
+          "score": 64,
           "signal": "sell",
-          "confidence": 95,
+          "confidence": 98,
           "parts": {
-            "fundamentals": 67,
-            "valuation": 68,
-            "growth": 70,
-            "risk": 45,
-            "confidence": 95
+            "fundamentals": 68,
+            "valuation": 77,
+            "growth": 26,
+            "risk": 54,
+            "confidence": 98
           },
-          "previousScore": 65,
+          "previousScore": 62,
           "previousSignal": "sell",
           "delta": 2
         },
         {
           "ticker": "PRNR3",
           "name": "Priner",
-          "price": 12.75,
-          "score": 63,
+          "price": 12.84,
+          "score": 61,
           "signal": "sell",
           "confidence": 96,
           "parts": {
-            "fundamentals": 62,
-            "valuation": 75,
+            "fundamentals": 61,
+            "valuation": 70,
             "growth": 52,
             "risk": 41,
             "confidence": 96
           },
-          "previousScore": 61,
+          "previousScore": 63,
           "previousSignal": "sell",
-          "delta": 2
-        },
-        {
-          "ticker": "BRKM6",
-          "name": "Braskem",
-          "price": 3.68,
-          "score": 48,
-          "signal": "sell",
-          "confidence": 72,
-          "parts": {
-            "fundamentals": 43,
-            "valuation": 60,
-            "growth": 42,
-            "risk": 41,
-            "confidence": 72
-          },
-          "previousScore": 46,
-          "previousSignal": "sell",
-          "delta": 2
+          "delta": -2
         },
         {
           "ticker": "BRSR3",
           "name": "Banrisul",
-          "price": 17,
-          "score": 85,
-          "signal": "buy",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 84,
-            "valuation": 94,
-            "growth": 92,
-            "risk": 60,
-            "confidence": 95
-          },
-          "previousScore": 86,
-          "previousSignal": "buy",
-          "delta": -1
-        },
-        {
-          "ticker": "BRSR5",
-          "name": "Banrisul",
-          "price": 17,
-          "score": 84,
+          "price": 16.93,
+          "score": 86,
           "signal": "buy",
           "confidence": 96,
           "parts": {
             "fundamentals": 84,
             "valuation": 94,
             "growth": 92,
-            "risk": 44,
+            "risk": 62,
             "confidence": 96
           },
-          "previousScore": 83,
+          "previousScore": 85,
           "previousSignal": "buy",
           "delta": 1
         },
         {
-          "ticker": "IGTI4",
-          "name": "Iguatemi S.A",
-          "price": 9.68,
+          "ticker": "MNPR3",
+          "name": "Minupar",
+          "price": 3.55,
+          "score": 82,
+          "signal": "buy",
+          "confidence": 95,
+          "parts": {
+            "fundamentals": 83,
+            "valuation": 88,
+            "growth": 92,
+            "risk": 41,
+            "confidence": 95
+          },
+          "previousScore": 83,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
+          "ticker": "MILS3",
+          "name": "Mills",
+          "price": 16.35,
           "score": 80,
           "signal": "buy",
-          "confidence": 89,
+          "confidence": 99,
           "parts": {
-            "fundamentals": 82,
-            "valuation": 84,
-            "growth": 92,
-            "risk": 44,
-            "confidence": 89
+            "fundamentals": 79,
+            "valuation": 80,
+            "growth": 71,
+            "risk": 85,
+            "confidence": 99
+          },
+          "previousScore": 81,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
+          "ticker": "VULC3",
+          "name": "Vulcabras",
+          "price": 11.21,
+          "score": 80,
+          "signal": "buy",
+          "confidence": 98,
+          "parts": {
+            "fundamentals": 84,
+            "valuation": 80,
+            "growth": 85,
+            "risk": 46,
+            "confidence": 98
           },
           "previousScore": 81,
           "previousSignal": "buy",
@@ -827,128 +899,92 @@
         {
           "ticker": "WIZC3",
           "name": "Wiz Co",
-          "price": 6.35,
-          "score": 79,
+          "price": 6.28,
+          "score": 80,
           "signal": "buy",
-          "confidence": 97,
+          "confidence": 98,
           "parts": {
-            "fundamentals": 81,
+            "fundamentals": 82,
             "valuation": 86,
             "growth": 78,
-            "risk": 48,
-            "confidence": 97
+            "risk": 51,
+            "confidence": 98
           },
-          "previousScore": 80,
+          "previousScore": 79,
           "previousSignal": "buy",
-          "delta": -1
+          "delta": 1
         },
         {
-          "ticker": "DEXP3",
-          "name": "Dexxos Par",
-          "price": 6.93,
-          "score": 77,
+          "ticker": "ECOM3",
+          "name": "Economatica",
+          "price": 0.86,
+          "score": 75,
           "signal": "buy",
           "confidence": 96,
           "parts": {
-            "fundamentals": 78,
-            "valuation": 93,
-            "growth": 56,
-            "risk": 59,
+            "fundamentals": 81,
+            "valuation": 94,
+            "growth": 50,
+            "risk": 38,
             "confidence": 96
           },
           "previousScore": 76,
           "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "ITUB3",
-          "name": "Itauunibanco",
-          "price": 45.08,
-          "score": 76,
-          "signal": "buy",
-          "confidence": 98,
-          "parts": {
-            "fundamentals": 76,
-            "valuation": 80,
-            "growth": 71,
-            "risk": 68,
-            "confidence": 98
-          },
-          "previousScore": 75,
-          "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "CLSC4",
-          "name": "Celesc",
-          "price": 173.99,
-          "score": 73,
-          "signal": "buy",
-          "confidence": 97,
-          "parts": {
-            "fundamentals": 71,
-            "valuation": 80,
-            "growth": 65,
-            "risk": 72,
-            "confidence": 97
-          },
-          "previousScore": 72,
-          "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "DOTZ3",
-          "name": "Dotz Sa",
-          "price": 6.96,
-          "score": 71,
-          "signal": "buy",
-          "confidence": 95,
-          "parts": {
-            "fundamentals": 68,
-            "valuation": 92,
-            "growth": 70,
-            "risk": 31,
-            "confidence": 95
-          },
-          "previousScore": 70,
-          "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "BEES3",
-          "name": "Banestes",
-          "price": 9.32,
-          "score": 68,
-          "signal": "sell",
-          "confidence": 97,
-          "parts": {
-            "fundamentals": 65,
-            "valuation": 80,
-            "growth": 48,
-            "risk": 76,
-            "confidence": 97
-          },
-          "previousScore": 69,
-          "previousSignal": "sell",
           "delta": -1
         },
         {
-          "ticker": "ECOR3",
-          "name": "Ecorodovias",
-          "price": 6.09,
-          "score": 68,
-          "signal": "sell",
+          "ticker": "PFRM3",
+          "name": "Profarma",
+          "price": 7.48,
+          "score": 75,
+          "signal": "buy",
+          "confidence": 98,
+          "parts": {
+            "fundamentals": 73,
+            "valuation": 90,
+            "growth": 71,
+            "risk": 52,
+            "confidence": 98
+          },
+          "previousScore": 76,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
+          "ticker": "ESPA3",
+          "name": "Espacolaser",
+          "price": 5.05,
+          "score": 72,
+          "signal": "buy",
           "confidence": 98,
           "parts": {
             "fundamentals": 70,
-            "valuation": 85,
-            "growth": 56,
-            "risk": 31,
+            "valuation": 80,
+            "growth": 78,
+            "risk": 41,
             "confidence": 98
           },
-          "previousScore": 69,
-          "previousSignal": "sell",
+          "previousScore": 73,
+          "previousSignal": "buy",
           "delta": -1
+        },
+        {
+          "ticker": "BALM3",
+          "name": "Baumer",
+          "price": 22.01,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 98,
+          "parts": {
+            "fundamentals": 72,
+            "valuation": 84,
+            "growth": 41,
+            "risk": 47,
+            "confidence": 98
+          },
+          "previousScore": 68,
+          "previousSignal": "sell",
+          "delta": 1
         }
       ],
       "enteredTop4": [],
@@ -959,8 +995,8 @@
         "BRSR3",
         "OFSA3"
       ],
-      "buys": 115,
-      "sells": 174,
+      "buys": 116,
+      "sells": 173,
       "evaluated": 289
     },
     "dividends": {
@@ -968,89 +1004,107 @@
       "newSells": [],
       "movers": [
         {
-          "ticker": "TAEE11",
-          "name": "Taesa",
-          "price": 40.77,
-          "score": 61,
+          "ticker": "MILS3",
+          "name": "Mills",
+          "price": 16.35,
+          "score": 75,
+          "signal": "buy",
+          "confidence": 99,
+          "parts": {
+            "quality": 79,
+            "dividends": 63,
+            "valuation": 80,
+            "risk": 85,
+            "confidence": 99
+          },
+          "previousScore": 79,
+          "previousSignal": "buy",
+          "delta": -4
+        },
+        {
+          "ticker": "EALT4",
+          "name": "Aco Altona",
+          "price": 9.98,
+          "score": 67,
           "signal": "sell",
           "confidence": 97,
           "parts": {
-            "quality": 56,
-            "dividends": 57,
-            "valuation": 58,
-            "risk": 74,
+            "quality": 52,
+            "dividends": 72,
+            "valuation": 85,
+            "risk": 60,
             "confidence": 97
           },
-          "previousScore": 58,
+          "previousScore": 64,
           "previousSignal": "sell",
           "delta": 3
         },
         {
-          "ticker": "TAEE4",
-          "name": "Taesa",
-          "price": 13.7,
-          "score": 61,
+          "ticker": "TPIS3",
+          "name": "Triunfo Part",
+          "price": 11.99,
+          "score": 43,
           "signal": "sell",
-          "confidence": 96,
+          "confidence": 90,
           "parts": {
-            "quality": 56,
-            "dividends": 57,
-            "valuation": 58,
-            "risk": 76,
-            "confidence": 96
+            "quality": 19,
+            "dividends": 47,
+            "valuation": 76,
+            "risk": 42,
+            "confidence": 90
           },
-          "previousScore": 58,
+          "previousScore": 46,
           "previousSignal": "sell",
-          "delta": 3
+          "delta": -3
         },
         {
-          "ticker": "ITUB3",
-          "name": "Itauunibanco",
-          "price": 45.08,
-          "score": 78,
+          "ticker": "VULC3",
+          "name": "Vulcabras",
+          "price": 11.21,
+          "score": 80,
           "signal": "buy",
           "confidence": 98,
           "parts": {
-            "quality": 68,
-            "dividends": 88,
+            "quality": 85,
+            "dividends": 82,
             "valuation": 80,
-            "risk": 68,
+            "risk": 46,
             "confidence": 98
           },
-          "previousScore": 76,
+          "previousScore": 82,
           "previousSignal": "buy",
-          "delta": 2
+          "delta": -2
         },
         {
-          "ticker": "CEBR5",
-          "name": "Ceb",
-          "price": 23.09,
-          "score": 76,
+          "ticker": "MDNE3",
+          "name": "Moura Dubeux",
+          "price": 16.83,
+          "score": 79,
           "signal": "buy",
-          "confidence": 96,
+          "confidence": 97,
           "parts": {
-            "quality": 83,
-            "dividends": 67,
-            "valuation": 75,
-            "risk": 70,
-            "confidence": 96
+            "quality": 89,
+            "dividends": 72,
+            "valuation": 93,
+            "risk": 35,
+            "confidence": 97
           },
-          "previousScore": 74,
+          "previousScore": 77,
           "previousSignal": "buy",
           "delta": 2
         },
         {
-          "ticker": "DEXP4",
-          "name": "Dexxos Par",
-          "price": 6.91,
+          "ticker": "CXSE3",
+          "name": "Caixa Seguri",
+          "price": 20.5,
           "score": 73,
           "signal": "buy",
           "confidence": 96,
           "parts": {
-            "quality": 61,
-            "dividends": 77,
-            "valuation": 93,
-            "risk": 58,
+            "quality": 75,
+            "dividends": 75,
+            "valuation": 56,
+            "risk": 73,
             "confidence": 96
           },
           "previousScore": 71,
@@ -1058,164 +1112,92 @@
           "delta": 2
         },
         {
-          "ticker": "CPLE3",
-          "name": "Copel",
-          "price": 15.35,
-          "score": 67,
+          "ticker": "TECN3",
+          "name": "Technos",
+          "price": 8.24,
+          "score": 63,
           "signal": "sell",
-          "confidence": 97,
+          "confidence": 96,
           "parts": {
-            "quality": 61,
-            "dividends": 66,
-            "valuation": 69,
-            "risk": 72,
-            "confidence": 97
+            "quality": 65,
+            "dividends": 53,
+            "valuation": 80,
+            "risk": 49,
+            "confidence": 96
           },
-          "previousScore": 69,
+          "previousScore": 65,
           "previousSignal": "sell",
           "delta": -2
         },
         {
-          "ticker": "TAEE3",
-          "name": "Taesa",
-          "price": 13.43,
-          "score": 60,
-          "signal": "sell",
-          "confidence": 96,
-          "parts": {
-            "quality": 56,
-            "dividends": 57,
-            "valuation": 58,
-            "risk": 73,
-            "confidence": 96
-          },
-          "previousScore": 58,
-          "previousSignal": "sell",
-          "delta": 2
-        },
-        {
           "ticker": "ECOR3",
           "name": "Ecorodovias",
-          "price": 6.09,
-          "score": 59,
+          "price": 5.91,
+          "score": 61,
           "signal": "sell",
           "confidence": 98,
           "parts": {
             "quality": 51,
-            "dividends": 58,
+            "dividends": 65,
             "valuation": 85,
             "risk": 31,
             "confidence": 98
+          },
+          "previousScore": 59,
+          "previousSignal": "sell",
+          "delta": 2
+        },
+        {
+          "ticker": "BEEF3",
+          "name": "Minerva",
+          "price": 3.71,
+          "score": 59,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "quality": 66,
+            "dividends": 56,
+            "valuation": 57,
+            "risk": 30,
+            "confidence": 96
           },
           "previousScore": 61,
           "previousSignal": "sell",
           "delta": -2
         },
         {
-          "ticker": "ARML3",
-          "name": "Armac",
-          "price": 4.13,
-          "score": 52,
-          "signal": "sell",
-          "confidence": 97,
-          "parts": {
-            "quality": 37,
-            "dividends": 58,
-            "valuation": 68,
-            "risk": 33,
-            "confidence": 97
-          },
-          "previousScore": 54,
-          "previousSignal": "sell",
-          "delta": -2
-        },
-        {
-          "ticker": "BRSR6",
-          "name": "Banrisul",
-          "price": 12.63,
-          "score": 83,
-          "signal": "buy",
-          "confidence": 97,
-          "parts": {
-            "quality": 77,
-            "dividends": 92,
-            "valuation": 94,
-            "risk": 52,
-            "confidence": 97
-          },
-          "previousScore": 84,
-          "previousSignal": "buy",
-          "delta": -1
-        },
-        {
-          "ticker": "BRSR5",
-          "name": "Banrisul",
-          "price": 17,
-          "score": 81,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "quality": 77,
-            "dividends": 88,
-            "valuation": 94,
-            "risk": 44,
-            "confidence": 96
-          },
-          "previousScore": 82,
-          "previousSignal": "buy",
-          "delta": -1
-        },
-        {
           "ticker": "WIZC3",
           "name": "Wiz Co",
-          "price": 6.35,
-          "score": 78,
+          "price": 6.28,
+          "score": 79,
           "signal": "buy",
-          "confidence": 97,
+          "confidence": 98,
           "parts": {
             "quality": 80,
-            "dividends": 77,
+            "dividends": 81,
             "valuation": 86,
-            "risk": 48,
-            "confidence": 97
-          },
-          "previousScore": 79,
-          "previousSignal": "buy",
-          "delta": -1
-        },
-        {
-          "ticker": "TEND3",
-          "name": "Tenda",
-          "price": 15.81,
-          "score": 77,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "quality": 89,
-            "dividends": 72,
-            "valuation": 88,
-            "risk": 31,
-            "confidence": 96
+            "risk": 51,
+            "confidence": 98
           },
           "previousScore": 78,
           "previousSignal": "buy",
-          "delta": -1
+          "delta": 1
         },
         {
-          "ticker": "IGTI3",
-          "name": "Iguatemi S.A",
-          "price": 2.85,
-          "score": 76,
+          "ticker": "LAVV3",
+          "name": "Lavvi",
+          "price": 7.85,
+          "score": 77,
           "signal": "buy",
           "confidence": 97,
           "parts": {
-            "quality": 88,
-            "dividends": 63,
-            "valuation": 84,
-            "risk": 55,
+            "quality": 83,
+            "dividends": 73,
+            "valuation": 93,
+            "risk": 32,
             "confidence": 97
           },
-          "previousScore": 75,
+          "previousScore": 76,
           "previousSignal": "buy",
           "delta": 1
         },
@@ -1223,117 +1205,167 @@
           "ticker": "HBTS5",
           "name": "Habitasul",
           "price": 33,
-          "score": 75,
+          "score": 76,
           "signal": "buy",
-          "confidence": 92,
+          "confidence": 98,
           "parts": {
             "quality": 79,
             "dividends": 70,
             "valuation": 88,
-            "risk": 55,
-            "confidence": 92
+            "risk": 56,
+            "confidence": 98
           },
-          "previousScore": 76,
-          "previousSignal": "buy",
-          "delta": -1
-        },
-        {
-          "ticker": "DEXP3",
-          "name": "Dexxos Par",
-          "price": 6.93,
-          "score": 73,
-          "signal": "buy",
-          "confidence": 96,
-          "parts": {
-            "quality": 61,
-            "dividends": 77,
-            "valuation": 93,
-            "risk": 59,
-            "confidence": 96
-          },
-          "previousScore": 72,
+          "previousScore": 75,
           "previousSignal": "buy",
           "delta": 1
         },
         {
-          "ticker": "CLSC4",
-          "name": "Celesc",
-          "price": 173.99,
+          "ticker": "MNPR3",
+          "name": "Minupar",
+          "price": 3.55,
           "score": 72,
           "signal": "buy",
-          "confidence": 97,
+          "confidence": 95,
           "parts": {
-            "quality": 67,
-            "dividends": 70,
-            "valuation": 80,
-            "risk": 72,
-            "confidence": 97
-          },
-          "previousScore": 71,
-          "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "IGTI4",
-          "name": "Iguatemi S.A",
-          "price": 9.68,
-          "score": 72,
-          "signal": "buy",
-          "confidence": 89,
-          "parts": {
-            "quality": 88,
-            "dividends": 57,
-            "valuation": 84,
-            "risk": 44,
-            "confidence": 89
+            "quality": 89,
+            "dividends": 53,
+            "valuation": 88,
+            "risk": 41,
+            "confidence": 95
           },
           "previousScore": 73,
           "previousSignal": "buy",
           "delta": -1
         },
         {
-          "ticker": "POMO3",
-          "name": "Marcopolo",
-          "price": 3.62,
-          "score": 72,
-          "signal": "buy",
-          "confidence": 98,
-          "parts": {
-            "quality": 66,
-            "dividends": 73,
-            "valuation": 88,
-            "risk": 48,
-            "confidence": 98
-          },
-          "previousScore": 71,
-          "previousSignal": "buy",
-          "delta": 1
-        },
-        {
-          "ticker": "ALPA3",
-          "name": "Alpargatas",
-          "price": 10.28,
+          "ticker": "VIVT3",
+          "name": "Telef Brasil",
+          "price": 35.56,
           "score": 71,
           "signal": "buy",
           "confidence": 97,
           "parts": {
-            "quality": 84,
-            "dividends": 62,
+            "quality": 68,
+            "dividends": 76,
             "valuation": 64,
-            "risk": 50,
+            "risk": 58,
             "confidence": 97
           },
           "previousScore": 70,
           "previousSignal": "buy",
           "delta": 1
+        },
+        {
+          "ticker": "EUCA3",
+          "name": "Eucatex",
+          "price": 19.6,
+          "score": 70,
+          "signal": "buy",
+          "confidence": 89,
+          "parts": {
+            "quality": 75,
+            "dividends": 60,
+            "valuation": 93,
+            "risk": 47,
+            "confidence": 89
+          },
+          "previousScore": 71,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
+          "ticker": "SLCE3",
+          "name": "Slc Agricola",
+          "price": 17.88,
+          "score": 68,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "quality": 70,
+            "dividends": 60,
+            "valuation": 75,
+            "risk": 63,
+            "confidence": 97
+          },
+          "previousScore": 67,
+          "previousSignal": "sell",
+          "delta": 1
+        },
+        {
+          "ticker": "CSED3",
+          "name": "Cruzeiro Edu",
+          "price": 3.56,
+          "score": 65,
+          "signal": "sell",
+          "confidence": 96,
+          "parts": {
+            "quality": 65,
+            "dividends": 62,
+            "valuation": 80,
+            "risk": 34,
+            "confidence": 96
+          },
+          "previousScore": 64,
+          "previousSignal": "sell",
+          "delta": 1
+        },
+        {
+          "ticker": "BALM3",
+          "name": "Baumer",
+          "price": 22.01,
+          "score": 64,
+          "signal": "sell",
+          "confidence": 98,
+          "parts": {
+            "quality": 53,
+            "dividends": 67,
+            "valuation": 84,
+            "risk": 47,
+            "confidence": 98
+          },
+          "previousScore": 63,
+          "previousSignal": "sell",
+          "delta": 1
+        },
+        {
+          "ticker": "EALT3",
+          "name": "Aco Altona",
+          "price": 11,
+          "score": 64,
+          "signal": "sell",
+          "confidence": 97,
+          "parts": {
+            "quality": 52,
+            "dividends": 64,
+            "valuation": 85,
+            "risk": 54,
+            "confidence": 97
+          },
+          "previousScore": 63,
+          "previousSignal": "sell",
+          "delta": 1
+        },
+        {
+          "ticker": "GRND3",
+          "name": "Grendene",
+          "price": 3.7,
+          "score": 62,
+          "signal": "sell",
+          "confidence": 98,
+          "parts": {
+            "quality": 45,
+            "dividends": 70,
+            "valuation": 77,
+            "risk": 54,
+            "confidence": 98
+          },
+          "previousScore": 61,
+          "previousSignal": "sell",
+          "delta": 1
         }
       ],
-      "enteredTop4": [
-        "BRSR3"
-      ],
-      "leftTop4": [
-        "BRSR6"
-      ],
+      "enteredTop4": [],
+      "leftTop4": [],
       "top4": [
         "BBDC3",
         "JHSF3",
@@ -224560,6 +224592,4044 @@
             "score": 36,
             "signal": "sell",
             "price": 4.7
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-11-18",
+      "generatedAt": "2026-11-19T02:07:35.115Z",
+      "modelVersion": "b3-score-4.0",
+      "strategies": {
+        "swing": {
+          "CALI3": {
+            "score": 83,
+            "signal": "buy",
+            "price": 30.84
+          },
+          "SOND5": {
+            "score": 80,
+            "signal": "buy",
+            "price": 80.01
+          },
+          "DOHL3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 6.46
+          },
+          "ARND3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 0.73
+          },
+          "BRSR5": {
+            "score": 77,
+            "signal": "buy",
+            "price": 17
+          },
+          "ISAE3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 35.6
+          },
+          "DOHL4": {
+            "score": 76,
+            "signal": "buy",
+            "price": 3.67
+          },
+          "SOND6": {
+            "score": 76,
+            "signal": "buy",
+            "price": 75
+          },
+          "OFSA3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 26.05
+          },
+          "CLSC3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 157.4
+          },
+          "MILS3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 16.35
+          },
+          "BRSR3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 16.93
+          },
+          "CBAV3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 11.34
+          },
+          "CEBR6": {
+            "score": 73,
+            "signal": "buy",
+            "price": 27
+          },
+          "ISAE4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 26.19
+          },
+          "ITSA3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 13.56
+          },
+          "ITSA4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 13.15
+          },
+          "JHSF3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 9.76
+          },
+          "MWET4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 23.9
+          },
+          "SLCE3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 17.88
+          },
+          "CEBR5": {
+            "score": 72,
+            "signal": "buy",
+            "price": 23.2
+          },
+          "DEXP3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 6.87
+          },
+          "SHOW3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 6.24
+          },
+          "SUZB3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 55.6
+          },
+          "BBDC3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 12.9
+          },
+          "BRSR6": {
+            "score": 71,
+            "signal": "buy",
+            "price": 12.58
+          },
+          "CEBR3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 23.3
+          },
+          "CLSC4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 171.59
+          },
+          "CMIG3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 17.59
+          },
+          "DEXP4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 6.8
+          },
+          "GOAU4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 11.25
+          },
+          "ITUB3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 44.24
+          },
+          "ITUB4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 40.19
+          },
+          "ALLD3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 6.81
+          },
+          "BBDC4": {
+            "score": 70,
+            "signal": "buy",
+            "price": 14.08
+          },
+          "DIRR3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 8.93
+          },
+          "GOAU3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 9.99
+          },
+          "MNPR3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 3.55
+          },
+          "PINE4": {
+            "score": 70,
+            "signal": "buy",
+            "price": 10.8
+          },
+          "PSSA3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 44.66
+          },
+          "WIZC3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 6.28
+          },
+          "BEES4": {
+            "score": 69,
+            "signal": "sell",
+            "price": 9.47
+          },
+          "CPFE3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 44.14
+          },
+          "FIQE3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 5.75
+          },
+          "GGBR4": {
+            "score": 69,
+            "signal": "sell",
+            "price": 25.59
+          },
+          "HBTS5": {
+            "score": 69,
+            "signal": "sell",
+            "price": 33
+          },
+          "PFRM3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 7.48
+          },
+          "PINE3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 9.56
+          },
+          "RSUL4": {
+            "score": 69,
+            "signal": "sell",
+            "price": 39.98
+          },
+          "SANB4": {
+            "score": 69,
+            "signal": "sell",
+            "price": 14.09
+          },
+          "VBBR3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 30.39
+          },
+          "AMER3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 4
+          },
+          "AZZA3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 15.78
+          },
+          "BALM4": {
+            "score": 68,
+            "signal": "sell",
+            "price": 15.69
+          },
+          "BEES3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 9.09
+          },
+          "CYRE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 19.1
+          },
+          "CYRE4": {
+            "score": 68,
+            "signal": "sell",
+            "price": 18.13
+          },
+          "GGBR3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 21.68
+          },
+          "GMAT3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 4.05
+          },
+          "HYPE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 21.97
+          },
+          "IGTI11": {
+            "score": 68,
+            "signal": "sell",
+            "price": 21.86
+          },
+          "LAVV3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 7.85
+          },
+          "LREN3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 9.47
+          },
+          "MDIA3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 16.64
+          },
+          "MDNE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 16.83
+          },
+          "RECV3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 10.27
+          },
+          "UGPA3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 31.6
+          },
+          "BMGB4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 5.07
+          },
+          "BMOB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 24.86
+          },
+          "CMIG4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 10.93
+          },
+          "EUCA3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 19.6
+          },
+          "EUCA4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 18.25
+          },
+          "INTB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.58
+          },
+          "JOPA3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 19.94
+          },
+          "LEVE3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 31.11
+          },
+          "MOTV3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.8
+          },
+          "MTRE3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "MULT3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 26.67
+          },
+          "RANI3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 8.07
+          },
+          "RIAA3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 6
+          },
+          "SANB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 14.1
+          },
+          "ALUP11": {
+            "score": 66,
+            "signal": "sell",
+            "price": 32.85
+          },
+          "ANIM3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 2.43
+          },
+          "BLAU3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 9.51
+          },
+          "CAMB3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 6.95
+          },
+          "CPLE3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 15.28
+          },
+          "CSUD3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 13.74
+          },
+          "CURY3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 25.3
+          },
+          "ECOM3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 0.86
+          },
+          "IGTI3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 2.83
+          },
+          "MLAS3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 2.19
+          },
+          "POMO3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 3.55
+          },
+          "POMO4": {
+            "score": 66,
+            "signal": "sell",
+            "price": 3.78
+          },
+          "SANB11": {
+            "score": 66,
+            "signal": "sell",
+            "price": 28.15
+          },
+          "TRIS3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 4.39
+          },
+          "VLID3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 14.88
+          },
+          "VSTE3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 2.78
+          },
+          "WLMM4": {
+            "score": 66,
+            "signal": "sell",
+            "price": 15.3
+          },
+          "ABEV3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 16.07
+          },
+          "ALOS3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 26.21
+          },
+          "BRAP3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 15.68
+          },
+          "CGRA3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 21.69
+          },
+          "CXSE3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 20.5
+          },
+          "EZTC3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 9.32
+          },
+          "GRND3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 3.7
+          },
+          "MSPA3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 37.4
+          },
+          "PRIO3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 61.87
+          },
+          "REDE3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 5.14
+          },
+          "SMTO3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 17.86
+          },
+          "TAEE11": {
+            "score": 65,
+            "signal": "sell",
+            "price": 40.56
+          },
+          "TAEE3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 13.36
+          },
+          "TECN3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 8.24
+          },
+          "VULC3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 11.21
+          },
+          "ALPA4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 13.38
+          },
+          "ASAI3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 9.47
+          },
+          "AUAU3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 4.27
+          },
+          "BALM3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 22.01
+          },
+          "EALT4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 9.98
+          },
+          "GGPS3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 10.58
+          },
+          "JOPA4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 18
+          },
+          "MATD3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 5.22
+          },
+          "MNDL3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 18.5
+          },
+          "MSPA4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 33
+          },
+          "MWET3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 24.5
+          },
+          "NUTR3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 2.85
+          },
+          "PETR3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 49.3
+          },
+          "PETR4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 43.17
+          },
+          "PNVL3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 11
+          },
+          "RDOR3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 36.31
+          },
+          "SMFT3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 17.75
+          },
+          "TAEE4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 13.57
+          },
+          "VAMO3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 2.59
+          },
+          "ALPA3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 10.11
+          },
+          "BRAP4": {
+            "score": 63,
+            "signal": "sell",
+            "price": 16.86
+          },
+          "CGRA4": {
+            "score": 63,
+            "signal": "sell",
+            "price": 20.9
+          },
+          "EALT3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 11
+          },
+          "ENGI3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 12.49
+          },
+          "IGTI4": {
+            "score": 63,
+            "signal": "sell",
+            "price": 9.68
+          },
+          "LOGG3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 19.72
+          },
+          "PGMN3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 2.37
+          },
+          "PLPL3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 4.28
+          },
+          "RENT3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 29.45
+          },
+          "SAUD3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 15.84
+          },
+          "SEER3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 11.06
+          },
+          "VIVT3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 35.56
+          },
+          "ABCB4": {
+            "score": 62,
+            "signal": "sell",
+            "price": 23.35
+          },
+          "AGRO3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 16.82
+          },
+          "DESK3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 19.9
+          },
+          "ECOR3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 5.91
+          },
+          "EGIE3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 25.49
+          },
+          "LJQQ3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 1.08
+          },
+          "LPSB3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 0.97
+          },
+          "MELK3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 1.96
+          },
+          "MRVE3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 4.77
+          },
+          "RENT4": {
+            "score": 62,
+            "signal": "sell",
+            "price": 28.9
+          },
+          "ROMI3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 5.66
+          },
+          "TIMS3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 22.2
+          },
+          "VITT3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 2.61
+          },
+          "VVEO3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 0.54
+          },
+          "AXIA3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 46.3
+          },
+          "AXIA7": {
+            "score": 61,
+            "signal": "sell",
+            "price": 46.54
+          },
+          "CAML3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 4.58
+          },
+          "EMBJ3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 109.79
+          },
+          "ENGI4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 9.08
+          },
+          "ESPA3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 5.05
+          },
+          "EVEN3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 3.62
+          },
+          "FLRY3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 20.98
+          },
+          "KEPL3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 6.6
+          },
+          "MGEL4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 5.15
+          },
+          "MTSA4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 40
+          },
+          "NGRD3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 34.28
+          },
+          "PASS3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 21.95
+          },
+          "PATI4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 35.45
+          },
+          "PEAB4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 38
+          },
+          "TTEN3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 11.85
+          },
+          "VTRU3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 14.3
+          },
+          "CASH3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 3.73
+          },
+          "CSMG3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 55.5
+          },
+          "DASA3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 3.5
+          },
+          "ENGI11": {
+            "score": 60,
+            "signal": "sell",
+            "price": 48.82
+          },
+          "HBSA3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 3.14
+          },
+          "PATI3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 28.27
+          },
+          "PDTC3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 1.61
+          },
+          "SBSP3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 27.43
+          },
+          "SYNE3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 2.77
+          },
+          "TEND3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 15.06
+          },
+          "TUPY3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 20.32
+          },
+          "USIM3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 4.92
+          },
+          "VIVA3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 16.55
+          },
+          "YDUQ3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 9.52
+          },
+          "BRAV3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 13.16
+          },
+          "DMVF3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 4.38
+          },
+          "DOTZ3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 6.85
+          },
+          "ENEV3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 26.13
+          },
+          "ETER3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 2.94
+          },
+          "FESA4": {
+            "score": 59,
+            "signal": "sell",
+            "price": 5.4
+          },
+          "HAPV3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 6.36
+          },
+          "IRBR3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 59.88
+          },
+          "JSLG3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 5.79
+          },
+          "LWSA3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 3.26
+          },
+          "MGLU3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 8.32
+          },
+          "PEAB3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 35
+          },
+          "QUAL3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 1.76
+          },
+          "RAPT3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 7.27
+          },
+          "TPIS3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 11.99
+          },
+          "USIM5": {
+            "score": 59,
+            "signal": "sell",
+            "price": 5.01
+          },
+          "AZEV3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 10.85
+          },
+          "COGN3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 1.6
+          },
+          "CSED3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 3.56
+          },
+          "DXCO3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 4.75
+          },
+          "FRAS3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 20.98
+          },
+          "MOVI3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 5.9
+          },
+          "MYPK3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 10.34
+          },
+          "RAPT4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 3.88
+          },
+          "SCAR3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 11.4
+          },
+          "SIMH3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 5.61
+          },
+          "TOTS3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 31.93
+          },
+          "ARML3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 4.15
+          },
+          "BBSE3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 36.66
+          },
+          "BIOM3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 5.8
+          },
+          "BRST3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 2.43
+          },
+          "OPCT3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 9.34
+          },
+          "RAIL3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 16.74
+          },
+          "TCSA3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 4.7
+          },
+          "WEGE3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 51.38
+          },
+          "WLMM3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 16.29
+          },
+          "AMOB3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 9.66
+          },
+          "BMKS3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 356.02
+          },
+          "CTKA3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 34.16
+          },
+          "EMAE4": {
+            "score": 56,
+            "signal": "sell",
+            "price": 42.17
+          },
+          "FESA3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 9.69
+          },
+          "POSI3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 3.17
+          },
+          "PRNR3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 12.84
+          },
+          "SBFG3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 4.12
+          },
+          "USIM6": {
+            "score": 56,
+            "signal": "sell",
+            "price": 5.5
+          },
+          "BBAS3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 14.12
+          },
+          "BMEB3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 47.56
+          },
+          "IFCM3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 0.92
+          },
+          "AURE3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 11.88
+          },
+          "BEEF3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 3.71
+          },
+          "EQTL3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 33.67
+          },
+          "LAND3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 10
+          },
+          "SHUL4": {
+            "score": 54,
+            "signal": "sell",
+            "price": 4.21
+          },
+          "UCAS3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 0.9
+          },
+          "VALE3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 59
+          },
+          "BMEB4": {
+            "score": 53,
+            "signal": "sell",
+            "price": 55.75
+          },
+          "NATU3": {
+            "score": 53,
+            "signal": "sell",
+            "price": 4.78
+          },
+          "TGMA3": {
+            "score": 53,
+            "signal": "sell",
+            "price": 33.3
+          },
+          "AZTE3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 0.66
+          },
+          "CTKA4": {
+            "score": 52,
+            "signal": "sell",
+            "price": 28.8
+          },
+          "HBRE3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 1.31
+          },
+          "JALL3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 2.37
+          },
+          "TASA3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 4.98
+          },
+          "ALPK3": {
+            "score": 51,
+            "signal": "sell",
+            "price": 3.5
+          },
+          "BRKM6": {
+            "score": 51,
+            "signal": "sell",
+            "price": 3.68
+          },
+          "RADL3": {
+            "score": 51,
+            "signal": "sell",
+            "price": 14.03
+          },
+          "AZEV4": {
+            "score": 50,
+            "signal": "sell",
+            "price": 0.68
+          },
+          "RNEW3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 0.8
+          },
+          "RNEW4": {
+            "score": 50,
+            "signal": "sell",
+            "price": 0.79
+          },
+          "SHUL3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 30
+          },
+          "SOJA3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 5.07
+          },
+          "TASA4": {
+            "score": 50,
+            "signal": "sell",
+            "price": 4.69
+          },
+          "UNIP3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 48
+          },
+          "ATED3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 0.72
+          },
+          "AVLL3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 4.69
+          },
+          "LOGN3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 21.78
+          },
+          "RVEE3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 0.63
+          },
+          "UNIP6": {
+            "score": 49,
+            "signal": "sell",
+            "price": 48.53
+          },
+          "CVCB3": {
+            "score": 48,
+            "signal": "sell",
+            "price": 0.78
+          },
+          "ENJU3": {
+            "score": 48,
+            "signal": "sell",
+            "price": 6.35
+          },
+          "ORVR3": {
+            "score": 48,
+            "signal": "sell",
+            "price": 18.75
+          },
+          "GPAR3": {
+            "score": 47,
+            "signal": "sell",
+            "price": 19.96
+          },
+          "LIGT3": {
+            "score": 47,
+            "signal": "sell",
+            "price": 2.86
+          },
+          "BRBI11": {
+            "score": 46,
+            "signal": "sell",
+            "price": 10.11
+          },
+          "CSAN3": {
+            "score": 46,
+            "signal": "sell",
+            "price": 3.13
+          },
+          "TFCO4": {
+            "score": 46,
+            "signal": "sell",
+            "price": 9.69
+          },
+          "UNIP5": {
+            "score": 45,
+            "signal": "sell",
+            "price": 48.21
+          },
+          "SNSY3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 9.89
+          },
+          "SNSY5": {
+            "score": 44,
+            "signal": "sell",
+            "price": 2.24
+          },
+          "AZUL3": {
+            "score": 43,
+            "signal": "sell",
+            "price": 10.95
+          },
+          "GFSA3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 0.21
+          },
+          "HBOR3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 0.99
+          },
+          "WHRL3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "WHRL4": {
+            "score": 41,
+            "signal": "sell",
+            "price": 2.99
+          },
+          "BRKM3": {
+            "score": 40,
+            "signal": "sell",
+            "price": 3.21
+          },
+          "BRKM5": {
+            "score": 39,
+            "signal": "sell",
+            "price": 2.63
+          },
+          "MEAL3": {
+            "score": 39,
+            "signal": "sell",
+            "price": 0.79
+          },
+          "PTBL3": {
+            "score": 33,
+            "signal": "sell",
+            "price": 1.34
+          },
+          "ONCO3": {
+            "score": 25,
+            "signal": "sell",
+            "price": 0.72
+          }
+        },
+        "long": {
+          "JHSF3": {
+            "score": 87,
+            "signal": "buy",
+            "price": 9.76
+          },
+          "BBDC3": {
+            "score": 86,
+            "signal": "buy",
+            "price": 12.9
+          },
+          "BBDC4": {
+            "score": 86,
+            "signal": "buy",
+            "price": 14.08
+          },
+          "BRSR3": {
+            "score": 86,
+            "signal": "buy",
+            "price": 16.93
+          },
+          "BRSR6": {
+            "score": 85,
+            "signal": "buy",
+            "price": 12.58
+          },
+          "OFSA3": {
+            "score": 85,
+            "signal": "buy",
+            "price": 26.05
+          },
+          "BRSR5": {
+            "score": 84,
+            "signal": "buy",
+            "price": 17
+          },
+          "MDNE3": {
+            "score": 84,
+            "signal": "buy",
+            "price": 16.83
+          },
+          "CALI3": {
+            "score": 83,
+            "signal": "buy",
+            "price": 30.84
+          },
+          "DIRR3": {
+            "score": 83,
+            "signal": "buy",
+            "price": 8.93
+          },
+          "IGTI11": {
+            "score": 82,
+            "signal": "buy",
+            "price": 21.86
+          },
+          "IGTI3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 2.83
+          },
+          "LAVV3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 7.85
+          },
+          "MNPR3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 3.55
+          },
+          "PINE3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 9.56
+          },
+          "PINE4": {
+            "score": 82,
+            "signal": "buy",
+            "price": 10.8
+          },
+          "TEND3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 15.06
+          },
+          "CURY3": {
+            "score": 81,
+            "signal": "buy",
+            "price": 25.3
+          },
+          "CYRE4": {
+            "score": 81,
+            "signal": "buy",
+            "price": 18.13
+          },
+          "EUCA4": {
+            "score": 81,
+            "signal": "buy",
+            "price": 18.25
+          },
+          "PSSA3": {
+            "score": 81,
+            "signal": "buy",
+            "price": 44.66
+          },
+          "SOND5": {
+            "score": 81,
+            "signal": "buy",
+            "price": 80.01
+          },
+          "SOND6": {
+            "score": 81,
+            "signal": "buy",
+            "price": 75
+          },
+          "CYRE3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 19.1
+          },
+          "EUCA3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 19.6
+          },
+          "GMAT3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 4.05
+          },
+          "IGTI4": {
+            "score": 80,
+            "signal": "buy",
+            "price": 9.68
+          },
+          "LREN3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 9.47
+          },
+          "MILS3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 16.35
+          },
+          "PGMN3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 2.37
+          },
+          "PLPL3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 4.28
+          },
+          "RIAA3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 6
+          },
+          "VULC3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 11.21
+          },
+          "WIZC3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 6.28
+          },
+          "CEBR5": {
+            "score": 79,
+            "signal": "buy",
+            "price": 23.2
+          },
+          "CEBR6": {
+            "score": 79,
+            "signal": "buy",
+            "price": 27
+          },
+          "DOHL3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 6.46
+          },
+          "DOHL4": {
+            "score": 79,
+            "signal": "buy",
+            "price": 3.67
+          },
+          "AZZA3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 15.78
+          },
+          "CEBR3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 23.3
+          },
+          "FIQE3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 5.75
+          },
+          "ITSA3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 13.56
+          },
+          "ITSA4": {
+            "score": 78,
+            "signal": "buy",
+            "price": 13.15
+          },
+          "MELK3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 1.96
+          },
+          "UGPA3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 31.6
+          },
+          "BMOB3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 24.86
+          },
+          "DEXP3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 6.87
+          },
+          "DEXP4": {
+            "score": 77,
+            "signal": "buy",
+            "price": 6.8
+          },
+          "LPSB3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 0.97
+          },
+          "RECV3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 10.27
+          },
+          "RSUL4": {
+            "score": 77,
+            "signal": "buy",
+            "price": 39.98
+          },
+          "ASAI3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 9.47
+          },
+          "BMGB4": {
+            "score": 76,
+            "signal": "buy",
+            "price": 5.07
+          },
+          "ITUB3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 44.24
+          },
+          "ITUB4": {
+            "score": 76,
+            "signal": "buy",
+            "price": 40.19
+          },
+          "MLAS3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 2.19
+          },
+          "PETR3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 49.3
+          },
+          "PETR4": {
+            "score": 76,
+            "signal": "buy",
+            "price": 43.17
+          },
+          "SMFT3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 17.75
+          },
+          "ANIM3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 2.43
+          },
+          "BRAV3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 13.16
+          },
+          "CASH3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 3.73
+          },
+          "CBAV3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 11.34
+          },
+          "ECOM3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 0.86
+          },
+          "HBTS5": {
+            "score": 75,
+            "signal": "buy",
+            "price": 33
+          },
+          "ISAE4": {
+            "score": 75,
+            "signal": "buy",
+            "price": 26.19
+          },
+          "LEVE3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 31.11
+          },
+          "PFRM3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 7.48
+          },
+          "POMO3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 3.55
+          },
+          "POMO4": {
+            "score": 75,
+            "signal": "buy",
+            "price": 3.78
+          },
+          "SLCE3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 17.88
+          },
+          "VSTE3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 2.78
+          },
+          "ALLD3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 6.81
+          },
+          "ALOS3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 26.21
+          },
+          "ALPA3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 10.11
+          },
+          "ALPA4": {
+            "score": 74,
+            "signal": "buy",
+            "price": 13.38
+          },
+          "EZTC3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 9.32
+          },
+          "GGPS3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 10.58
+          },
+          "ISAE3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 35.6
+          },
+          "LOGG3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 19.72
+          },
+          "MOTV3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 15.8
+          },
+          "SMTO3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 17.86
+          },
+          "TECN3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 8.24
+          },
+          "TRIS3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 4.39
+          },
+          "VTRU3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 14.3
+          },
+          "CLSC4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 171.59
+          },
+          "MTSA4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 40
+          },
+          "PNVL3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 11
+          },
+          "RDOR3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 36.31
+          },
+          "SUZB3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 55.6
+          },
+          "ALUP11": {
+            "score": 72,
+            "signal": "buy",
+            "price": 32.85
+          },
+          "BLAU3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 9.51
+          },
+          "ESPA3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 5.05
+          },
+          "MDIA3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 16.64
+          },
+          "RENT3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 29.45
+          },
+          "SANB3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 14.1
+          },
+          "SANB4": {
+            "score": 72,
+            "signal": "buy",
+            "price": 14.09
+          },
+          "SEER3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 11.06
+          },
+          "VBBR3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 30.39
+          },
+          "CSED3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 3.56
+          },
+          "CSUD3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 13.74
+          },
+          "DOTZ3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 6.85
+          },
+          "EALT4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 9.98
+          },
+          "RENT4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 28.9
+          },
+          "SANB11": {
+            "score": 71,
+            "signal": "buy",
+            "price": 28.15
+          },
+          "ARND3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 0.73
+          },
+          "CLSC3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 157.4
+          },
+          "CPFE3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 44.14
+          },
+          "EALT3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 11
+          },
+          "HAPV3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 6.36
+          },
+          "MGEL4": {
+            "score": 70,
+            "signal": "buy",
+            "price": 5.15
+          },
+          "PRIO3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 61.87
+          },
+          "SHOW3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 6.24
+          },
+          "TOTS3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 31.93
+          },
+          "VAMO3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 2.59
+          },
+          "VVEO3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 0.54
+          },
+          "BALM3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 22.01
+          },
+          "CGRA4": {
+            "score": 69,
+            "signal": "sell",
+            "price": 20.9
+          },
+          "DMVF3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 4.38
+          },
+          "ECOR3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 5.91
+          },
+          "MOVI3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 5.9
+          },
+          "MTRE3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "MULT3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 26.67
+          },
+          "VIVA3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 16.55
+          },
+          "ABCB4": {
+            "score": 68,
+            "signal": "sell",
+            "price": 23.35
+          },
+          "BEES3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 9.09
+          },
+          "BEES4": {
+            "score": 68,
+            "signal": "sell",
+            "price": 9.47
+          },
+          "CGRA3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 21.69
+          },
+          "CXSE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 20.5
+          },
+          "EGIE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 25.49
+          },
+          "HYPE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 21.97
+          },
+          "MATD3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 5.22
+          },
+          "VITT3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 2.61
+          },
+          "BALM4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.69
+          },
+          "BMEB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 47.56
+          },
+          "BRAP3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.68
+          },
+          "CMIG3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 17.59
+          },
+          "CMIG4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 10.93
+          },
+          "CPLE3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.28
+          },
+          "ENEV3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 26.13
+          },
+          "GOAU3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 9.99
+          },
+          "GOAU4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 11.25
+          },
+          "HBSA3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 3.14
+          },
+          "INTB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.58
+          },
+          "MRVE3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 4.77
+          },
+          "PDTC3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 1.61
+          },
+          "QUAL3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 1.76
+          },
+          "SBFG3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 4.12
+          },
+          "TTEN3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 11.85
+          },
+          "AZTE3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 0.66
+          },
+          "BMEB4": {
+            "score": 66,
+            "signal": "sell",
+            "price": 55.75
+          },
+          "BRAP4": {
+            "score": 66,
+            "signal": "sell",
+            "price": 16.86
+          },
+          "CAMB3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 6.95
+          },
+          "EVEN3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 3.62
+          },
+          "TAEE11": {
+            "score": 66,
+            "signal": "sell",
+            "price": 40.56
+          },
+          "TAEE3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 13.36
+          },
+          "TAEE4": {
+            "score": 66,
+            "signal": "sell",
+            "price": 13.57
+          },
+          "USIM3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 4.92
+          },
+          "USIM5": {
+            "score": 66,
+            "signal": "sell",
+            "price": 5.01
+          },
+          "VIVT3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 35.56
+          },
+          "VLID3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 14.88
+          },
+          "ABEV3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 16.07
+          },
+          "AXIA7": {
+            "score": 65,
+            "signal": "sell",
+            "price": 46.54
+          },
+          "COGN3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 1.6
+          },
+          "ETER3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 2.94
+          },
+          "FLRY3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 20.98
+          },
+          "GGBR3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 21.68
+          },
+          "GGBR4": {
+            "score": 65,
+            "signal": "sell",
+            "price": 25.59
+          },
+          "IFCM3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 0.92
+          },
+          "PEAB3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 35
+          },
+          "RADL3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 14.03
+          },
+          "RANI3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 8.07
+          },
+          "REDE3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 5.14
+          },
+          "SIMH3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 5.61
+          },
+          "AXIA3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 46.3
+          },
+          "BBAS3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 14.12
+          },
+          "BBSE3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 36.66
+          },
+          "BEEF3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 3.71
+          },
+          "CSMG3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 55.5
+          },
+          "GRND3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 3.7
+          },
+          "HBRE3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 1.31
+          },
+          "LWSA3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 3.26
+          },
+          "PEAB4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 38
+          },
+          "ROMI3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 5.66
+          },
+          "USIM6": {
+            "score": 64,
+            "signal": "sell",
+            "price": 5.5
+          },
+          "WLMM4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 15.3
+          },
+          "AUAU3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 4.27
+          },
+          "ENGI3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 12.49
+          },
+          "FRAS3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 20.98
+          },
+          "LOGN3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 21.78
+          },
+          "RAPT3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 7.27
+          },
+          "SYNE3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 2.77
+          },
+          "WLMM3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 16.29
+          },
+          "ENGI4": {
+            "score": 62,
+            "signal": "sell",
+            "price": 9.08
+          },
+          "LJQQ3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 1.08
+          },
+          "NUTR3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 2.85
+          },
+          "SAUD3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 15.84
+          },
+          "BIOM3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 5.8
+          },
+          "ENGI11": {
+            "score": 61,
+            "signal": "sell",
+            "price": 48.82
+          },
+          "OPCT3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 9.34
+          },
+          "PRNR3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 12.84
+          },
+          "RAPT4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 3.88
+          },
+          "TFCO4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 9.69
+          },
+          "ALPK3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 3.5
+          },
+          "CAML3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 4.58
+          },
+          "MGLU3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 8.32
+          },
+          "PASS3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 21.95
+          },
+          "SOJA3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 5.07
+          },
+          "TIMS3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 22.2
+          },
+          "YDUQ3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 9.52
+          },
+          "BRST3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 2.43
+          },
+          "CVCB3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 0.78
+          },
+          "DESK3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 19.9
+          },
+          "JSLG3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 5.79
+          },
+          "RAIL3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 16.74
+          },
+          "SBSP3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 27.43
+          },
+          "SCAR3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 11.4
+          },
+          "TGMA3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 33.3
+          },
+          "AMER3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 4
+          },
+          "ARML3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 4.15
+          },
+          "AZEV3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 10.85
+          },
+          "AZEV4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 0.68
+          },
+          "FESA4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 5.4
+          },
+          "KEPL3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 6.6
+          },
+          "MNDL3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 18.5
+          },
+          "MSPA3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 37.4
+          },
+          "MSPA4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 33
+          },
+          "NATU3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 4.78
+          },
+          "SHUL4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 4.21
+          },
+          "AMOB3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 9.66
+          },
+          "DXCO3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 4.75
+          },
+          "EQTL3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 33.67
+          },
+          "FESA3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 9.69
+          },
+          "PATI3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 28.27
+          },
+          "WEGE3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 51.38
+          },
+          "AGRO3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 16.82
+          },
+          "CTKA3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 34.16
+          },
+          "CTKA4": {
+            "score": 56,
+            "signal": "sell",
+            "price": 28.8
+          },
+          "JOPA3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 19.94
+          },
+          "NGRD3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 34.28
+          },
+          "PATI4": {
+            "score": 56,
+            "signal": "sell",
+            "price": 35.45
+          },
+          "POSI3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 3.17
+          },
+          "UCAS3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 0.9
+          },
+          "DASA3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 3.5
+          },
+          "EMBJ3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 109.79
+          },
+          "JALL3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 2.37
+          },
+          "JOPA4": {
+            "score": 55,
+            "signal": "sell",
+            "price": 18
+          },
+          "MYPK3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 10.34
+          },
+          "ATED3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 0.72
+          },
+          "AURE3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 11.88
+          },
+          "MWET3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 24.5
+          },
+          "SHUL3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 30
+          },
+          "TUPY3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 20.32
+          },
+          "VALE3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 59
+          },
+          "MWET4": {
+            "score": 53,
+            "signal": "sell",
+            "price": 23.9
+          },
+          "ORVR3": {
+            "score": 51,
+            "signal": "sell",
+            "price": 18.75
+          },
+          "AVLL3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 4.69
+          },
+          "GPAR3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 19.96
+          },
+          "IRBR3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 59.88
+          },
+          "LAND3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 10
+          },
+          "LIGT3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 2.86
+          },
+          "BRKM3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 3.21
+          },
+          "TASA3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 4.98
+          },
+          "TASA4": {
+            "score": 49,
+            "signal": "sell",
+            "price": 4.69
+          },
+          "UNIP3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 48
+          },
+          "UNIP6": {
+            "score": 49,
+            "signal": "sell",
+            "price": 48.53
+          },
+          "BRBI11": {
+            "score": 48,
+            "signal": "sell",
+            "price": 10.11
+          },
+          "BRKM5": {
+            "score": 48,
+            "signal": "sell",
+            "price": 2.63
+          },
+          "BRKM6": {
+            "score": 48,
+            "signal": "sell",
+            "price": 3.68
+          },
+          "RNEW3": {
+            "score": 48,
+            "signal": "sell",
+            "price": 0.8
+          },
+          "RNEW4": {
+            "score": 48,
+            "signal": "sell",
+            "price": 0.79
+          },
+          "UNIP5": {
+            "score": 48,
+            "signal": "sell",
+            "price": 48.21
+          },
+          "BMKS3": {
+            "score": 47,
+            "signal": "sell",
+            "price": 356.02
+          },
+          "CSAN3": {
+            "score": 47,
+            "signal": "sell",
+            "price": 3.13
+          },
+          "HBOR3": {
+            "score": 47,
+            "signal": "sell",
+            "price": 0.99
+          },
+          "AZUL3": {
+            "score": 46,
+            "signal": "sell",
+            "price": 10.95
+          },
+          "TCSA3": {
+            "score": 46,
+            "signal": "sell",
+            "price": 4.7
+          },
+          "TPIS3": {
+            "score": 46,
+            "signal": "sell",
+            "price": 11.99
+          },
+          "EMAE4": {
+            "score": 44,
+            "signal": "sell",
+            "price": 42.17
+          },
+          "ENJU3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 6.35
+          },
+          "RVEE3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 0.63
+          },
+          "WHRL3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "WHRL4": {
+            "score": 44,
+            "signal": "sell",
+            "price": 2.99
+          },
+          "SNSY3": {
+            "score": 39,
+            "signal": "sell",
+            "price": 9.89
+          },
+          "SNSY5": {
+            "score": 39,
+            "signal": "sell",
+            "price": 2.24
+          },
+          "GFSA3": {
+            "score": 38,
+            "signal": "sell",
+            "price": 0.21
+          },
+          "PTBL3": {
+            "score": 37,
+            "signal": "sell",
+            "price": 1.34
+          },
+          "MEAL3": {
+            "score": 29,
+            "signal": "sell",
+            "price": 0.79
+          },
+          "ONCO3": {
+            "score": 28,
+            "signal": "sell",
+            "price": 0.72
+          }
+        },
+        "dividends": {
+          "BBDC3": {
+            "score": 84,
+            "signal": "buy",
+            "price": 12.9
+          },
+          "BBDC4": {
+            "score": 84,
+            "signal": "buy",
+            "price": 14.08
+          },
+          "JHSF3": {
+            "score": 84,
+            "signal": "buy",
+            "price": 9.76
+          },
+          "BRSR3": {
+            "score": 83,
+            "signal": "buy",
+            "price": 16.93
+          },
+          "BRSR6": {
+            "score": 83,
+            "signal": "buy",
+            "price": 12.58
+          },
+          "PSSA3": {
+            "score": 82,
+            "signal": "buy",
+            "price": 44.66
+          },
+          "BRSR5": {
+            "score": 81,
+            "signal": "buy",
+            "price": 17
+          },
+          "ITSA3": {
+            "score": 81,
+            "signal": "buy",
+            "price": 13.56
+          },
+          "DIRR3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 8.93
+          },
+          "ITSA4": {
+            "score": 80,
+            "signal": "buy",
+            "price": 13.15
+          },
+          "PINE4": {
+            "score": 80,
+            "signal": "buy",
+            "price": 10.8
+          },
+          "VULC3": {
+            "score": 80,
+            "signal": "buy",
+            "price": 11.21
+          },
+          "LEVE3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 31.11
+          },
+          "MDNE3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 16.83
+          },
+          "PINE3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 9.56
+          },
+          "WIZC3": {
+            "score": 79,
+            "signal": "buy",
+            "price": 6.28
+          },
+          "ITUB3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 44.24
+          },
+          "ITUB4": {
+            "score": 78,
+            "signal": "buy",
+            "price": 40.19
+          },
+          "LREN3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 9.47
+          },
+          "PETR3": {
+            "score": 78,
+            "signal": "buy",
+            "price": 49.3
+          },
+          "PETR4": {
+            "score": 78,
+            "signal": "buy",
+            "price": 43.17
+          },
+          "FIQE3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 5.75
+          },
+          "LAVV3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 7.85
+          },
+          "SOND5": {
+            "score": 77,
+            "signal": "buy",
+            "price": 80.01
+          },
+          "SOND6": {
+            "score": 77,
+            "signal": "buy",
+            "price": 75
+          },
+          "TEND3": {
+            "score": 77,
+            "signal": "buy",
+            "price": 15.06
+          },
+          "BMOB3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 24.86
+          },
+          "CEBR5": {
+            "score": 76,
+            "signal": "buy",
+            "price": 23.2
+          },
+          "CEBR6": {
+            "score": 76,
+            "signal": "buy",
+            "price": 27
+          },
+          "CYRE3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 19.1
+          },
+          "HBTS5": {
+            "score": 76,
+            "signal": "buy",
+            "price": 33
+          },
+          "IGTI11": {
+            "score": 76,
+            "signal": "buy",
+            "price": 21.86
+          },
+          "IGTI3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 2.83
+          },
+          "PLPL3": {
+            "score": 76,
+            "signal": "buy",
+            "price": 4.28
+          },
+          "BMGB4": {
+            "score": 75,
+            "signal": "buy",
+            "price": 5.07
+          },
+          "CEBR3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 23.3
+          },
+          "MILS3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 16.35
+          },
+          "RECV3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 10.27
+          },
+          "RIAA3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 6
+          },
+          "SMFT3": {
+            "score": 75,
+            "signal": "buy",
+            "price": 17.75
+          },
+          "CSUD3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 13.74
+          },
+          "ISAE4": {
+            "score": 74,
+            "signal": "buy",
+            "price": 26.19
+          },
+          "MELK3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 1.96
+          },
+          "RENT3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 29.45
+          },
+          "UGPA3": {
+            "score": 74,
+            "signal": "buy",
+            "price": 31.6
+          },
+          "BMEB3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 47.56
+          },
+          "CXSE3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 20.5
+          },
+          "DEXP3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 6.87
+          },
+          "DEXP4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 6.8
+          },
+          "ISAE3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 35.6
+          },
+          "PGMN3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 2.37
+          },
+          "SANB3": {
+            "score": 73,
+            "signal": "buy",
+            "price": 14.1
+          },
+          "SANB4": {
+            "score": 73,
+            "signal": "buy",
+            "price": 14.09
+          },
+          "BMEB4": {
+            "score": 72,
+            "signal": "buy",
+            "price": 55.75
+          },
+          "CLSC4": {
+            "score": 72,
+            "signal": "buy",
+            "price": 171.59
+          },
+          "EUCA4": {
+            "score": 72,
+            "signal": "buy",
+            "price": 18.25
+          },
+          "IGTI4": {
+            "score": 72,
+            "signal": "buy",
+            "price": 9.68
+          },
+          "MNPR3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 3.55
+          },
+          "PFRM3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 7.48
+          },
+          "POMO3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 3.55
+          },
+          "RDOR3": {
+            "score": 72,
+            "signal": "buy",
+            "price": 36.31
+          },
+          "ALOS3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 26.21
+          },
+          "ALPA3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 10.11
+          },
+          "ALPA4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 13.38
+          },
+          "BBSE3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 36.66
+          },
+          "CPFE3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 44.14
+          },
+          "EZTC3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 9.32
+          },
+          "MOTV3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 15.8
+          },
+          "MOVI3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 5.9
+          },
+          "POMO4": {
+            "score": 71,
+            "signal": "buy",
+            "price": 3.78
+          },
+          "VIVT3": {
+            "score": 71,
+            "signal": "buy",
+            "price": 35.56
+          },
+          "ABCB4": {
+            "score": 70,
+            "signal": "buy",
+            "price": 23.35
+          },
+          "BEES3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 9.09
+          },
+          "BEES4": {
+            "score": 70,
+            "signal": "buy",
+            "price": 9.47
+          },
+          "EUCA3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 19.6
+          },
+          "LOGG3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 19.72
+          },
+          "MDIA3": {
+            "score": 70,
+            "signal": "buy",
+            "price": 16.64
+          },
+          "ALLD3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 6.81
+          },
+          "CALI3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 30.84
+          },
+          "INTB3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 15.58
+          },
+          "MTRE3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "RENT4": {
+            "score": 69,
+            "signal": "sell",
+            "price": 28.9
+          },
+          "VBBR3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 30.39
+          },
+          "AZZA3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 15.78
+          },
+          "BLAU3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 9.51
+          },
+          "CLSC3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 157.4
+          },
+          "RADL3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 14.03
+          },
+          "SANB11": {
+            "score": 68,
+            "signal": "sell",
+            "price": 28.15
+          },
+          "SEER3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 11.06
+          },
+          "SLCE3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 17.88
+          },
+          "TRIS3": {
+            "score": 68,
+            "signal": "sell",
+            "price": 4.39
+          },
+          "CMIG4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 10.93
+          },
+          "CPLE3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 15.28
+          },
+          "CSMG3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 55.5
+          },
+          "EALT4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 9.98
+          },
+          "EGIE3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 25.49
+          },
+          "LPSB3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 0.97
+          },
+          "MTSA4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 40
+          },
+          "MULT3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 26.67
+          },
+          "SHUL4": {
+            "score": 67,
+            "signal": "sell",
+            "price": 4.21
+          },
+          "TOTS3": {
+            "score": 67,
+            "signal": "sell",
+            "price": 31.93
+          },
+          "ASAI3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 9.47
+          },
+          "CMIG3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 17.59
+          },
+          "GMAT3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 4.05
+          },
+          "HYPE3": {
+            "score": 66,
+            "signal": "sell",
+            "price": 21.97
+          },
+          "ALUP11": {
+            "score": 65,
+            "signal": "sell",
+            "price": 32.85
+          },
+          "ANIM3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 2.43
+          },
+          "CAMB3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 6.95
+          },
+          "CSED3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 3.56
+          },
+          "DOHL4": {
+            "score": 65,
+            "signal": "sell",
+            "price": 3.67
+          },
+          "GGPS3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 10.58
+          },
+          "RSUL4": {
+            "score": 65,
+            "signal": "sell",
+            "price": 39.98
+          },
+          "TIMS3": {
+            "score": 65,
+            "signal": "sell",
+            "price": 22.2
+          },
+          "BALM3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 22.01
+          },
+          "EALT3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 11
+          },
+          "FLRY3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 20.98
+          },
+          "LWSA3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 3.26
+          },
+          "PNVL3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 11
+          },
+          "SAUD3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 15.84
+          },
+          "SMTO3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 17.86
+          },
+          "VITT3": {
+            "score": 64,
+            "signal": "sell",
+            "price": 2.61
+          },
+          "WLMM4": {
+            "score": 64,
+            "signal": "sell",
+            "price": 15.3
+          },
+          "BALM4": {
+            "score": 63,
+            "signal": "sell",
+            "price": 15.69
+          },
+          "BRAP3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 15.68
+          },
+          "CBAV3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 11.34
+          },
+          "DOHL3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 6.46
+          },
+          "RANI3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 8.07
+          },
+          "ROMI3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 5.66
+          },
+          "SBFG3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 4.12
+          },
+          "SUZB3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 55.6
+          },
+          "TECN3": {
+            "score": 63,
+            "signal": "sell",
+            "price": 8.24
+          },
+          "TFCO4": {
+            "score": 63,
+            "signal": "sell",
+            "price": 9.69
+          },
+          "BRAP4": {
+            "score": 62,
+            "signal": "sell",
+            "price": 16.86
+          },
+          "GRND3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 3.7
+          },
+          "WLMM3": {
+            "score": 62,
+            "signal": "sell",
+            "price": 16.29
+          },
+          "BBAS3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 14.12
+          },
+          "CGRA4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 20.9
+          },
+          "COGN3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 1.6
+          },
+          "ECOR3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 5.91
+          },
+          "TAEE11": {
+            "score": 61,
+            "signal": "sell",
+            "price": 40.56
+          },
+          "TAEE3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 13.36
+          },
+          "TAEE4": {
+            "score": 61,
+            "signal": "sell",
+            "price": 13.57
+          },
+          "VIVA3": {
+            "score": 61,
+            "signal": "sell",
+            "price": 16.55
+          },
+          "CGRA3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 21.69
+          },
+          "PASS3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 21.95
+          },
+          "SBSP3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 27.43
+          },
+          "VLID3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 14.88
+          },
+          "WEGE3": {
+            "score": 60,
+            "signal": "sell",
+            "price": 51.38
+          },
+          "BEEF3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 3.71
+          },
+          "ESPA3": {
+            "score": 59,
+            "signal": "sell",
+            "price": 5.05
+          },
+          "BRAV3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 13.16
+          },
+          "CAML3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 4.58
+          },
+          "EMBJ3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 109.79
+          },
+          "ETER3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 2.94
+          },
+          "GGBR3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 21.68
+          },
+          "GGBR4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 25.59
+          },
+          "GOAU3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 9.99
+          },
+          "GOAU4": {
+            "score": 58,
+            "signal": "sell",
+            "price": 11.25
+          },
+          "HBRE3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 1.31
+          },
+          "SCAR3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 11.4
+          },
+          "TTEN3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 11.85
+          },
+          "VAMO3": {
+            "score": 58,
+            "signal": "sell",
+            "price": 2.59
+          },
+          "JSLG3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 5.79
+          },
+          "MATD3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 5.22
+          },
+          "MLAS3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 2.19
+          },
+          "REDE3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 5.14
+          },
+          "SYNE3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 2.77
+          },
+          "TGMA3": {
+            "score": 57,
+            "signal": "sell",
+            "price": 33.3
+          },
+          "AXIA3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 46.3
+          },
+          "EVEN3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 3.62
+          },
+          "GPAR3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 19.96
+          },
+          "SIMH3": {
+            "score": 56,
+            "signal": "sell",
+            "price": 5.61
+          },
+          "ALPK3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 3.5
+          },
+          "KEPL3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 6.6
+          },
+          "SHUL3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 30
+          },
+          "VSTE3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 2.78
+          },
+          "VTRU3": {
+            "score": 55,
+            "signal": "sell",
+            "price": 14.3
+          },
+          "OPCT3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 9.34
+          },
+          "RAIL3": {
+            "score": 54,
+            "signal": "sell",
+            "price": 16.74
+          },
+          "DESK3": {
+            "score": 53,
+            "signal": "sell",
+            "price": 19.9
+          },
+          "ENGI3": {
+            "score": 53,
+            "signal": "sell",
+            "price": 12.49
+          },
+          "VALE3": {
+            "score": 53,
+            "signal": "sell",
+            "price": 59
+          },
+          "ARML3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 4.15
+          },
+          "ENGI4": {
+            "score": 52,
+            "signal": "sell",
+            "price": 9.08
+          },
+          "PEAB3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 35
+          },
+          "PEAB4": {
+            "score": 52,
+            "signal": "sell",
+            "price": 38
+          },
+          "QUAL3": {
+            "score": 52,
+            "signal": "sell",
+            "price": 1.76
+          },
+          "BMKS3": {
+            "score": 51,
+            "signal": "sell",
+            "price": 356.02
+          },
+          "BRBI11": {
+            "score": 51,
+            "signal": "sell",
+            "price": 10.11
+          },
+          "PATI3": {
+            "score": 51,
+            "signal": "sell",
+            "price": 28.27
+          },
+          "AUAU3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 4.27
+          },
+          "FESA3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 9.69
+          },
+          "FESA4": {
+            "score": 50,
+            "signal": "sell",
+            "price": 5.4
+          },
+          "PATI4": {
+            "score": 50,
+            "signal": "sell",
+            "price": 35.45
+          },
+          "SOJA3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 5.07
+          },
+          "YDUQ3": {
+            "score": 50,
+            "signal": "sell",
+            "price": 9.52
+          },
+          "EQTL3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 33.67
+          },
+          "UNIP3": {
+            "score": 49,
+            "signal": "sell",
+            "price": 48
+          },
+          "UNIP6": {
+            "score": 49,
+            "signal": "sell",
+            "price": 48.53
+          },
+          "ENGI11": {
+            "score": 48,
+            "signal": "sell",
+            "price": 48.82
+          },
+          "JALL3": {
+            "score": 48,
+            "signal": "sell",
+            "price": 2.37
+          },
+          "POSI3": {
+            "score": 48,
+            "signal": "sell",
+            "price": 3.17
+          },
+          "UNIP5": {
+            "score": 48,
+            "signal": "sell",
+            "price": 48.21
+          },
+          "PRNR3": {
+            "score": 46,
+            "signal": "sell",
+            "price": 12.84
+          },
+          "HBOR3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 0.99
+          },
+          "JOPA3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 19.94
+          },
+          "MGLU3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 8.32
+          },
+          "WHRL3": {
+            "score": 44,
+            "signal": "sell",
+            "price": 2.98
+          },
+          "WHRL4": {
+            "score": 44,
+            "signal": "sell",
+            "price": 2.99
+          },
+          "AGRO3": {
+            "score": 43,
+            "signal": "sell",
+            "price": 16.82
+          },
+          "IRBR3": {
+            "score": 43,
+            "signal": "sell",
+            "price": 59.88
+          },
+          "RAPT3": {
+            "score": 43,
+            "signal": "sell",
+            "price": 7.27
+          },
+          "TPIS3": {
+            "score": 43,
+            "signal": "sell",
+            "price": 11.99
+          },
+          "AURE3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 11.88
+          },
+          "ENJU3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 6.35
+          },
+          "LAND3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 10
+          },
+          "LJQQ3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 1.08
+          },
+          "MSPA3": {
+            "score": 42,
+            "signal": "sell",
+            "price": 37.4
+          },
+          "MSPA4": {
+            "score": 42,
+            "signal": "sell",
+            "price": 33
+          },
+          "RAPT4": {
+            "score": 42,
+            "signal": "sell",
+            "price": 3.88
+          },
+          "JOPA4": {
+            "score": 41,
+            "signal": "sell",
+            "price": 18
+          },
+          "UCAS3": {
+            "score": 41,
+            "signal": "sell",
+            "price": 0.9
+          },
+          "DXCO3": {
+            "score": 40,
+            "signal": "sell",
+            "price": 4.75
+          },
+          "MYPK3": {
+            "score": 40,
+            "signal": "sell",
+            "price": 10.34
+          },
+          "TUPY3": {
+            "score": 37,
+            "signal": "sell",
+            "price": 20.32
+          },
+          "TASA3": {
+            "score": 36,
+            "signal": "sell",
+            "price": 4.98
+          },
+          "TASA4": {
+            "score": 36,
+            "signal": "sell",
+            "price": 4.69
           }
         }
       }
