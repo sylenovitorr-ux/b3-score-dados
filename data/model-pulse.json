@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T08:36:41.616Z",
+  "generatedAt": "2026-11-21T01:52:46.678Z",
   "referenceDate": "2026-11-19",
   "previousReferenceDate": "2026-11-18",
   "modelVersion": "b3-score-4.0",
@@ -567,6 +567,24 @@
       "newBuys": [],
       "newSells": [
         {
+          "ticker": "CLSC3",
+          "name": "Celesc",
+          "price": 157.4,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 71,
+          "parts": {
+            "fundamentals": 71,
+            "valuation": 80,
+            "growth": 65,
+            "risk": 44,
+            "confidence": 71
+          },
+          "previousScore": 70,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
           "ticker": "TOTS3",
           "name": "Totvs",
           "price": 31.11,
@@ -893,6 +911,24 @@
           "delta": 1
         },
         {
+          "ticker": "CLSC3",
+          "name": "Celesc",
+          "price": 157.4,
+          "score": 69,
+          "signal": "sell",
+          "confidence": 71,
+          "parts": {
+            "fundamentals": 71,
+            "valuation": 80,
+            "growth": 65,
+            "risk": 44,
+            "confidence": 71
+          },
+          "previousScore": 70,
+          "previousSignal": "buy",
+          "delta": -1
+        },
+        {
           "ticker": "TOTS3",
           "name": "Totvs",
           "price": 31.11,
@@ -927,24 +963,6 @@
           "previousScore": 69,
           "previousSignal": "sell",
           "delta": -1
-        },
-        {
-          "ticker": "USIM3",
-          "name": "Usiminas",
-          "price": 4.9,
-          "score": 67,
-          "signal": "sell",
-          "confidence": 98,
-          "parts": {
-            "fundamentals": 67,
-            "valuation": 93,
-            "growth": 32,
-            "risk": 49,
-            "confidence": 98
-          },
-          "previousScore": 66,
-          "previousSignal": "sell",
-          "delta": 1
         }
       ],
       "enteredTop4": [],
@@ -955,8 +973,8 @@
         "BRSR3",
         "OFSA3"
       ],
-      "buys": 115,
-      "sells": 174,
+      "buys": 114,
+      "sells": 175,
       "evaluated": 289
     },
     "dividends": {
@@ -228619,7 +228637,7 @@
     },
     {
       "date": "2026-11-19",
-      "generatedAt": "2026-11-20T08:36:41.616Z",
+      "generatedAt": "2026-11-21T01:52:46.678Z",
       "modelVersion": "b3-score-4.0",
       "strategies": {
         "swing": {
@@ -230600,11 +230618,6 @@
             "signal": "buy",
             "price": 0.73
           },
-          "CLSC3": {
-            "score": 70,
-            "signal": "buy",
-            "price": 157.4
-          },
           "CPFE3": {
             "score": 70,
             "signal": "buy",
@@ -230649,6 +230662,11 @@
             "score": 69,
             "signal": "sell",
             "price": 20.65
+          },
+          "CLSC3": {
+            "score": 69,
+            "signal": "sell",
+            "price": 157.4
           },
           "DMVF3": {
             "score": 69,
